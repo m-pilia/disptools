@@ -1,0 +1,10 @@
+*.o
+*.so
+*.out
+**/__pycache__
+*~
+build
+dist
+*.egg-info
+sphinx/readme.rst
+sphinx/_build

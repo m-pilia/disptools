@@ -1,0 +1,1607 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>disptools &mdash; disptools 0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
+    <link rel="top" title="disptools 0.1 documentation" href="#"/> 
+
+  
+  <script src="static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="#" class="icon icon-home"> disptools
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">disptools</a><ul>
+<li><a class="reference internal" href="#generate-displacement-fields-with-known-volume-changes">Generate displacement fields with known volume changes</a><ul>
+<li><a class="reference internal" href="#documentation">Documentation</a></li>
+<li><a class="reference internal" href="#architecture">Architecture</a></li>
+<li><a class="reference internal" href="#requirements">Requirements</a></li>
+<li><a class="reference internal" href="#build-and-install">Build and install</a><ul>
+<li><a class="reference internal" href="#linux">Linux</a></li>
+<li><a class="reference internal" href="#windows">Windows</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#content">Content</a></li>
+<li><a class="reference internal" href="#quick-example">Quick example</a></li>
+<li><a class="reference internal" href="#references">References</a></li>
+<li><a class="reference internal" href="#license">License</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#disptools-package">disptools package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-disptools.displacements">disptools.displacements module</a></li>
+<li><a class="reference internal" href="#module-disptools.drawing">disptools.drawing module</a></li>
+<li><a class="reference internal" href="#module-disptools.io">disptools.io module</a></li>
+<li><a class="reference internal" href="#module-disptools.measure">disptools.measure module</a></li>
+<li><a class="reference internal" href="#module-disptools.predict">disptools.predict module</a></li>
+<li><a class="reference internal" href="#module-disptools.simulatrophy">disptools.simulatrophy module</a></li>
+<li><a class="reference internal" href="#module-disptools">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">disptools</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="#">Docs</a> &raquo;</li>
+        
+      <li>disptools</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="sources/index.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="toctree-wrapper compound">
+</div>
+<div class="section" id="disptools">
+<h1>disptools<a class="headerlink" href="#disptools" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="generate-displacement-fields-with-known-volume-changes">
+<h2>Generate displacement fields with known volume changes<a class="headerlink" href="#generate-displacement-fields-with-known-volume-changes" title="Permalink to this headline">¶</a></h2>
+<p>This library provides utilities to generate and manipulate displacement fields with known volume changes. It implements three search-based algorithms for the generation of deformation fields, along with a small collection of utility functions.</p>
+<p>The three algorithms implemented are referred as:</p>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">gradient</span></code>: a gradient descent method (default).</li>
+<li><code class="docutils literal notranslate"><span class="pre">greedy</span></code>: a greedy search method based on the method proposed in [1].</li>
+<li><code class="docutils literal notranslate"><span class="pre">matching</span></code>: a volume matching routine based on gradient descent,
+published in [2] and [3]. The implementation comes from the <a class="reference external" href="https://www.nitrc.org/projects/atrophysim">atrophysim tool</a>.</li>
+</ul>
+<p>The library is built on top of SimpleITK, in order to provide a simple yet powerful set of functionalities for image analysis. Images stored as numpy arrays can be easily converted from and to <a class="reference external" href="http://simpleitk.github.io/SimpleITK-Notebooks/01_Image_Basics.html">SimpleITK</a> and <a class="reference external" href="https://blog.kitware.com/convert-itk-data-structures-to-numpy-arrays/">ITK</a> image objects.</p>
+<div class="section" id="documentation">
+<h3>Documentation<a class="headerlink" href="#documentation" title="Permalink to this headline">¶</a></h3>
+<p>The complete documentation for this package is available on <a class="reference external" href="https://martinopilia.com/disptools">https://martinopilia.com/disptools</a>.</p>
+</div>
+<div class="section" id="architecture">
+<h3>Architecture<a class="headerlink" href="#architecture" title="Permalink to this headline">¶</a></h3>
+<p>The project is structured in three layers:</p>
+<ul class="simple">
+<li>a pure standard <a class="reference external" href="https://en.wikipedia.org/wiki/C99">C99</a> library (whose headers are in <code class="docutils literal notranslate"><span class="pre">src/headers/</span></code>), with no external dependencies, implementing the core algorithms for the generation of deformation fields. It is a standalone library that can be directly included in a C or C++ project.</li>
+<li>a <a class="reference external" href="https://docs.python.org/3.6/extending/extending.html">Python C extension</a> package <code class="docutils literal notranslate"><span class="pre">_disptools</span></code> (whose source is in the file <code class="docutils literal notranslate"><span class="pre">src/_disptools.c</span></code>), providing a bare Python wrapper to the aforementioned library, using the <a class="reference external" href="https://docs.scipy.org/doc/numpy-1.14.0/reference/c-api.html">NumPy C API</a> to pass arrays. This can be directly included in a Python project with no dependencies other than NumPy.</li>
+<li>a Python package (<code class="docutils literal notranslate"><span class="pre">disptools</span></code>), that wraps the <code class="docutils literal notranslate"><span class="pre">_disptools</span></code> package providing file IO (through SimpleITK) and implementing high-level features (such as the multi-resolution framework) and auxiliary utilities and functions.</li>
+</ul>
+</div>
+<div class="section" id="requirements">
+<h3>Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h3>
+<p>The library is a cross-platform Python 3.5+ package, with a compiled C extension. The Python dependencies are:</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/numpy/numpy">numpy</a> (<a class="reference external" href="https://pypi.python.org/pypi/numpy">pypi package</a>)</li>
+<li><a class="reference external" href="https://github.com/scipy/scipy">scipy</a> (<a class="reference external" href="https://pypi.python.org/pypi/scipy/1.0.0">pypi package</a>)</li>
+<li><a class="reference external" href="https://github.com/SimpleITK/SimpleITK">SimpleITK</a> (<a class="reference external" href="https://pypi.python.org/pypi/SimpleITK/1.0.1">pypi package</a>)</li>
+</ul>
+<p>Build dependencies are a standard C99 compiler (tested with gcc 7.3 on Linux, mingw-w64 7.2 on Windows 10), the <a class="reference external" href="https://pypi.python.org/pypi/numpy">numpy</a> and the <a class="reference external" href="https://pypi.python.org/pypi/setuptools">setuptools</a> packages. <a class="reference external" href="https://pypi.python.org/pypi/scikit-build">scikit-build</a> may be required to build the other Python dependencies.</p>
+<p>Some optional dependencies are required only for a limited set of features, and the package should build and run without them:</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/InsightSoftwareConsortium/ITK">itk</a> (for <code class="docutils literal notranslate"><span class="pre">disptools.drawing.sitk_to_itk</span></code>)</li>
+<li><a class="reference external" href="https://github.com/Kitware/VTK">vtk</a> (for <code class="docutils literal notranslate"><span class="pre">disptools.io.write_vtk_points</span></code>)</li>
+<li><a class="reference external" href="https://github.com/scikit-image/scikit-image">scikit-image</a> (to run the unit tests)</li>
+</ul>
+</div>
+<div class="section" id="build-and-install">
+<h3>Build and install<a class="headerlink" href="#build-and-install" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="linux">
+<h4>Linux<a class="headerlink" href="#linux" title="Permalink to this headline">¶</a></h4>
+<p>Install the dependencies with your favourite package manager. For example, with <code class="docutils literal notranslate"><span class="pre">pip</span></code>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3 -m pip install scikit-build numpy scipy SimpleITK
+</pre></div>
+</div>
+<p>The package provides a <code class="docutils literal notranslate"><span class="pre">setuptools</span></code> based install script. To install the library, run from the project root folder</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3 setup.py install
+</pre></div>
+</div>
+<p>which should build the C extension and install the Python package.</p>
+</div>
+<div class="section" id="windows">
+<h4>Windows<a class="headerlink" href="#windows" title="Permalink to this headline">¶</a></h4>
+<ol class="arabic">
+<li><p class="first">First, be sure that the Python executables <a class="reference external" href="https://docs.python.org/3/using/windows.html#excursus-setting-environment-variables">are in your PATH</a>.</p>
+</li>
+<li><p class="first">Since <code class="docutils literal notranslate"><span class="pre">msvc</span></code> (Visual Studio) does not support the C99 standard, this package should be compiled with <a class="reference external" href="https://mingw-w64.org">mingw</a> (or any other C99-compliant compiler or your choice; in the following, instructions for <code class="docutils literal notranslate"><span class="pre">mingw</span></code> are provided). Install <code class="docutils literal notranslate"><span class="pre">mingw</span></code> and add its binary folder to your path. Ensure that <code class="docutils literal notranslate"><span class="pre">gcc</span></code> is working correctly:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>&gt; gcc --version
+gcc (x86_64-posix-seh-rev1, Built by MinGW-W64 project) 7.2.0
+Copyright (C) 2017 Free Software Foundation, Inc.
+This is free software; see the source for copying conditions.  There is NO
+warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+</pre></div>
+</div>
+</li>
+<li><p class="first">Ensure that <code class="docutils literal notranslate"><span class="pre">distutils</span></code> correctly recognises your version of Visual Studio (even when using <code class="docutils literal notranslate"><span class="pre">mingw</span></code>). Open the file <code class="docutils literal notranslate"><span class="pre">C:\Users\yourname\AppData\Local\Programs\Python\Python3x\Lib\distutils\cygwinccompiler.py</span></code> (the exact location may vary according to your setup) and check that your version of Visual Studio is present in the function <code class="docutils literal notranslate"><span class="pre">get_msvcr()</span></code>; if not, adjust it according to the following:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">get_msvcr</span><span class="p">():</span>
+ <span class="sd">&quot;&quot;&quot;Include the appropriate MSVC runtime library if Python was built</span>
+<span class="sd"> with MSVC 7.0 or later.</span>
+<span class="sd"> &quot;&quot;&quot;</span>
+ <span class="n">msc_pos</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">version</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;MSC v.&#39;</span><span class="p">)</span>
+ <span class="k">if</span> <span class="n">msc_pos</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+     <span class="n">msc_ver</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">version</span><span class="p">[</span><span class="n">msc_pos</span><span class="o">+</span><span class="mi">6</span><span class="p">:</span><span class="n">msc_pos</span><span class="o">+</span><span class="mi">10</span><span class="p">]</span>
+     <span class="k">if</span> <span class="n">msc_ver</span> <span class="o">==</span> <span class="s1">&#39;1300&#39;</span><span class="p">:</span>
+         <span class="c1"># MSVC 7.0</span>
+         <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;msvcr70&#39;</span><span class="p">]</span>
+     <span class="k">elif</span> <span class="n">msc_ver</span> <span class="o">==</span> <span class="s1">&#39;1310&#39;</span><span class="p">:</span>
+         <span class="c1"># MSVC 7.1</span>
+         <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;msvcr71&#39;</span><span class="p">]</span>
+     <span class="k">elif</span> <span class="n">msc_ver</span> <span class="o">==</span> <span class="s1">&#39;1400&#39;</span><span class="p">:</span>
+         <span class="c1"># VS2005 / MSVC 8.0</span>
+         <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;msvcr80&#39;</span><span class="p">]</span>
+     <span class="k">elif</span> <span class="n">msc_ver</span> <span class="o">==</span> <span class="s1">&#39;1500&#39;</span><span class="p">:</span>
+         <span class="c1"># VS2008 / MSVC 9.0</span>
+         <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;msvcr90&#39;</span><span class="p">]</span>
+     <span class="k">elif</span> <span class="n">msc_ver</span> <span class="o">==</span> <span class="s1">&#39;1600&#39;</span><span class="p">:</span>
+         <span class="c1"># VS2010 / MSVC 10.0</span>
+         <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;msvcr100&#39;</span><span class="p">]</span>
+     <span class="k">elif</span> <span class="n">msc_ver</span> <span class="o">==</span> <span class="s1">&#39;1700&#39;</span><span class="p">:</span>
+         <span class="c1"># Visual Studio 2012 / Visual C++ 11.0</span>
+         <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;msvcr110&#39;</span><span class="p">]</span>
+     <span class="k">elif</span> <span class="n">msc_ver</span> <span class="o">==</span> <span class="s1">&#39;1800&#39;</span><span class="p">:</span>
+         <span class="c1"># Visual Studio 2013 / Visual C++ 12.0</span>
+         <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;msvcr120&#39;</span><span class="p">]</span>
+     <span class="k">elif</span> <span class="n">msc_ver</span> <span class="o">==</span> <span class="s1">&#39;1900&#39;</span><span class="p">:</span>
+         <span class="c1"># Visual Studio 2015 / Visual C++ 14.0</span>
+         <span class="c1"># &quot;msvcr140.dll no longer exists&quot; http://blogs.msdn.com/b/vcblog/archive/2014/06/03/visual-studio-14-ctp.aspx</span>
+         <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;vcruntime140&#39;</span><span class="p">]</span>
+     <span class="k">else</span><span class="p">:</span>
+         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unknown MS Compiler version </span><span class="si">%s</span><span class="s2"> &quot;</span> <span class="o">%</span> <span class="n">msc_ver</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Ensure that the library <code class="docutils literal notranslate"><span class="pre">vcruntime140.dll</span></code> is present in your library path. Otherwise, download it and place it in <code class="docutils literal notranslate"><span class="pre">C:\Users\yourname\AppData\Local\Programs\Python\Python3x\libs</span></code> (the exact path may vary according to your setup).</p>
+</li>
+<li><p class="first">Install the dependencies:</p>
+<div class="highlight-cmd notranslate"><div class="highlight"><pre><span></span>&gt; python -m pip install scikit-build numpy scipy SimpleITK
+</pre></div>
+</div>
+</li>
+<li><p class="first">Clone the sources of this package with <code class="docutils literal notranslate"><span class="pre">git</span></code>, or download and extract them as a <code class="docutils literal notranslate"><span class="pre">zip</span></code> archive. Move to the root folder of the sources (<code class="docutils literal notranslate"><span class="pre">C:\Users\yourname\disptools</span></code> in this example), specify the right compiler, and launch the setup script to build and install the package.</p>
+<div class="highlight-cmd notranslate"><div class="highlight"><pre><span></span>&gt; cd C:\Users\yourname\disptools
+&gt; python setup.py setopt --command=build --option=compiler --set-value=mingw32
+&gt; python setup.py install
+</pre></div>
+</div>
+</li>
+</ol>
+</div>
+</div>
+<div class="section" id="content">
+<h3>Content<a class="headerlink" href="#content" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">disptools.displacements</span></code>: module providing the main functions for the generation and manipulation of displacement fields.</li>
+<li><code class="docutils literal notranslate"><span class="pre">disptools.drawing</span></code>: collection of utilities to create test images.</li>
+<li><code class="docutils literal notranslate"><span class="pre">disptools.io</span></code>: collection of utilities to read and write to file.</li>
+<li><code class="docutils literal notranslate"><span class="pre">disptools.measure</span></code>: collection of utilities to measure some image features.</li>
+<li><code class="docutils literal notranslate"><span class="pre">disptools.predict</span></code>: routines to interface with the PREDICT tool.</li>
+<li><code class="docutils literal notranslate"><span class="pre">disptools.simulatrophy</span></code>: routines to interface with the Simulatrophy tool.</li>
+</ul>
+</div>
+<div class="section" id="quick-example">
+<h3>Quick example<a class="headerlink" href="#quick-example" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">SimpleITK</span> <span class="kn">as</span> <span class="nn">sitk</span>
+<span class="kn">import</span> <span class="nn">disptools.displacements</span> <span class="kn">as</span> <span class="nn">dsp</span>
+<span class="kn">import</span> <span class="nn">disptools.drawing</span> <span class="kn">as</span> <span class="nn">drw</span>
+
+<span class="c1"># Create an example Jacobian map</span>
+<span class="c1"># A spherical ROI with a Jacobian of 1.1 (expansion)</span>
+<span class="n">jacobian</span> <span class="o">=</span> <span class="n">drw</span><span class="o">.</span><span class="n">create_sphere</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="n">fg_val</span><span class="o">=</span><span class="mf">1.1</span><span class="p">,</span> <span class="n">bg_val</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+
+<span class="c1"># Create a binary mask for the ROI</span>
+<span class="n">mask</span> <span class="o">=</span> <span class="n">drw</span><span class="o">.</span><span class="n">create_sphere</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">40</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+
+<span class="c1"># Generate the displacement</span>
+<span class="n">displacement</span> <span class="o">=</span> <span class="n">dsp</span><span class="o">.</span><span class="n">displacement</span><span class="p">(</span><span class="n">jacobian</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">)</span>
+
+<span class="c1"># Check the correctness of the result within the ROI</span>
+<span class="n">error</span> <span class="o">=</span> <span class="n">jacobian</span> <span class="o">-</span> <span class="n">sitk</span><span class="o">.</span><span class="n">DisplacementFieldJacobianDeterminant</span><span class="p">(</span><span class="n">displacement</span><span class="p">)</span>
+<span class="n">error</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Mask</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="n">mask</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>A 3D rendering of the resulting displacement field:</p>
+<a class="reference external image-reference" href="img/example_2.png"><img alt="error" src="images/example_2.png" /></a>
+<p>And a visualisation of the the error on the Jacobian:</p>
+<a class="reference external image-reference" href="img/example_1.png"><img alt="error" src="images/example_1.png" /></a>
+</div>
+<div class="section" id="references">
+<h3>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>[1] van Eede, M. C., Scholz, J., Chakravarty, M. M., Henkelman, R. M., and Lerch, J. P. “Mapping registration sensitivity in MR mouse brain images.” Neuroimage 82 (2013), 226–236.</li>
+<li>[2] Karaçali, B., and Davatzikos, C. “Estimating topology preserving and smooth displacement fields.” IEEE Transactions on Medical Imaging 23, 7 (2004), 868–880.</li>
+<li>[3] Karaçali, B., and Davatzikos, C. “Simulation of tissue atrophy using a topology preserving transformation model.” IEEE transactions on medical imaging 25, 5 (2006), 649–652.</li>
+</ul>
+</div>
+<div class="section" id="license">
+<h3>License<a class="headerlink" href="#license" title="Permalink to this headline">¶</a></h3>
+<p>The software is distributed under the MIT license.</p>
+</div>
+</div>
+</div>
+<div class="section" id="disptools-package">
+<h1>disptools package<a class="headerlink" href="#disptools-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-disptools.displacements">
+<span id="disptools-displacements-module"></span><h2>disptools.displacements module<a class="headerlink" href="#module-disptools.displacements" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="disptools.displacements.average_jacobian">
+<code class="descclassname">disptools.displacements.</code><code class="descname">average_jacobian</code><span class="sig-paren">(</span><em>input_filenames_pattern</em>, <em>epsilon=0.05</em><span class="sig-paren">)</span><a class="reference internal" href="modules/disptools/displacements.html#average_jacobian"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#disptools.displacements.average_jacobian" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the average of a set of Jacobians.</p>
+<p>This function reads a collection of Jacobian maps from files (any format
+readable by SimpleITK) and computes their average Jacobian (defined as the
+geometric mean computed under logarithm). It accepts a string argument
+containing a <a class="reference external" href="https://en.wikipedia.org/wiki/Glob_(programming)">glob pattern</a> to the input files, and a second optional
+argument setting a minimum threshold for the Jacobian.</p>
+<p>For instance, assuming there is a folder <code class="docutils literal notranslate"><span class="pre">/home/user/my_jacobians</span></code>
+containing a set of Jacobian maps in <code class="docutils literal notranslate"><span class="pre">vtk</span></code> format, the average can
+be computed with</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">average_jacobian</span> <span class="o">=</span> <span class="n">disptools</span><span class="o">.</span><span class="n">displacements</span><span class="o">.</span><span class="n">average_jacobian</span><span class="p">(</span><span class="s1">&#39;/home/user/my_jacobians/*.vtk&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The average Jacobian is defined as the geometric mean computed under
+logarithm.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>input_filenames_pattern</strong> (<em>str</em>) – A glob pattern for the  displacement files in a format
+readable by SimpleITK.</li>
+<li><strong>epsilon</strong> (<em>float</em>) – A lower threshold for the Jacobian, all values below <cite>epsilon</cite>
+will be replaced with <cite>epsilon</cite>.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The geometric mean of the input Jacobian maps.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">sitk.Image</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="disptools.displacements.average_jacobian_from_displacements">
+<code class="descclassname">disptools.displacements.</code><code class="descname">average_jacobian_from_displacements</code><span class="sig-paren">(</span><em>input_filenames_pattern</em>, <em>epsilon=0.05</em><span class="sig-paren">)</span><a class="reference internal" href="modules/disptools/displacements.html#average_jacobian_from_displacements"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#disptools.displacements.average_jacobian_from_displacements" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the average Jacobian of a set of displacement fields.</p>
+<p>This function reads a collection of displacement fields from files
+(<code class="docutils literal notranslate"><span class="pre">rvf</span></code> or any other format readable by SimpleITK) and computes
+the average Jacobian of the deformation associated to them
+(defined as the geometric mean computed under logarithm).
+It accepts a string argument containing a <a class="reference external" href="https://en.wikipedia.org/wiki/Glob_(programming)">glob pattern</a> to the
+input displacement files, and a second optional argument setting
+a minimum threshold for the Jacobian.</p>
+<p>For instance, assuming there is a folder <code class="docutils literal notranslate"><span class="pre">/home/user/my_displacements</span></code>
+containing a set of displacement fields in <code class="docutils literal notranslate"><span class="pre">vtk</span></code> format, the average
+Jacobian can be computed with</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">average_jacobian</span> <span class="o">=</span> <span class="n">disptools</span><span class="o">.</span><span class="n">displacements</span><span class="o">.</span><span class="n">average_jacobian_from_displacements</span><span class="p">(</span><span class="s1">&#39;/home/user/my_jacobians/*.vtk&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The average Jacobian is defined as the geometric mean computed under
+logarithm.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>input_filenames_pattern</strong> (<em>str</em>) – A glob pattern for the  displacement files in RVF or another
+format readable by SimpleITK.</li>
+<li><strong>epsilon</strong> (<em>float</em>) – Minimum threshold for the Jacobian, all values below <cite>epsilon</cite>
+will be replaced with <cite>epsilon</cite>.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The average Jacobian of the given displacements.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">sitk.Image</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="disptools.displacements.compose_displacements">
+<code class="descclassname">disptools.displacements.</code><code class="descname">compose_displacements</code><span class="sig-paren">(</span><em>*fields</em><span class="sig-paren">)</span><a class="reference internal" href="modules/disptools/displacements.html#compose_displacements"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#disptools.displacements.compose_displacements" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compose multiple displacement fields.</p>
+<p>Compute the composition pairwise and iteratively. For a couple
+of displacements <img class="math" src="images/math/a5046a27fb20484be8144bd8f9e3a76c52577923.png" alt="d_1"/> and <img class="math" src="images/math/6615979d4e36d5f55b0205c5d6b1bba5d552f8c5.png" alt="d_2"/>
+associated to the transforms <img class="math" src="images/math/09968cb620b9b121ddcc33bb90eab038355375ab.png" alt="f_1"/> and <img class="math" src="images/math/a23addf1349384bc83f74ce7c550fe98bbdc2b48.png" alt="f_2"/>, the
+composition</p>
+<div class="math">
+<p><img src="images/math/b09d3b920551b0ad1d235e3a18d9bd188d2826eb.png" alt="(f_2 \circ f_1) (x) = f_2(f_1(x))"/></p>
+</div><p>is obtained by resampling <img class="math" src="images/math/6615979d4e36d5f55b0205c5d6b1bba5d552f8c5.png" alt="d_2"/> with <img class="math" src="images/math/a5046a27fb20484be8144bd8f9e3a76c52577923.png" alt="d_1"/> and then
+summing.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>fields</strong> (<em>sitk.Image</em>) – Variadic list of displacement fields.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The composition of the input displacement fields.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">sitk.Image</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="disptools.displacements.deformation_to_displacement">
+<code class="descclassname">disptools.displacements.</code><code class="descname">deformation_to_displacement</code><span class="sig-paren">(</span><em>deformation</em><span class="sig-paren">)</span><a class="reference internal" href="modules/disptools/displacements.html#deformation_to_displacement"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#disptools.displacements.deformation_to_displacement" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a deformation field to a displacement field.</p>
+<p>A deformation field <img class="math" src="images/math/3cf5aa5abe312e6fd4996975341a43aa566e8d8d.png" alt="D"/> is given by the sum of the identity
+transform and a displacement field <img class="math" src="images/math/b9d10b54744d07746b97f53c55eb98046fd76c8c.png" alt="d"/>:</p>
+<div class="math">
+<p><img src="images/math/d8d25ed1559c746b6dc4314c73e804241735bd60.png" alt="D(x) = x + d(x)"/></p>
+</div><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>deformation</strong> – Input deformation field.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Displacement field associated to the deformation.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">sitk.Image</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="disptools.displacements.displacement">
+<code class="descclassname">disptools.displacements.</code><code class="descname">displacement</code><span class="sig-paren">(</span><em>jacobian</em>, <em>levels=1</em>, <em>pad=0</em>, <em>redistribute=False</em>, <em>**parameters</em><span class="sig-paren">)</span><a class="reference internal" href="modules/disptools/displacements.html#displacement"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#disptools.displacements.displacement" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a displacement field that realises a given Jacobian.</p>
+<p>Given a 3D scalar image encoding a Jacobian map, compute a
+3D vector image encoding a vector field whose Jacobian map
+matches the input up to a certain tolerance.
+The three algorithms provided are:</p>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">gradient</span></code>: a gradient descent method (default).</li>
+<li><code class="docutils literal notranslate"><span class="pre">greedy</span></code>: a greedy search method based on the method proposed in <a class="footnote-reference" href="#id11" id="id7">[1]</a>.</li>
+<li><code class="docutils literal notranslate"><span class="pre">matching</span></code>: a volume matching routine based on gradient descent,
+published in <a class="footnote-reference" href="#id12" id="id8">[2]</a> and <a class="footnote-reference" href="#id13" id="id9">[3]</a>. The implementation comes from
+the <a class="reference external" href="https://www.nitrc.org/projects/atrophysim">atrophysim tool</a>.</li>
+</ul>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The displacement is generally not accurate on image boundary voxels.</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The C verbose output is written to <cite>stderr</cite>. If you want to capture
+it from within Python, the <a class="reference external" href="https://github.com/minrk/wurlitzer">wurlitzer package</a> might be helpful.</p>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">This function calls a C routine which cannot be interrupted from
+the REPL.</p>
+</div>
+<p class="rubric">References</p>
+<table class="docutils footnote" frame="void" id="id11" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id7">[1]</a></td><td>van Eede, M. C., Scholz, J., Chakravarty, M. M., Henkelman, R. M., and Lerch, J. P.
+“Mapping registration sensitivity in MR mouse brain images.” Neuroimage 82 (2013), 226–236.</td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id12" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id8">[2]</a></td><td>Karaçali, B., and Davatzikos, C. “Estimating topology preserving and smooth displacement fields.”
+IEEE Transactions on Medical Imaging 23, 7 (2004), 868–880.</td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id13" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id9">[3]</a></td><td>Karaçali, B., and Davatzikos, C. “Simulation of tissue atrophy using a topology preserving
+ransformation model.” IEEE transactions on medical imaging 25, 5 (2006), 649–652.</td></tr>
+</tbody>
+</table>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>jacobian</strong> (<em>sitk.Image</em>) – Input Jacobian.</li>
+<li><strong>levels</strong> (<em>int</em>) – Number of resolution levels; the size of the image along
+each direction is halven at each level.</li>
+<li><strong>pad</strong> (<em>int</em>) – Thickness of the zero-padding around the volume (0 for
+the mask, 1.0 for the Jacobian) to be used during the
+computation. The padding is removed before returning the result.</li>
+<li><strong>redistribute</strong> (<em>bool</em>) – Redistribute the volume change inside the mask to the background.</li>
+<li><strong>boady_mask</strong> (<em>sitk.Image</em>) – Binary mask of the body volume.</li>
+<li><strong>initial_guess</strong> (<em>sitk.Image</em>) – Initial estimation of the solution. The default is a null
+displacement field.</li>
+<li><strong>epsilon</strong> (<em>float</em>) – A floating point value, representing the tolerance per
+voxel on the Jacobian of the resulting field.</li>
+<li><strong>tolerance</strong> (<em>float</em>) – Tolerance on Jacobian outside the mask.</li>
+<li><strong>it_max</strong> (<em>int</em>) – Maximum number of iterations allowed.</li>
+<li><strong>alpha</strong> (<em>float</em>) – Coefficient that controls the increase of the step length.</li>
+<li><strong>beta</strong> (<em>float</em>) – Coefficient that controls the decrease of the step length.</li>
+<li><strong>gamma</strong> (<em>float</em>) – Armijo-Goldstein parameter.</li>
+<li><strong>delta</strong> (<em>float</em>) – Lower threshold for Jacobian regularisation.</li>
+<li><strong>strict</strong> (<em>bool</em>) – If True, reject iterations that not decrease the maximum
+voxel error.</li>
+<li><strong>eta</strong> (<em>float</em>) – Initial step length</li>
+<li><strong>algorithm</strong> (<em>str</em>) – Algorithm to generate the field, one of <cite>greedy</cite>, <cite>gradient</cite>, or <cite>matching</cite>.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">A displacement field whose Jacobian matches the input.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">sitk.Image</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="disptools.displacements.field_zero_padding">
+<code class="descclassname">disptools.displacements.</code><code class="descname">field_zero_padding</code><span class="sig-paren">(</span><em>field</em>, <em>size_x=(1</em>, <em>1)</em>, <em>size_y=(1</em>, <em>1)</em>, <em>size_z=(1</em>, <em>1)</em><span class="sig-paren">)</span><a class="reference internal" href="modules/disptools/displacements.html#field_zero_padding"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#disptools.displacements.field_zero_padding" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a zero padding to a vector field.</p>
+<p>Set the zero padding manually, since <cite>sitk.ConstantPad()</cite> does not
+support vector images.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>field</strong> (<em>sitk.Image</em>) – Input vector field.</li>
+<li><strong>size_x</strong> (<em>(int, int)</em>) – Amount of padding at the beginning and end of x direction.</li>
+<li><strong>size_y</strong> (<em>(int, int)</em>) – Amount of padding at the beginning and end of y direction.</li>
+<li><strong>size_z</strong> (<em>(int, int)</em>) – Amount of padding at the beginning and end of z direction.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">A padded vector field.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">sitk.Image</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="disptools.displacements.inverse_consistency_error">
+<code class="descclassname">disptools.displacements.</code><code class="descname">inverse_consistency_error</code><span class="sig-paren">(</span><em>forward</em>, <em>backward</em>, <em>mask=None</em><span class="sig-paren">)</span><a class="reference internal" href="modules/disptools/displacements.html#inverse_consistency_error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#disptools.displacements.inverse_consistency_error" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the inverse consistency error (ICE).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>forward</strong> (<em>sitk.Image</em>) – A displacement from the registration (maps from
+reference space to moving image space).</li>
+<li><strong>backward</strong> (<em>sitk.Image</em>) – A displacement from the inverse registration (maps
+from moving image space to reference space)</li>
+<li><strong>mask</strong> (<em>sitk.Image</em>) – ROI in the reference image space</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first"><code class="xref py py-class docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Image</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><ul class="simple">
+<li><em>sitk.Image</em> – Map of the average inverse consistency error magnitude.</li>
+<li><em>float</em> – Average inverse consistency error.</li>
+<li><em>float</em> – Maximum inverse consistency error.</li>
+</ul>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="disptools.displacements.invert_displacement_padded">
+<code class="descclassname">disptools.displacements.</code><code class="descname">invert_displacement_padded</code><span class="sig-paren">(</span><em>field</em><span class="sig-paren">)</span><a class="reference internal" href="modules/disptools/displacements.html#invert_displacement_padded"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#disptools.displacements.invert_displacement_padded" title="Permalink to this definition">¶</a></dt>
+<dd><p>Invert a displacement field using one voxel of padding in the computation.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>field</strong> (<em>sitk.Image</em>) – Input displacement field.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The inverse of the displacement, computed under padding.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">sitk.Image</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="disptools.displacements.jacobian">
+<code class="descclassname">disptools.displacements.</code><code class="descname">jacobian</code><span class="sig-paren">(</span><em>field</em><span class="sig-paren">)</span><a class="reference internal" href="modules/disptools/displacements.html#jacobian"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#disptools.displacements.jacobian" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the Jacobian map of a vector field.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>field</strong> (<em>sitk.Image</em>) – Input vector field.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The Jacobian of the given vector field.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">sitk.Image</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="disptools.displacements.jacobian_to_volume_change">
+<code class="descclassname">disptools.displacements.</code><code class="descname">jacobian_to_volume_change</code><span class="sig-paren">(</span><em>jacobian</em>, <em>epsilon=0.05</em><span class="sig-paren">)</span><a class="reference internal" href="modules/disptools/displacements.html#jacobian_to_volume_change"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#disptools.displacements.jacobian_to_volume_change" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a Jacobian map to a volume change map.</p>
+<p>A volume change map is defined as</p>
+<div class="math">
+<p><img src="images/math/26cc47f0fe2fa709340c278a2372283f6211c0c5.png" alt="VC[f](x) =
+\begin{cases}
+    1 - \frac{1}{J[f](x)}  \quad &amp;J[f](x) \in (0,1) \\
+    J[f](x) - 1            \quad &amp;J[f](x) \ge 1
+\end{cases}"/></p>
+</div><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>jacobian</strong> (<em>sitk.Image</em>) – Input Jacobian map.</li>
+<li><strong>epsilon</strong> (<em>float</em>) – Lower threshold for the Jacobian; any value below
+<cite>epsilon</cite> will be replaced with <cite>epsilon</cite>.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Volume change map associated to the input Jacobian.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">sitk.Image</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="disptools.displacements.redistribute_volume_change">
+<code class="descclassname">disptools.displacements.</code><code class="descname">redistribute_volume_change</code><span class="sig-paren">(</span><em>image</em>, <em>mask</em><span class="sig-paren">)</span><a class="reference internal" href="modules/disptools/displacements.html#redistribute_volume_change"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#disptools.displacements.redistribute_volume_change" title="Permalink to this definition">¶</a></dt>
+<dd><p>Redistribute the volume change over the image.</p>
+<p>Redistribute the change of volume within the body on the background,
+and enforce the total volume change over the entire image to be zero.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>image</strong> (<em>sitk.Image</em>) – Input Jacobian.</li>
+<li><strong>mask</strong> (<em>sitk.Image</em>) – Binary mask of the body volume.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">A new Jacobian map with redistributed volume changes.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">sitk.Image</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="disptools.displacements.regularise">
+<code class="descclassname">disptools.displacements.</code><code class="descname">regularise</code><span class="sig-paren">(</span><em>jacobian</em>, <em>epsilon=0.05</em><span class="sig-paren">)</span><a class="reference internal" href="modules/disptools/displacements.html#regularise"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#disptools.displacements.regularise" title="Permalink to this definition">¶</a></dt>
+<dd><p>Regularise the Jacobian, removing singularities.</p>
+<p>Given a 3D scalar image, replace all the entries that are smaller
+than <cite>epsilon</cite> with <cite>epsilon</cite>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>jacobian</strong> (<em>sitk.Image</em>) – Input Jacobian map</li>
+<li><strong>epsilon</strong> (<em>float</em>) – Lower threshold for the Jacobian.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Thresholded Jacobian.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">sitk.Image</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="disptools.displacements.volume_change_to_jacobian">
+<code class="descclassname">disptools.displacements.</code><code class="descname">volume_change_to_jacobian</code><span class="sig-paren">(</span><em>volume_change</em><span class="sig-paren">)</span><a class="reference internal" href="modules/disptools/displacements.html#volume_change_to_jacobian"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#disptools.displacements.volume_change_to_jacobian" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a volume change map to a Jacobian map.</p>
+<p>A volume change map is defined as</p>
+<div class="math">
+<p><img src="images/math/26cc47f0fe2fa709340c278a2372283f6211c0c5.png" alt="VC[f](x) =
+\begin{cases}
+    1 - \frac{1}{J[f](x)}  \quad &amp;J[f](x) \in (0,1) \\
+    J[f](x) - 1            \quad &amp;J[f](x) \ge 1
+\end{cases}"/></p>
+</div><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>volume_change</strong> (<em>sitk.Image</em>) – Input volume change map.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A Jacobian map associated to the input volume changes.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">sitk.Image</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="disptools.displacements.warp_points_by_displacement">
+<code class="descclassname">disptools.displacements.</code><code class="descname">warp_points_by_displacement</code><span class="sig-paren">(</span><em>points</em>, <em>displacement</em><span class="sig-paren">)</span><a class="reference internal" href="modules/disptools/displacements.html#warp_points_by_displacement"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#disptools.displacements.warp_points_by_displacement" title="Permalink to this definition">¶</a></dt>
+<dd><p>Warp a set of Elastix points by a displacement field.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>points</strong> (<em>np.ndarray</em>) – A <img class="math" src="images/math/893b4b543c634f80f14a67341bc864c68d46d1cc.png" alt="n \times m"/> array representing <img class="math" src="images/math/e11f2701c4a39c7fe543a6c4150b421d50f1c159.png" alt="n"/> points
+with <img class="math" src="images/math/edba97b4c0d864d26e92ea7ea73767fa38eef3f7.png" alt="m"/> components.</li>
+<li><strong>displacement</strong> (<em>sitk.Image</em>) – Displacement field.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">An array representing the warped points.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">np.ndarray</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-disptools.drawing">
+<span id="disptools-drawing-module"></span><h2>disptools.drawing module<a class="headerlink" href="#module-disptools.drawing" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="disptools.drawing.create_sphere">
+<code class="descclassname">disptools.drawing.</code><code class="descname">create_sphere</code><span class="sig-paren">(</span><em>radius</em>, <em>size=None</em>, <em>centre=None</em>, <em>fg_val=1.0</em>, <em>bg_val=0.0</em>, <em>norm=2</em>, <em>sigma=0.0</em>, <em>neighbourhood=3</em>, <em>value_function=None</em>, <em>points_file=''</em><span class="sig-paren">)</span><a class="reference internal" href="modules/disptools/drawing.html#create_sphere"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#disptools.drawing.create_sphere" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a volume image containing a spherical object.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>radius</strong> (<em>float</em>) – Radius of the ball.</li>
+<li><strong>size</strong> (<em>Union[int, Tuple[int, int, int]]</em>) – Size of the volume image.</li>
+<li><strong>centre</strong> (<em>Tuple[float, float, float]</em>) – Centre of the sphere.</li>
+<li><strong>fg_val</strong> (<em>float</em>) – Value in the foreground, i.e. inside the ball;
+for variable values, see value_function.</li>
+<li><strong>bg_val</strong> (<em>float</em>) – Value in the background, i.e. outside the ball.</li>
+<li><strong>norm</strong> (<em>Union[int, str]</em>) – Minkovski norm used to define the metric (‘inf’
+or ‘max’ to use the Chebyshev norm).</li>
+<li><strong>sigma</strong> (<em>float</em>) – Sigma parameter for a Gaussian smoothing of the result.</li>
+<li><strong>neighbourhood</strong> (<em>int</em>) – Neighbourhood size for a Gaussian smoothing of the result.</li>
+<li><strong>value_function</strong> (<em>Callable[[float, float, float], float]</em>) – Function that associate an intensity to each point within
+the ball; it takes three arguments (normalised spherical
+coordinates of the point) and returns a scalar intensity;
+the input is in vector form, and operations within this
+function should be vectorised (e.g. using numpy functions).</li>
+<li><strong>points_file</strong> (<em>str</em>) – Name of the file used to store a set of reference
+points associated to the ball (empty string means to not
+store the reference points).</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">A volume image containing a ball.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">sitk.Image</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="disptools.drawing.extract_slice">
+<code class="descclassname">disptools.drawing.</code><code class="descname">extract_slice</code><span class="sig-paren">(</span><em>image</em>, <em>index=None</em>, <em>axis=2</em>, <em>rescale=False</em>, <em>colormap=3</em>, <em>window=None</em><span class="sig-paren">)</span><a class="reference internal" href="modules/disptools/drawing.html#extract_slice"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#disptools.drawing.extract_slice" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract a slice.</p>
+<p>This function takes care of resampling the image on a uniform grid with
+unit spacing, that can be exported to format that do not support
+anisotropic voxel spacing.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>image</strong> (<em>sitk.Image</em>) – Input image.</li>
+<li><strong>index</strong> (<em>int</em>) – Integer index of the slice to extract.</li>
+<li><strong>axis</strong> (<em>int</em>) – Integer index of the axis orthogonal to the slice plane.</li>
+<li><strong>rescale</strong> (<em>bool</em>) – If True, do min-max rescaling of the image intensity to [0,255].</li>
+<li><strong>colormap</strong> (<em>int</em>) – One of the colormaps defined in sitk.ScalarToRGBColormapImageFilter.
+If None, the result will be a grayscale image; if not None, map
+the intensity values to RGB colours through the selected colormap.</li>
+<li><strong>window</strong> (<em>(float, float)</em>) – Tuple composed by a couple of minimum and maximum values for
+intensity windowing.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">A sitk.sitkUInt8 image containing the desired slice.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">sitk.Image</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="disptools.drawing.float_dilate">
+<code class="descclassname">disptools.drawing.</code><code class="descname">float_dilate</code><span class="sig-paren">(</span><em>image</em>, <em>dilate</em><span class="sig-paren">)</span><a class="reference internal" href="modules/disptools/drawing.html#float_dilate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#disptools.drawing.float_dilate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dilate a float valued image.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>image</strong> (<em>sitk.Image</em>) – Image to be dilated.</li>
+<li><strong>dilate</strong> (<em>int</em>) – Radius of the structuring element.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Dilated image.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">sitk.Image</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="disptools.drawing.mask">
+<code class="descclassname">disptools.drawing.</code><code class="descname">mask</code><span class="sig-paren">(</span><em>image</em>, <em>mask</em>, <em>jacobian=False</em><span class="sig-paren">)</span><a class="reference internal" href="modules/disptools/drawing.html#mask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#disptools.drawing.mask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mask an image (special meaning for Jacobian maps).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>image</strong> (<em>sitk.Image</em>) – Input image to be masked (possibly float).</li>
+<li><strong>mask</strong> (<em>sitk.Image</em>) – Mask (possibly float).</li>
+<li><strong>jacobian</strong> (<em>bool</em>) – If true, the background after masking is set to
+one, if false to zero.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The masked image.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">sitk.Image</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="disptools.drawing.polar_conversion">
+<code class="descclassname">disptools.drawing.</code><code class="descname">polar_conversion</code><span class="sig-paren">(</span><em>norm</em>, <em>centre</em>, <em>radius</em>, <em>x</em>, <em>y</em>, <em>z</em><span class="sig-paren">)</span><a class="reference internal" href="modules/disptools/drawing.html#polar_conversion"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#disptools.drawing.polar_conversion" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert Cartesian to normalised spherical coordinates.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>norm</strong> (<em>Union[int, str]</em>) – Minkovski norm (‘max’ or ‘inf’ for the Chebyshev norm).</li>
+<li><strong>centre</strong> (<em>Tuple[float, float, float]</em>) – Coordinates of the centre.</li>
+<li><strong>radius</strong> (<em>float</em>) – Radius of the ball.</li>
+<li><strong>x</strong> (<em>float</em>) – Cartesian coordinate.</li>
+<li><strong>y</strong> (<em>float</em>) – Cartesian coordinate.</li>
+<li><strong>z</strong> (<em>float</em>) – Cartesian coordinate.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">A tuple (rho, theta, phi) of spherical coordinates with rho
+normalised w.r.t. the radius of the sphere.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">Tuple[int, int, int]</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="disptools.drawing.resize_image">
+<code class="descclassname">disptools.drawing.</code><code class="descname">resize_image</code><span class="sig-paren">(</span><em>image</em>, <em>new_size</em>, <em>interpolator=2</em><span class="sig-paren">)</span><a class="reference internal" href="modules/disptools/drawing.html#resize_image"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#disptools.drawing.resize_image" title="Permalink to this definition">¶</a></dt>
+<dd><p>Resample an image in a grid of given size.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>image</strong> (<em>sitk.Image</em>) – An input image.</li>
+<li><strong>new_size</strong> (<em>Tuple[int, …]</em>) – A tuple of integers expressing the new size.</li>
+<li><strong>interpolator</strong> (<em>int</em>) – A SimpleITK interpolator enum value.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Resized image.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">sitk.Image</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="disptools.drawing.sin_vector_field">
+<code class="descclassname">disptools.drawing.</code><code class="descname">sin_vector_field</code><span class="sig-paren">(</span><em>n</em><span class="sig-paren">)</span><a class="reference internal" href="modules/disptools/drawing.html#sin_vector_field"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#disptools.drawing.sin_vector_field" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate an example of continuous vector field.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>n</strong> (<em>int</em>) – Size of the volume image.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A vector-valued volume image containing a continuous
+vector field.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">sitk.Image</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="disptools.drawing.sitk_to_itk">
+<code class="descclassname">disptools.drawing.</code><code class="descname">sitk_to_itk</code><span class="sig-paren">(</span><em>image</em><span class="sig-paren">)</span><a class="reference internal" href="modules/disptools/drawing.html#sitk_to_itk"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#disptools.drawing.sitk_to_itk" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to convert an image object from SimpleITK to ITK.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Data is copied to the new object (deep copy).</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>image</strong> (<em>sitk.Image</em>) – Input image.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Image in ITK format.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">any</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-disptools.io">
+<span id="disptools-io-module"></span><h2>disptools.io module<a class="headerlink" href="#module-disptools.io" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="disptools.io.make_unique_directory">
+<code class="descclassname">disptools.io.</code><code class="descname">make_unique_directory</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="modules/disptools/io.html#make_unique_directory"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#disptools.io.make_unique_directory" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a unique directory.</p>
+<p>If a directory with the given name already exists,
+a suffix in the form <cite>_x</cite> with <cite>x</cite> integer will be
+added at the end of its name.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path</strong> (<em>str</em>) – Relative or absolute path for the new directory.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A string containing the path of the new directory.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">str</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="disptools.io.read_elastix_points">
+<code class="descclassname">disptools.io.</code><code class="descname">read_elastix_points</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="reference internal" href="modules/disptools/io.html#read_elastix_points"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#disptools.io.read_elastix_points" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read a set of points from a file in Elastix format.</p>
+<p>The points are returned as a two-dimensional numpy array, with a
+row for each point and three columns, one per coordinate.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>filename</strong> (<em>str</em>) – Output file.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A <cite>n × m</cite> array containing <cite>n</cite> points with <cite>m</cite> components.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">np.ndarray</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="disptools.io.read_rvf">
+<code class="descclassname">disptools.io.</code><code class="descname">read_rvf</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="reference internal" href="modules/disptools/io.html#read_rvf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#disptools.io.read_rvf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read an RVF file.</p>
+<p>Read image data from an RVF file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>filename</strong> (<em>str</em>) – Filename for the input vector field.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>result</strong> – Vector field.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">sitk.Image</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="disptools.io.write_elastix_points">
+<code class="descclassname">disptools.io.</code><code class="descname">write_elastix_points</code><span class="sig-paren">(</span><em>points</em>, <em>filename</em>, <em>point_format='point'</em><span class="sig-paren">)</span><a class="reference internal" href="modules/disptools/io.html#write_elastix_points"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#disptools.io.write_elastix_points" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write a set of points to a file in Elastix format.</p>
+<p>The points are passed as a two-dimensional numpy array, with a row
+for each point and three columns, one per coordinate.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>points</strong> (<em>np.ndarray</em>) – A <cite>n × m</cite> array containing <cite>n</cite> points with <cite>m</cite> components.</li>
+<li><strong>filename</strong> (<em>str</em>) – Output file.</li>
+<li><strong>point_format</strong> (<em>str</em>) – One of ‘point’ (default) or ‘index’.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><code class="docutils literal notranslate"><span class="pre">None</span></code></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="disptools.io.write_vtk_points">
+<code class="descclassname">disptools.io.</code><code class="descname">write_vtk_points</code><span class="sig-paren">(</span><em>points</em>, <em>filename</em><span class="sig-paren">)</span><a class="reference internal" href="modules/disptools/io.html#write_vtk_points"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#disptools.io.write_vtk_points" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write a set of points to a VTK PolyData file.</p>
+<p>The points are given as a numpy bidimensional array, with a
+row for each point, and three columns, one per component.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>points</strong> (<em>np.ndarray</em>) – A <cite>n × m</cite> array containing <cite>n</cite> points with <cite>m</cite> components.</li>
+<li><strong>filename</strong> (<em>str</em>) – Output file.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><code class="docutils literal notranslate"><span class="pre">None</span></code></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-disptools.measure">
+<span id="disptools-measure-module"></span><h2>disptools.measure module<a class="headerlink" href="#module-disptools.measure" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="disptools.measure.average_jacobian_error">
+<code class="descclassname">disptools.measure.</code><code class="descname">average_jacobian_error</code><span class="sig-paren">(</span><em>jacobian</em>, <em>mask=None</em><span class="sig-paren">)</span><a class="reference internal" href="modules/disptools/measure.html#average_jacobian_error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#disptools.measure.average_jacobian_error" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the average error between the input Jacobian and
+a constant unit Jacobian map.</p>
+<p>The average Jacobian error is defined as
+<img class="math" src="images/math/ac413657d06160f667595e487a197a3a2dd17999.png" alt="\frac{1}{|mask|} \sum_{x \in mask} (J(x) - 1)"/></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>jacobian</strong> (<em>sitk.Image</em>) – Input Jacobian map.</li>
+<li><strong>mask</strong> (<em>sitk.Image</em>) – Optional binary mask, to compute the error only on a ROI.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The average Jacobian error.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">float</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="disptools.measure.cubicity">
+<code class="descclassname">disptools.measure.</code><code class="descname">cubicity</code><span class="sig-paren">(</span><em>image</em><span class="sig-paren">)</span><a class="reference internal" href="modules/disptools/measure.html#cubicity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#disptools.measure.cubicity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Measure the cubicity of an object.</p>
+<p>The cubicity is defined <a class="footnote-reference" href="#id15" id="id14">[4]</a> as the ratio between the volume of the
+object and the volume of its bounding cube.
+A cube has cubicity equal to 1, a sphere has cubicity pi/6, and in
+general non-cubic objects have cubicity strictly lesser than 1.</p>
+<p>Here the bounding cube is estimated as the cube whose side is
+equal to the longest side of the oriented bounding box of the
+object.</p>
+<p class="rubric">References</p>
+<table class="docutils footnote" frame="void" id="id15" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id14">[4]</a></td><td>O’Flannery, LJ and O’Mahony, MM, “Precise shape grading of
+coarse aggregate”. Magazine of Concrete Research 51.5 (1999),
+pp. 319-324.</td></tr>
+</tbody>
+</table>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>image</strong> (<em>sitk.Image</em>) – Input binary (sitkUInt8) image.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A floating point value of cubicity in the interval [0, 1].</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">float</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="disptools.measure.fitting_index">
+<code class="descclassname">disptools.measure.</code><code class="descname">fitting_index</code><span class="sig-paren">(</span><em>image</em>, <em>norm=2.0</em>, <em>centre=None</em>, <em>radius=None</em>, <em>padding=True</em><span class="sig-paren">)</span><a class="reference internal" href="modules/disptools/measure.html#fitting_index"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#disptools.measure.fitting_index" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the fitting index of an input object.</p>
+<p>The fitting index of order <cite>p</cite> is defined as the Jaccard coefficient
+computed between the input object and a p-ball centred in the object’s
+centre of mass.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>image</strong> (<em>sitk.Image</em>) – Input binary image of the object.</li>
+<li><strong>norm</strong> (<em>Union[int,str]</em>) – Order of the Minkowski norm (‘inf’ or ‘max’ to use the Chebyshev norm).</li>
+<li><strong>centre</strong> (<em>Tuple[float, float, float]</em>) – Forces the p-ball to be centred in a specific point.</li>
+<li><strong>radius</strong> (<em>float</em>) – Force the radius of the p-ball.</li>
+<li><strong>padding</strong> (<em>bool</em>) – If <cite>True</cite>, add enough padding to be sure that the ball will entirely
+fit within the volume.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Value of the fitting index.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">float</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="disptools.measure.isovolumteric_radius">
+<code class="descclassname">disptools.measure.</code><code class="descname">isovolumteric_radius</code><span class="sig-paren">(</span><em>image</em>, <em>norm</em><span class="sig-paren">)</span><a class="reference internal" href="modules/disptools/measure.html#isovolumteric_radius"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#disptools.measure.isovolumteric_radius" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the radius of a ball isovolumetric to the input object</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>image</strong> (<em>sitk.Image</em>) – Input binary image.</li>
+<li><strong>norm</strong> (<em>Union[int,str]</em>) – Order of the Minkowski norm (‘inf’ or ‘max’ to use the Chebyshev norm).</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Value of the isovolumetric radius.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">float</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="disptools.measure.minkowski_compactness">
+<code class="descclassname">disptools.measure.</code><code class="descname">minkowski_compactness</code><span class="sig-paren">(</span><em>image</em>, <em>norm=1.0</em><span class="sig-paren">)</span><a class="reference internal" href="modules/disptools/measure.html#minkowski_compactness"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#disptools.measure.minkowski_compactness" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the Minkovski compactness of a binary image.</p>
+<p>Minkowski compactness of an object is defined as the ratio between the volume
+of the object and the volume of a p-ball centred on the object’s centre of
+mass, maximised agaist spatial rotations of the ball.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>image</strong> (<em>sitk.Image</em>) – Input binary image.</li>
+<li><strong>norm</strong> (<em>Union[int,str]</em>) – Order of the Minkowski norm (‘inf’ or ‘max’ to use the Chebyshev norm).</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Value of the Minkowski norm.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">float</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="disptools.measure.reject_outliers">
+<code class="descclassname">disptools.measure.</code><code class="descname">reject_outliers</code><span class="sig-paren">(</span><em>data</em>, <em>k=2.0</em>, <em>absolute=True</em><span class="sig-paren">)</span><a class="reference internal" href="modules/disptools/measure.html#reject_outliers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#disptools.measure.reject_outliers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reject outliers from an array, based on the median deviation (MD).</p>
+<p>Reject as outliers all values whose deviation from the median is higher
+than <img class="math" src="images/math/594ebcbbd5600cb0d94b76641d6eb0d9865742bc.png" alt="k \cdot MD"/>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>data</strong> (<em>np.ndarray</em>) – Array of values.</li>
+<li><strong>k</strong> (<em>float</em>) – Number of MDs for outlier rejection.</li>
+<li><strong>absolute</strong> (<em>bool</em>) – If True, use absolute deviations.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">An array with the outliers removed.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">np.ndarray</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="disptools.measure.sphericity">
+<code class="descclassname">disptools.measure.</code><code class="descname">sphericity</code><span class="sig-paren">(</span><em>image</em><span class="sig-paren">)</span><a class="reference internal" href="modules/disptools/measure.html#sphericity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#disptools.measure.sphericity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Measure the sphericity of a object.</p>
+<p>The sphericity is defined <a class="footnote-reference" href="#id18" id="id16">[5]</a> <a class="footnote-reference" href="#id19" id="id17">[6]</a> as the ratio between the surface of a sphere
+with the same volume of the object and the surface of the object itself.</p>
+<div class="math">
+<p><img src="images/math/04b03a85023e4e414fef40a8bec32aacf302ac08.png" alt="\frac{\pi^{\frac{1}{3}}(6V)^{\frac{2}{3}}}{A}"/></p>
+</div><p>A sphere has sphericity equal to 1, non-spherical objects have sphericity
+strictly lesser than 1.</p>
+<p class="rubric">References</p>
+<table class="docutils footnote" frame="void" id="id18" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id16">[5]</a></td><td>Wadell, Hakon. “Volume, shape, and roundness of quartz particles.”
+The Journal of Geology 43.3 (1935): 250-280.</td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id19" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id17">[6]</a></td><td>Lehmann, Gaëthan. “Label object representation and manipulation with ITK”
+Insight Journal, July-December 2007</td></tr>
+</tbody>
+</table>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>image</strong> (<em>sitk.Image</em>) – Input binary (sitkUInt8) image.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A floating point value of sphericity in the interval [0, 1].</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">float</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-disptools.predict">
+<span id="disptools-predict-module"></span><h2>disptools.predict module<a class="headerlink" href="#module-disptools.predict" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="disptools.predict.create_target_volume">
+<code class="descclassname">disptools.predict.</code><code class="descname">create_target_volume</code><span class="sig-paren">(</span><em>image</em>, <em>atrophy_rate</em><span class="sig-paren">)</span><a class="reference internal" href="modules/disptools/predict.html#create_target_volume"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#disptools.predict.create_target_volume" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a target volume map for the PREDICT tool.</p>
+<p>Given an input segmentation map, create mask target volume map for the
+PREDICT tool, with the given atrophy rate. The volume change in
+<img class="math" src="images/math/ea9685e7f93513880e3b1f1bcba896d8e576ede3.png" alt="(x,y,z)"/> is defined over a cubic pach formed by the voxel
+<img class="math" src="images/math/ea9685e7f93513880e3b1f1bcba896d8e576ede3.png" alt="(x,y,z)"/>, its three successors along the axis and their respective
+successors to close the cube. Hence, if the input mask has size
+<img class="math" src="images/math/53b56da6b0dfacdb01c136499691bf9bf254b770.png" alt="m \times n \times s"/>, the volume map has size
+<img class="math" src="images/math/21d695d242bd4bc23daae28b9d90f62d6704c650.png" alt="(m-1) \times (n-1) \times (s-1)"/>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The output must be in np.float32, since the PREDICT tool uses
+the C <cite>float</cite> type as hard-coded type.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>image</strong> (<em>sitk.Image</em>) – Input segmentation map.</li>
+<li><strong>atrophy_rate</strong> (<em>float</em>) – Target atropy rate for the segmented ROI.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">A SimpleITK image object with the target volume map.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">sitk.Image</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="disptools.predict.read_deformation">
+<code class="descclassname">disptools.predict.</code><code class="descname">read_deformation</code><span class="sig-paren">(</span><em>filename</em>, <em>size</em><span class="sig-paren">)</span><a class="reference internal" href="modules/disptools/predict.html#read_deformation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#disptools.predict.read_deformation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read a deformation field from a file in the PREDICT format</p>
+<p>The deformation field is stored as binary uncompressed 32-float data.</p>
+<p>PREDICT uses a different convention for the coordinates (with rows
+along the <img class="math" src="images/math/276f7e256cbddeb81eee42e1efc348f3cb4ab5f8.png" alt="y"/> axis, columns along the <img class="math" src="images/math/a59f68a4202623bb859a7093f0316bf466e6f75d.png" alt="x"/> axis, and slices
+along the <img class="math" src="images/math/683f2dd9129a91d21aaf1c04afa6f78b39d4cb0a.png" alt="z"/> axis), so a permutation of the components in the
+result is required. The identity is subtracted in order to convert the
+deformation to a displacement field.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The size of the volume is not stored within PREDICT files, so it needs
+to be known and passed as an argument.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>filename</strong> (<em>str</em>) – Input file.</li>
+<li><strong>size</strong> (<em>(int, int, int)</em>) – Size of the volume <cite>(x,y,z)</cite>.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">A SimpleITK image object containing the corresponding displacement field.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">sitk.Image</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="disptools.predict.read_img">
+<code class="descclassname">disptools.predict.</code><code class="descname">read_img</code><span class="sig-paren">(</span><em>filename</em>, <em>size</em><span class="sig-paren">)</span><a class="reference internal" href="modules/disptools/predict.html#read_img"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#disptools.predict.read_img" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read an image from file in the PREDICT format.</p>
+<p>PREDICT uses a different convention for the coordinates (with rows
+along the <img class="math" src="images/math/276f7e256cbddeb81eee42e1efc348f3cb4ab5f8.png" alt="y"/> axis, columns along the <img class="math" src="images/math/a59f68a4202623bb859a7093f0316bf466e6f75d.png" alt="x"/> axis, and slices
+along the <img class="math" src="images/math/683f2dd9129a91d21aaf1c04afa6f78b39d4cb0a.png" alt="z"/> axis), so a permutation of the components in the
+result is required.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The size of the volume is not stored within PREDICT files, so it needs
+to be known and passed as an argument.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>filename</strong> (<em>str</em>) – Input file.</li>
+<li><strong>size</strong> (<em>(int, int, int)</em>) – Size of the volume <cite>(x,y,z)</cite>.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">a SimpleITK image object containing the corresponding image</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">sitk.Image</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="disptools.predict.write_img">
+<code class="descclassname">disptools.predict.</code><code class="descname">write_img</code><span class="sig-paren">(</span><em>image</em>, <em>filename</em><span class="sig-paren">)</span><a class="reference internal" href="modules/disptools/predict.html#write_img"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#disptools.predict.write_img" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write an image to file in the PREDICT format.</p>
+<p>PREDICT uses a different convention for the coordinates (with rows
+along the <img class="math" src="images/math/276f7e256cbddeb81eee42e1efc348f3cb4ab5f8.png" alt="y"/> axis, columns along the <img class="math" src="images/math/a59f68a4202623bb859a7093f0316bf466e6f75d.png" alt="x"/> axis, and slices
+along the <img class="math" src="images/math/683f2dd9129a91d21aaf1c04afa6f78b39d4cb0a.png" alt="z"/> axis), so a permutation of the components in the
+result is required.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The size of the volume will not be stored within the file.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>filename</strong> (<em>str</em>) – Input file.</li>
+<li><strong>size</strong> (<em>(int, int, int)</em>) – Size of the volume <cite>(x,y,z)</cite>.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">A SimpleITK image object containing the corresponding image.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">sitk.Image</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-disptools.simulatrophy">
+<span id="disptools-simulatrophy-module"></span><h2>disptools.simulatrophy module<a class="headerlink" href="#module-disptools.simulatrophy" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="disptools.simulatrophy.jacobian_to_atrophy_map">
+<code class="descclassname">disptools.simulatrophy.</code><code class="descname">jacobian_to_atrophy_map</code><span class="sig-paren">(</span><em>image</em><span class="sig-paren">)</span><a class="reference internal" href="modules/disptools/simulatrophy.html#jacobian_to_atrophy_map"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#disptools.simulatrophy.jacobian_to_atrophy_map" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a Jacobian map to a atrophy map.</p>
+<p>The atrophy rate <img class="math" src="images/math/bd9d9c7512c898e0a254a0882184197bc1bd9c9f.png" alt="a"/> is defined as the pointwise percentage of
+volume loss, so <img class="math" src="images/math/eb2d3efbc548b649a2c29d6470b1f49da7871ded.png" alt="a = -(J-1)"/> (where <img class="math" src="images/math/ca54d3a4a8a221da5f7a13a28ec6a45b4abcc5a5.png" alt="J"/> is the Jacobian).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>image</strong> (<em>sitk.Image</em>) – Input image.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Corresponding atrophy map.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">sitk.Image</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-disptools">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-disptools" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Martino Pilia.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+    <div style="padding-top: 1em;">
+        <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">
+            <img alt="Creative Commons License" 
+                 style="border-width:0"
+                 src="https://i.creativecommons.org/l/by-sa/4.0/80x15.png" />
+        </a>
+        <br/>
+        This documentation is freely available under the
+        <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">
+            Creative Commons Attribution-ShareAlike 4.0 International License
+        </a>.
+    </div>
+
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="static/jquery.js"></script>
+      <script type="text/javascript" src="static/underscore.js"></script>
+      <script type="text/javascript" src="static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

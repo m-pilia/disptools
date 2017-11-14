@@ -1,0 +1,1062 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>disptools.displacements &mdash; disptools 0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../genindex.html"/>
+        <link rel="search" title="Search" href="../../search.html"/>
+    <link rel="top" title="disptools 0.1 documentation" href="../../index.html"/>
+        <link rel="up" title="Module code" href="../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> disptools
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">disptools</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>disptools.displacements</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for disptools.displacements</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">functools</span> <span class="k">import</span> <span class="n">reduce</span>
+<span class="kn">from</span> <span class="nn">glob</span> <span class="k">import</span> <span class="n">glob</span>
+<span class="kn">import</span> <span class="nn">threading</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">SimpleITK</span> <span class="k">as</span> <span class="nn">sitk</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">scipy.interpolate</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="o">*</span>
+
+<span class="kn">from</span> <span class="nn">disptools</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">import</span> <span class="nn">disptools.drawing</span> <span class="k">as</span> <span class="nn">drawing</span>
+<span class="kn">import</span> <span class="nn">disptools.io</span> <span class="k">as</span> <span class="nn">io</span>
+
+<span class="kn">import</span> <span class="nn">_disptools</span>
+
+
+<div class="viewcode-block" id="regularise"><a class="viewcode-back" href="../../index.html#disptools.displacements.regularise">[docs]</a><span class="k">def</span> <span class="nf">regularise</span><span class="p">(</span><span class="n">jacobian</span><span class="p">:</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">:</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Regularise the Jacobian, removing singularities.</span>
+
+<span class="sd">    Given a 3D scalar image, replace all the entries that are smaller</span>
+<span class="sd">    than `epsilon` with `epsilon`.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    jacobian : sitk.Image</span>
+<span class="sd">        Input Jacobian map</span>
+<span class="sd">    epsilon  : float</span>
+<span class="sd">        Lower threshold for the Jacobian.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    sitk.Image</span>
+<span class="sd">        Thresholded Jacobian.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">jacobian</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Cast</span><span class="p">(</span><span class="n">jacobian</span><span class="p">,</span> <span class="n">sitk_float_type</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="mi">3</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">jacobian</span><span class="o">.</span><span class="n">GetSize</span><span class="p">())):</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Wrong jacobian dimensionality&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Object for the result</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">(</span><span class="n">jacobian</span><span class="p">)</span>
+
+    <span class="c1"># Call function from the underlying C library</span>
+    <span class="n">_disptools</span><span class="o">.</span><span class="n">regularise</span><span class="p">(</span><span class="n">sitk</span><span class="o">.</span><span class="n">GetArrayViewFromImage</span><span class="p">(</span><span class="n">result</span><span class="p">),</span> <span class="n">epsilon</span><span class="p">)</span>
+</div>
+    <span class="k">return</span> <span class="n">result</span>
+
+
+<div class="viewcode-block" id="jacobian"><a class="viewcode-back" href="../../index.html#disptools.displacements.jacobian">[docs]</a><span class="k">def</span> <span class="nf">jacobian</span><span class="p">(</span><span class="n">field</span><span class="p">:</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">:</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Compute the Jacobian map of a vector field.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    field : sitk.Image</span>
+<span class="sd">        Input vector field.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    sitk.Image</span>
+<span class="sd">        The Jacobian of the given vector field.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">field</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Cast</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">sitk_vector_float_type</span><span class="p">)</span>
+
+    <span class="n">image</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">GetArrayViewFromImage</span><span class="p">(</span><span class="n">field</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="mi">4</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="ow">or</span> <span class="mi">3</span> <span class="o">!=</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">3</span><span class="p">]:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Wrong input dimensionality&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Convert to the library&#39;s memory layout</span>
+    <span class="n">shape</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span>
+    <span class="n">image_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="o">*</span><span class="n">shape</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np_float_type</span><span class="p">)</span>
+    <span class="n">image_data</span><span class="p">[</span><span class="mi">0</span><span class="p">,:,:,:]</span> <span class="o">=</span> <span class="n">image</span><span class="p">[:,:,:,</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">image_data</span><span class="p">[</span><span class="mi">1</span><span class="p">,:,:,:]</span> <span class="o">=</span> <span class="n">image</span><span class="p">[:,:,:,</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">image_data</span><span class="p">[</span><span class="mi">2</span><span class="p">,:,:,:]</span> <span class="o">=</span> <span class="n">image</span><span class="p">[:,:,:,</span><span class="mi">2</span><span class="p">]</span>
+
+    <span class="c1"># Object for the result</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np_float_type</span><span class="p">)</span>
+
+    <span class="c1"># Call function from the underlying C library</span>
+    <span class="n">_disptools</span><span class="o">.</span><span class="n">jacobian</span><span class="p">(</span><span class="n">field</span><span class="o">.</span><span class="n">GetSpacing</span><span class="p">(),</span> <span class="n">image_data</span><span class="p">,</span> <span class="n">result</span><span class="p">)</span>
+
+    <span class="n">result</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">GetImageFromArray</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+    <span class="n">result</span><span class="o">.</span><span class="n">CopyInformation</span><span class="p">(</span><span class="n">field</span><span class="p">)</span>
+</div>
+    <span class="k">return</span> <span class="n">result</span>
+
+
+<span class="k">def</span> <span class="nf">_displacement</span><span class="p">(</span>
+        <span class="n">image</span>         <span class="p">:</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">,</span>
+        <span class="n">body_mask</span>     <span class="p">:</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">initial_guess</span> <span class="p">:</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">epsilon</span>       <span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">9.99e-4</span><span class="p">,</span>
+        <span class="n">tolerance</span>     <span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.2</span><span class="p">,</span>
+        <span class="n">it_max</span>        <span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">50000</span><span class="p">,</span>
+        <span class="n">alpha</span>         <span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.2</span><span class="p">,</span>
+        <span class="n">beta</span>          <span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span>
+        <span class="n">gamma</span>         <span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="o">.</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">delta</span>         <span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-3</span><span class="p">,</span>
+        <span class="n">zeta</span>          <span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">100.0</span><span class="p">,</span>
+        <span class="n">strict</span>        <span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">eta</span>           <span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.4</span><span class="p">,</span>
+        <span class="n">algorithm</span>     <span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;gradient&#39;</span>
+        <span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Compute a displacement field that realises a prescribed Jacobian.</span>
+
+<span class="sd">    .. note::</span>
+<span class="sd">        This function should not be called directly. Please use its wrapper `displacement&#39;.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ---------</span>
+<span class="sd">    image : sitk.Image</span>
+<span class="sd">        Input Jacobian.</span>
+<span class="sd">    boady_mask : sitk.Image</span>
+<span class="sd">        Binary mask of the body volume.</span>
+<span class="sd">    initial_guess : sitk.Image</span>
+<span class="sd">        Initial estimation of the solution. The default is a null</span>
+<span class="sd">        displacement field.</span>
+<span class="sd">    epsilon : float</span>
+<span class="sd">        A floating point value, representing the tolerance per</span>
+<span class="sd">        voxel on the Jacobian of the resulting field.</span>
+<span class="sd">    tolerance : float</span>
+<span class="sd">        Tolerance on Jacobian outside the mask.</span>
+<span class="sd">    it_max : int</span>
+<span class="sd">        Maximum number of iterations allowed.</span>
+<span class="sd">    alpha : float</span>
+<span class="sd">        Coefficient that controls the increase of the step length.</span>
+<span class="sd">    beta : float</span>
+<span class="sd">        Coefficient that controls the decrease of the step length.</span>
+<span class="sd">    gamma : float</span>
+<span class="sd">        Armijo-Goldstein parameter.</span>
+<span class="sd">    delta : float</span>
+<span class="sd">        Lower threshold for Jacobian regularisation.</span>
+<span class="sd">    strict : bool</span>
+<span class="sd">        If True, reject iterations that not decrease the maximum</span>
+<span class="sd">        voxel error.</span>
+<span class="sd">    eta : float</span>
+<span class="sd">        Initial step length</span>
+<span class="sd">    algorithm : str</span>
+<span class="sd">        Algorithm to generate the field, one of `greedy`, `gradient`, or `matching`.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    sitk.Image</span>
+<span class="sd">        A displacement field whose Jacobian matches the input.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">jacobian</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">GetArrayViewFromImage</span><span class="p">(</span><span class="n">image</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np_float_type</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">body_mask</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Default mask: whole image</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">jacobian</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Get mask as numpy array of booleans</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">GetArrayViewFromImage</span><span class="p">(</span><span class="n">body_mask</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">bool</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># Create objects for the result, initialise initial guess</span>
+    <span class="k">if</span> <span class="n">initial_guess</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">GetArrayViewFromImage</span><span class="p">(</span><span class="n">initial_guess</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span> <span class="o">!=</span> <span class="n">jacobian</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;The shapes of the Jacobian and the initial guess must agree&quot;</span><span class="p">)</span>
+        <span class="n">field_tmp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="o">*</span><span class="n">jacobian</span><span class="o">.</span><span class="n">shape</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np_float_type</span><span class="p">)</span>
+        <span class="n">field_tmp</span><span class="p">[</span><span class="mi">0</span><span class="p">,:,:,:]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:,:,:,</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">field_tmp</span><span class="p">[</span><span class="mi">1</span><span class="p">,:,:,:]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:,:,:,</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">field_tmp</span><span class="p">[</span><span class="mi">2</span><span class="p">,:,:,:]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:,:,:,</span><span class="mi">2</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">field_tmp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="o">*</span><span class="n">jacobian</span><span class="o">.</span><span class="n">shape</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np_float_type</span><span class="p">)</span>
+
+    <span class="c1"># Arguments</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">image</span><span class="o">.</span><span class="n">GetSpacing</span><span class="p">(),</span>
+        <span class="n">jacobian</span><span class="p">,</span>
+        <span class="n">mask</span><span class="p">,</span>
+        <span class="n">epsilon</span><span class="p">,</span>
+        <span class="n">tolerance</span><span class="p">,</span>
+        <span class="n">eta</span><span class="p">,</span>
+        <span class="n">alpha</span><span class="p">,</span>
+        <span class="n">beta</span><span class="p">,</span>
+        <span class="n">gamma</span><span class="p">,</span>
+        <span class="n">delta</span><span class="p">,</span>
+        <span class="n">zeta</span><span class="p">,</span>
+        <span class="n">strict</span><span class="p">,</span>
+        <span class="n">it_max</span><span class="p">,</span>
+        <span class="n">field_tmp</span><span class="p">,</span>
+        <span class="n">algorithm</span>
+    <span class="p">]</span>
+
+    <span class="c1"># Call the function in a separate thread</span>
+    <span class="c1">#</span>
+    <span class="c1"># The thread cannot actually be killed from the REPL while busy, but</span>
+    <span class="c1"># at least this way the REPL can handle SIGINT. Using a process</span>
+    <span class="c1"># instead of a thread would allow to kill the call, but it does not</span>
+    <span class="c1"># work in the REPL, so there is no point.</span>
+    <span class="c1">#</span>
+    <span class="c1"># The real solution would be to put a signal handler inside the C</span>
+    <span class="c1"># routines. There are resources to be freed before interrupting, and</span>
+    <span class="c1"># they are shared betweeen OpenMP threads, so it requires to use a</span>
+    <span class="c1"># termination flag inside the OpenMP sections.</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">_disptools</span><span class="o">.</span><span class="n">displacement</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span> <span class="n">daemon</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
+
+    <span class="c1"># Convert to ITK&#39;s image memory layout</span>
+    <span class="n">field</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="o">*</span><span class="n">jacobian</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np_float_type</span><span class="p">)</span>
+    <span class="n">field</span><span class="p">[:,:,:,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">field_tmp</span><span class="p">[</span><span class="mi">0</span><span class="p">,:,:,:]</span>
+    <span class="n">field</span><span class="p">[:,:,:,</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">field_tmp</span><span class="p">[</span><span class="mi">1</span><span class="p">,:,:,:]</span>
+    <span class="n">field</span><span class="p">[:,:,:,</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">field_tmp</span><span class="p">[</span><span class="mi">2</span><span class="p">,:,:,:]</span>
+
+    <span class="c1"># Convert the result to match the input type</span>
+    <span class="n">field</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">GetImageFromArray</span><span class="p">(</span><span class="n">field</span><span class="p">)</span>
+    <span class="n">field</span><span class="o">.</span><span class="n">CopyInformation</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">field</span>
+
+
+<div class="viewcode-block" id="redistribute_volume_change"><a class="viewcode-back" href="../../index.html#disptools.displacements.redistribute_volume_change">[docs]</a><span class="k">def</span> <span class="nf">redistribute_volume_change</span><span class="p">(</span><span class="n">image</span><span class="p">:</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">,</span> <span class="n">mask</span><span class="p">:</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">:</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Redistribute the volume change over the image.</span>
+
+<span class="sd">    Redistribute the change of volume within the body on the background,</span>
+<span class="sd">    and enforce the total volume change over the entire image to be zero.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    image : sitk.Image</span>
+<span class="sd">        Input Jacobian.</span>
+<span class="sd">    mask : sitk.Image</span>
+<span class="sd">        Binary mask of the body volume.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    sitk.Image</span>
+<span class="sd">        A new Jacobian map with redistributed volume changes.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">data</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">GetArrayFromImage</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+    <span class="n">index</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">GetArrayViewFromImage</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
+
+    <span class="n">correction</span> <span class="o">=</span> <span class="o">-</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">-</span> <span class="n">data</span><span class="o">.</span><span class="n">size</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">size</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">index</span><span class="p">))</span>
+    <span class="n">data</span><span class="p">[</span><span class="n">index</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">]</span> <span class="o">+=</span> <span class="n">correction</span>
+
+    <span class="n">result</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">GetImageFromArray</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">result</span><span class="o">.</span><span class="n">CopyInformation</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+</div>
+    <span class="k">return</span> <span class="n">result</span>
+
+
+<span class="c1"># This function is a wrapper of `_displacement()` that adds padding/cropping</span>
+<span class="c1"># and handles the multi-resolution pyramid.</span>
+<div class="viewcode-block" id="displacement"><a class="viewcode-back" href="../../index.html#disptools.displacements.displacement">[docs]</a><span class="k">def</span> <span class="nf">displacement</span><span class="p">(</span>
+        <span class="n">jacobian</span>     <span class="p">:</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">,</span>
+        <span class="n">levels</span>       <span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="n">pad</span>          <span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="n">redistribute</span> <span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">parameters</span> <span class="p">:</span> <span class="n">Any</span>
+        <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">:</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Generate a displacement field that realises a given Jacobian.</span>
+
+<span class="sd">    Given a 3D scalar image encoding a Jacobian map, compute a</span>
+<span class="sd">    3D vector image encoding a vector field whose Jacobian map</span>
+<span class="sd">    matches the input up to a certain tolerance.</span>
+<span class="sd">    The three algorithms provided are:</span>
+
+<span class="sd">    * ``gradient``: a gradient descent method (default).</span>
+<span class="sd">    * ``greedy``: a greedy search method based on the method proposed in [1]_.</span>
+<span class="sd">    * ``matching``: a volume matching routine based on gradient descent,</span>
+<span class="sd">      published in [2]_ and [3]_. The implementation comes from</span>
+<span class="sd">      the `atrophysim tool`_.</span>
+
+<span class="sd">    .. _atrophysim tool: https://www.nitrc.org/projects/atrophysim</span>
+
+<span class="sd">    .. note::</span>
+<span class="sd">        The displacement is generally not accurate on image boundary voxels.</span>
+
+<span class="sd">    .. note::</span>
+<span class="sd">        The C verbose output is written to `stderr`. If you want to capture</span>
+<span class="sd">        it from within Python, the `wurlitzer package`_ might be helpful.</span>
+
+<span class="sd">    .. warning::</span>
+<span class="sd">        This function calls a C routine which cannot be interrupted from</span>
+<span class="sd">        the REPL.</span>
+
+<span class="sd">    .. _wurlitzer package: https://github.com/minrk/wurlitzer</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    .. [1] van Eede, M. C., Scholz, J., Chakravarty, M. M., Henkelman, R. M., and Lerch, J. P.</span>
+<span class="sd">           &quot;Mapping registration sensitivity in MR mouse brain images.&quot; Neuroimage 82 (2013), 226–236.</span>
+<span class="sd">    .. [2] Karaçali, B., and Davatzikos, C. &quot;Estimating topology preserving and smooth displacement fields.&quot;</span>
+<span class="sd">           IEEE Transactions on Medical Imaging 23, 7 (2004), 868–880.</span>
+<span class="sd">    .. [3] Karaçali, B., and Davatzikos, C. &quot;Simulation of tissue atrophy using a topology preserving</span>
+<span class="sd">           ransformation model.&quot; IEEE transactions on medical imaging 25, 5 (2006), 649–652.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    jacobian : sitk.Image</span>
+<span class="sd">        Input Jacobian.</span>
+<span class="sd">    levels : int</span>
+<span class="sd">        Number of resolution levels; the size of the image along</span>
+<span class="sd">        each direction is halven at each level.</span>
+<span class="sd">    pad : int</span>
+<span class="sd">        Thickness of the zero-padding around the volume (0 for</span>
+<span class="sd">        the mask, 1.0 for the Jacobian) to be used during the</span>
+<span class="sd">        computation. The padding is removed before returning the result.</span>
+<span class="sd">    redistribute : bool</span>
+<span class="sd">        Redistribute the volume change inside the mask to the background.</span>
+<span class="sd">    boady_mask : sitk.Image</span>
+<span class="sd">        Binary mask of the body volume.</span>
+<span class="sd">    initial_guess : sitk.Image</span>
+<span class="sd">        Initial estimation of the solution. The default is a null</span>
+<span class="sd">        displacement field.</span>
+<span class="sd">    epsilon : float</span>
+<span class="sd">        A floating point value, representing the tolerance per</span>
+<span class="sd">        voxel on the Jacobian of the resulting field.</span>
+<span class="sd">    tolerance : float</span>
+<span class="sd">        Tolerance on Jacobian outside the mask.</span>
+<span class="sd">    it_max : int</span>
+<span class="sd">        Maximum number of iterations allowed.</span>
+<span class="sd">    alpha : float</span>
+<span class="sd">        Coefficient that controls the increase of the step length.</span>
+<span class="sd">    beta : float</span>
+<span class="sd">        Coefficient that controls the decrease of the step length.</span>
+<span class="sd">    gamma : float</span>
+<span class="sd">        Armijo-Goldstein parameter.</span>
+<span class="sd">    delta : float</span>
+<span class="sd">        Lower threshold for Jacobian regularisation.</span>
+<span class="sd">    strict : bool</span>
+<span class="sd">        If True, reject iterations that not decrease the maximum</span>
+<span class="sd">        voxel error.</span>
+<span class="sd">    eta : float</span>
+<span class="sd">        Initial step length</span>
+<span class="sd">    algorithm : str</span>
+<span class="sd">        Algorithm to generate the field, one of `greedy`, `gradient`, or `matching`.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    sitk.Image</span>
+<span class="sd">        A displacement field whose Jacobian matches the input.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">jacobian</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Cast</span><span class="p">(</span><span class="n">jacobian</span><span class="p">,</span> <span class="n">sitk_float_type</span><span class="p">)</span>
+
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">parameters</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;mask&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">mask</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">jacobian</span><span class="o">.</span><span class="n">GetSize</span><span class="p">()),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np_float_type</span><span class="p">)</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">GetImageFromArray</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Cast</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">sitk_float_type</span><span class="p">)</span>
+
+    <span class="n">origin</span> <span class="o">=</span> <span class="n">jacobian</span><span class="o">.</span><span class="n">GetOrigin</span><span class="p">()</span>
+
+    <span class="c1"># Add a voxel of zero-flux padding anyway since the algorithm</span>
+    <span class="c1"># will not compute the displacement field on boundary voxels</span>
+    <span class="k">if</span> <span class="n">pad</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">pad</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">pad</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">pad</span> <span class="o">=</span> <span class="p">((</span><span class="n">pad</span><span class="p">,</span> <span class="n">pad</span><span class="p">,</span> <span class="n">pad</span><span class="p">),</span> <span class="p">(</span><span class="n">pad</span><span class="p">,</span> <span class="n">pad</span><span class="p">,</span> <span class="n">pad</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">redistribute</span><span class="p">:</span>
+        <span class="n">jacobian</span> <span class="o">=</span> <span class="n">redistribute_volume_change</span><span class="p">(</span><span class="n">jacobian</span><span class="p">,</span> <span class="n">mask</span><span class="p">)</span>
+
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">ConstantPad</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="o">*</span><span class="n">pad</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">jacobian</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">ZeroFluxNeumannPad</span><span class="p">(</span><span class="n">jacobian</span><span class="p">,</span> <span class="o">*</span><span class="n">pad</span><span class="p">)</span>
+
+    <span class="c1"># Create image pyramid</span>
+    <span class="n">jacobian_pyramid</span> <span class="o">=</span> <span class="p">[</span><span class="n">jacobian</span><span class="p">]</span>
+    <span class="n">mask_pyramid</span> <span class="o">=</span> <span class="p">[</span><span class="n">mask</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">levels</span><span class="p">):</span>
+        <span class="n">new_size</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="n">jacobian_pyramid</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">GetSize</span><span class="p">()))</span>
+        <span class="n">jacobian_pyramid</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">drawing</span><span class="o">.</span><span class="n">resize_image</span><span class="p">(</span><span class="n">jacobian</span><span class="p">,</span> <span class="n">new_size</span><span class="p">))</span>
+        <span class="n">mask_pyramid</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">drawing</span><span class="o">.</span><span class="n">resize_image</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">new_size</span><span class="p">,</span> <span class="n">sitk</span><span class="o">.</span><span class="n">sitkNearestNeighbor</span><span class="p">))</span>
+
+    <span class="c1"># Set initial guess</span>
+    <span class="n">field</span> <span class="o">=</span> <span class="n">parameters</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;initial_guess&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="c1"># Multi-resolution algorithm</span>
+    <span class="k">for</span> <span class="n">jacobian</span><span class="p">,</span> <span class="n">mask</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="nb">reversed</span><span class="p">(</span><span class="n">jacobian_pyramid</span><span class="p">),</span> <span class="nb">reversed</span><span class="p">(</span><span class="n">mask_pyramid</span><span class="p">)):</span>
+        <span class="n">size</span> <span class="o">=</span> <span class="n">jacobian</span><span class="o">.</span><span class="n">GetSize</span><span class="p">()</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Size </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">size</span><span class="p">))</span>
+        <span class="n">field</span> <span class="o">=</span> <span class="n">drawing</span><span class="o">.</span><span class="n">resize_image</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">size</span><span class="p">)</span> <span class="k">if</span> <span class="n">field</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="n">field</span> <span class="o">=</span> <span class="n">_displacement</span><span class="p">(</span><span class="n">jacobian</span><span class="p">,</span> <span class="n">mask</span><span class="p">,</span> <span class="n">initial_guess</span><span class="o">=</span><span class="n">field</span><span class="p">,</span> <span class="o">**</span><span class="n">parameters</span><span class="p">)</span>
+
+    <span class="c1"># Remove padding from the result</span>
+    <span class="n">field</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Crop</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="o">*</span><span class="n">pad</span><span class="p">)</span>
+    <span class="n">field</span><span class="o">.</span><span class="n">SetOrigin</span><span class="p">(</span><span class="n">origin</span><span class="p">)</span>
+</div>
+    <span class="k">return</span> <span class="n">field</span>
+
+
+<div class="viewcode-block" id="average_jacobian_from_displacements"><a class="viewcode-back" href="../../index.html#disptools.displacements.average_jacobian_from_displacements">[docs]</a><span class="k">def</span> <span class="nf">average_jacobian_from_displacements</span><span class="p">(</span><span class="n">input_filenames_pattern</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">:</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Compute the average Jacobian of a set of displacement fields.</span>
+
+<span class="sd">    This function reads a collection of displacement fields from files</span>
+<span class="sd">    (``rvf`` or any other format readable by SimpleITK) and computes</span>
+<span class="sd">    the average Jacobian of the deformation associated to them</span>
+<span class="sd">    (defined as the geometric mean computed under logarithm).</span>
+<span class="sd">    It accepts a string argument containing a `glob pattern`_ to the</span>
+<span class="sd">    input displacement files, and a second optional argument setting</span>
+<span class="sd">    a minimum threshold for the Jacobian.</span>
+
+<span class="sd">    For instance, assuming there is a folder ``/home/user/my_displacements``</span>
+<span class="sd">    containing a set of displacement fields in ``vtk`` format, the average</span>
+<span class="sd">    Jacobian can be computed with</span>
+
+<span class="sd">    &gt;&gt;&gt; average_jacobian = disptools.displacements.average_jacobian_from_displacements(&#39;/home/user/my_jacobians/*.vtk&#39;)</span>
+
+<span class="sd">    The average Jacobian is defined as the geometric mean computed under</span>
+<span class="sd">    logarithm.</span>
+
+<span class="sd">    .. _glob pattern: https://en.wikipedia.org/wiki/Glob_(programming)</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    input_filenames_pattern : str</span>
+<span class="sd">        A glob pattern for the  displacement files in RVF or another</span>
+<span class="sd">        format readable by SimpleITK.</span>
+<span class="sd">    epsilon : float</span>
+<span class="sd">        Minimum threshold for the Jacobian, all values below `epsilon`</span>
+<span class="sd">        will be replaced with `epsilon`.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    sitk.Image</span>
+<span class="sd">        The average Jacobian of the given displacements.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">total_jacobian</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="n">filenames</span> <span class="o">=</span> <span class="n">glob</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">input_filenames_pattern</span><span class="p">)</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">filenames</span><span class="p">)</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Files to process: </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">n</span><span class="p">)</span>
+
+    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Starting&#39;</span><span class="p">)</span>
+    <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">filenames</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Processing file </span><span class="si">%3d</span><span class="s1">/</span><span class="si">%d</span><span class="s1"> </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">f</span><span class="p">))</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">file_format</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;.*\.([^.]+)$&#39;</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Skipping file </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span><span class="n">i</span><span class="p">)</span>
+            <span class="k">continue</span>
+
+        <span class="k">if</span> <span class="n">file_format</span> <span class="o">==</span> <span class="s1">&#39;rvf&#39;</span><span class="p">:</span>
+            <span class="n">I</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">read_rvf</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">I</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">ReadImage</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+        <span class="n">J</span> <span class="o">=</span> <span class="n">jacobian</span><span class="p">(</span><span class="n">I</span><span class="p">)</span>
+        <span class="n">J</span> <span class="o">=</span> <span class="n">regularise</span><span class="p">(</span><span class="n">J</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">total_jacobian</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">total_jacobian</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="nb">reversed</span><span class="p">(</span><span class="n">I</span><span class="o">.</span><span class="n">GetSize</span><span class="p">())),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np_float_type</span><span class="p">)</span>
+
+        <span class="n">total_jacobian</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">sitk</span><span class="o">.</span><span class="n">GetArrayViewFromImage</span><span class="p">(</span><span class="n">J</span><span class="p">))</span>
+
+        <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="n">average_jacobian</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mf">1.0</span><span class="o">/</span><span class="n">n</span> <span class="o">*</span> <span class="n">total_jacobian</span><span class="p">)</span>
+    <span class="n">output_jacobian</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">GetImageFromArray</span><span class="p">(</span><span class="n">average_jacobian</span><span class="p">)</span>
+    <span class="n">output_jacobian</span><span class="o">.</span><span class="n">SetSpacing</span><span class="p">(</span><span class="n">I</span><span class="o">.</span><span class="n">GetSpacing</span><span class="p">())</span>
+</div>
+    <span class="k">return</span> <span class="n">output_jacobian</span>
+
+
+<div class="viewcode-block" id="average_jacobian"><a class="viewcode-back" href="../../index.html#disptools.displacements.average_jacobian">[docs]</a><span class="k">def</span> <span class="nf">average_jacobian</span><span class="p">(</span><span class="n">input_filenames_pattern</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">:</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Compute the average of a set of Jacobians.</span>
+
+<span class="sd">    This function reads a collection of Jacobian maps from files (any format</span>
+<span class="sd">    readable by SimpleITK) and computes their average Jacobian (defined as the</span>
+<span class="sd">    geometric mean computed under logarithm). It accepts a string argument</span>
+<span class="sd">    containing a `glob pattern`_ to the input files, and a second optional</span>
+<span class="sd">    argument setting a minimum threshold for the Jacobian.</span>
+
+<span class="sd">    For instance, assuming there is a folder ``/home/user/my_jacobians``</span>
+<span class="sd">    containing a set of Jacobian maps in ``vtk`` format, the average can</span>
+<span class="sd">    be computed with</span>
+
+<span class="sd">    &gt;&gt;&gt; average_jacobian = disptools.displacements.average_jacobian(&#39;/home/user/my_jacobians/*.vtk&#39;)</span>
+
+<span class="sd">    The average Jacobian is defined as the geometric mean computed under</span>
+<span class="sd">    logarithm.</span>
+
+<span class="sd">    .. _glob pattern: https://en.wikipedia.org/wiki/Glob_(programming)</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    input_filenames_pattern : str</span>
+<span class="sd">        A glob pattern for the  displacement files in a format</span>
+<span class="sd">        readable by SimpleITK.</span>
+<span class="sd">    epsilon : float</span>
+<span class="sd">        A lower threshold for the Jacobian, all values below `epsilon`</span>
+<span class="sd">        will be replaced with `epsilon`.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    sitk.Image</span>
+<span class="sd">        The geometric mean of the input Jacobian maps.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">total_jacobian</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="n">filenames</span> <span class="o">=</span> <span class="n">glob</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">input_filenames_pattern</span><span class="p">)</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">filenames</span><span class="p">)</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Files to process: </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">n</span><span class="p">)</span>
+
+    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Starting&#39;</span><span class="p">)</span>
+    <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">filenames</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Processing file </span><span class="si">%3d</span><span class="s1">/</span><span class="si">%d</span><span class="s1"> </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">f</span><span class="p">))</span>
+
+        <span class="n">image</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Cast</span><span class="p">(</span><span class="n">sitk</span><span class="o">.</span><span class="n">ReadImage</span><span class="p">(</span><span class="n">f</span><span class="p">),</span> <span class="n">sitk_float_type</span><span class="p">)</span>
+        <span class="n">image</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Threshold</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="n">epsilon</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mf">1e9</span><span class="p">,</span> <span class="n">outsideValue</span><span class="o">=</span><span class="n">epsilon</span><span class="p">)</span>
+        <span class="n">jacobian</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">GetArrayFromImage</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">total_jacobian</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">total_jacobian</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">jacobian</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">jacobian</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+
+        <span class="n">total_jacobian</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">jacobian</span><span class="p">)</span>
+
+        <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="n">average_jacobian</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mf">1.0</span><span class="o">/</span><span class="n">n</span> <span class="o">*</span> <span class="n">total_jacobian</span><span class="p">)</span>
+    <span class="n">output_jacobian</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">GetImageFromArray</span><span class="p">(</span><span class="n">average_jacobian</span><span class="p">)</span>
+    <span class="n">output_jacobian</span><span class="o">.</span><span class="n">CopyInformation</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+</div>
+    <span class="k">return</span> <span class="n">output_jacobian</span>
+
+
+<div class="viewcode-block" id="jacobian_to_volume_change"><a class="viewcode-back" href="../../index.html#disptools.displacements.jacobian_to_volume_change">[docs]</a><span class="k">def</span> <span class="nf">jacobian_to_volume_change</span><span class="p">(</span><span class="n">jacobian</span><span class="p">:</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">:</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Convert a Jacobian map to a volume change map.</span>
+
+<span class="sd">    A volume change map is defined as</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        VC[f](x) =</span>
+<span class="sd">        \begin{cases}</span>
+<span class="sd">            1 - \frac{1}{J[f](x)}  \quad &amp;J[f](x) \in (0,1) \\</span>
+<span class="sd">            J[f](x) - 1            \quad &amp;J[f](x) \ge 1</span>
+<span class="sd">        \end{cases}</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    jacobian : sitk.Image</span>
+<span class="sd">        Input Jacobian map.</span>
+<span class="sd">    epsilon : float</span>
+<span class="sd">        Lower threshold for the Jacobian; any value below</span>
+<span class="sd">        `epsilon` will be replaced with `epsilon`.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    sitk.Image</span>
+<span class="sd">        Volume change map associated to the input Jacobian.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">data</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">GetArrayFromImage</span><span class="p">(</span><span class="n">jacobian</span><span class="p">)</span>
+    <span class="n">processed</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+
+    <span class="n">ind_expa</span> <span class="o">=</span> <span class="n">data</span> <span class="o">&gt;=</span> <span class="mf">1.0</span>
+    <span class="n">ind_comp</span> <span class="o">=</span> <span class="n">data</span> <span class="o">&lt;</span> <span class="mf">1.0</span>
+    <span class="n">ind_sing</span> <span class="o">=</span> <span class="n">data</span> <span class="o">&lt;=</span> <span class="n">epsilon</span>
+
+    <span class="n">data</span><span class="p">[</span><span class="n">ind_sing</span><span class="p">]</span> <span class="o">=</span> <span class="n">epsilon</span>
+
+    <span class="n">processed</span><span class="p">[</span><span class="n">ind_expa</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">ind_expa</span><span class="p">]</span> <span class="o">-</span> <span class="mf">1.0</span>
+    <span class="n">processed</span><span class="p">[</span><span class="n">ind_comp</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">/</span> <span class="n">data</span><span class="p">[</span><span class="n">ind_comp</span><span class="p">])</span>
+
+    <span class="n">result</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">GetImageFromArray</span><span class="p">(</span><span class="n">processed</span><span class="p">)</span>
+    <span class="n">result</span><span class="o">.</span><span class="n">CopyInformation</span><span class="p">(</span><span class="n">jacobian</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">result</span>
+
+
+<div class="viewcode-block" id="volume_change_to_jacobian"><a class="viewcode-back" href="../../index.html#disptools.displacements.volume_change_to_jacobian">[docs]</a><span class="k">def</span> <span class="nf">volume_change_to_jacobian</span><span class="p">(</span><span class="n">volume_change</span><span class="p">:</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">:</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Convert a volume change map to a Jacobian map.</span>
+
+<span class="sd">    A volume change map is defined as</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        VC[f](x) =</span>
+<span class="sd">        \begin{cases}</span>
+<span class="sd">            1 - \frac{1}{J[f](x)}  \quad &amp;J[f](x) \in (0,1) \\</span>
+<span class="sd">            J[f](x) - 1            \quad &amp;J[f](x) \ge 1</span>
+<span class="sd">        \end{cases}</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    volume_change : sitk.Image</span>
+<span class="sd">        Input volume change map.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    sitk.Image</span>
+<span class="sd">        A Jacobian map associated to the input volume changes.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">data</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">GetArrayViewFromImage</span><span class="p">(</span><span class="n">volume_change</span><span class="p">)</span>
+    <span class="n">processed</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+
+    <span class="n">ind_expa</span> <span class="o">=</span> <span class="n">data</span> <span class="o">&gt;=</span> <span class="mf">0.0</span>
+    <span class="n">ind_comp</span> <span class="o">=</span> <span class="n">data</span> <span class="o">&lt;</span> <span class="mf">0.0</span>
+
+    <span class="n">processed</span><span class="p">[</span><span class="n">ind_expa</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">ind_expa</span><span class="p">]</span> <span class="o">+</span> <span class="mf">1.0</span>
+    <span class="n">processed</span><span class="p">[</span><span class="n">ind_comp</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">ind_comp</span><span class="p">]</span> <span class="o">-</span> <span class="mf">1.0</span><span class="p">)</span>
+
+    <span class="n">result</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">GetImageFromArray</span><span class="p">(</span><span class="n">processed</span><span class="p">)</span>
+    <span class="n">result</span><span class="o">.</span><span class="n">CopyInformation</span><span class="p">(</span><span class="n">volume_change</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">result</span>
+
+
+<div class="viewcode-block" id="deformation_to_displacement"><a class="viewcode-back" href="../../index.html#disptools.displacements.deformation_to_displacement">[docs]</a><span class="k">def</span> <span class="nf">deformation_to_displacement</span><span class="p">(</span><span class="n">deformation</span><span class="p">:</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">:</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Convert a deformation field to a displacement field.</span>
+
+<span class="sd">    A deformation field :math:`D` is given by the sum of the identity</span>
+<span class="sd">    transform and a displacement field :math:`d`:</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        D(x) = x + d(x)</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    deformation :</span>
+<span class="sd">        Input deformation field.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    sitk.Image</span>
+<span class="sd">        Displacement field associated to the deformation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">a</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">GetArrayFromImage</span><span class="p">(</span><span class="n">deformation</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">ndindex</span><span class="p">(</span><span class="n">deformation</span><span class="o">.</span><span class="n">GetSize</span><span class="p">()):</span>
+        <span class="n">a</span><span class="p">[</span><span class="n">z</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">x</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">-=</span> <span class="n">x</span>
+        <span class="n">a</span><span class="p">[</span><span class="n">z</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">x</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">-=</span> <span class="n">y</span>
+        <span class="n">a</span><span class="p">[</span><span class="n">z</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">x</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span> <span class="o">-=</span> <span class="n">z</span>
+
+    <span class="n">displacement</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">GetImageFromArray</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+    <span class="n">displacement</span><span class="o">.</span><span class="n">CopyInformation</span><span class="p">(</span><span class="n">deformation</span><span class="p">)</span>
+</div>
+    <span class="k">return</span> <span class="n">displacement</span>
+
+
+<div class="viewcode-block" id="compose_displacements"><a class="viewcode-back" href="../../index.html#disptools.displacements.compose_displacements">[docs]</a><span class="k">def</span> <span class="nf">compose_displacements</span><span class="p">(</span><span class="o">*</span><span class="n">fields</span><span class="p">:</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">:</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Compose multiple displacement fields.</span>
+
+<span class="sd">    Compute the composition pairwise and iteratively. For a couple</span>
+<span class="sd">    of displacements :math:`d_1` and :math:`d_2`</span>
+<span class="sd">    associated to the transforms :math:`f_1` and :math:`f_2`, the</span>
+<span class="sd">    composition</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        (f_2 \circ f_1) (x) = f_2(f_1(x))</span>
+
+<span class="sd">    is obtained by resampling :math:`d_2` with :math:`d_1` and then</span>
+<span class="sd">    summing.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    fields : sitk.Image</span>
+<span class="sd">        Variadic list of displacement fields.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    sitk.Image</span>
+<span class="sd">        The composition of the input displacement fields.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">fields</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">fields</span><span class="p">)</span>
+    <span class="n">total_field</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">(</span><span class="n">fields</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+
+    <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">:</span>
+        <span class="n">resampled_field</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Warp</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">total_field</span><span class="p">,</span> <span class="n">outputSpacing</span><span class="o">=</span><span class="n">total_field</span><span class="o">.</span><span class="n">GetSpacing</span><span class="p">())</span>
+        <span class="n">total_field</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">total_field</span><span class="p">,</span> <span class="n">resampled_field</span><span class="p">)</span>
+</div>
+    <span class="k">return</span> <span class="n">total_field</span>
+
+
+<div class="viewcode-block" id="field_zero_padding"><a class="viewcode-back" href="../../index.html#disptools.displacements.field_zero_padding">[docs]</a><span class="k">def</span> <span class="nf">field_zero_padding</span><span class="p">(</span>
+        <span class="n">field</span>  <span class="p">:</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">,</span>
+        <span class="n">size_x</span> <span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span>
+        <span class="n">size_y</span> <span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span>
+        <span class="n">size_z</span> <span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+        <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">:</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Add a zero padding to a vector field.</span>
+
+<span class="sd">    Set the zero padding manually, since `sitk.ConstantPad()` does not</span>
+<span class="sd">    support vector images.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    field : sitk.Image</span>
+<span class="sd">        Input vector field.</span>
+<span class="sd">    size_x : (int, int)</span>
+<span class="sd">        Amount of padding at the beginning and end of x direction.</span>
+<span class="sd">    size_y : (int, int)</span>
+<span class="sd">        Amount of padding at the beginning and end of y direction.</span>
+<span class="sd">    size_z : (int, int)</span>
+<span class="sd">        Amount of padding at the beginning and end of z direction.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    sitk.Image</span>
+<span class="sd">        A padded vector field.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">lib</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span><span class="n">sitk</span><span class="o">.</span><span class="n">GetArrayViewFromImage</span><span class="p">(</span><span class="n">field</span><span class="p">),</span>
+                   <span class="p">(</span><span class="n">size_x</span><span class="p">,</span> <span class="n">size_y</span><span class="p">,</span> <span class="n">size_z</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">)),</span>
+                   <span class="s1">&#39;constant&#39;</span><span class="p">,</span>
+                   <span class="n">constant_values</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+
+    <span class="n">field_pad</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">GetImageFromArray</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+    <span class="n">field_pad</span><span class="o">.</span><span class="n">SetSpacing</span><span class="p">(</span><span class="n">field</span><span class="o">.</span><span class="n">GetSpacing</span><span class="p">())</span>
+</div>
+    <span class="k">return</span> <span class="n">field_pad</span>
+
+
+<div class="viewcode-block" id="invert_displacement_padded"><a class="viewcode-back" href="../../index.html#disptools.displacements.invert_displacement_padded">[docs]</a><span class="k">def</span> <span class="nf">invert_displacement_padded</span><span class="p">(</span><span class="n">field</span><span class="p">:</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">:</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Invert a displacement field using one voxel of padding in the computation.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    field : sitk.Image</span>
+<span class="sd">        Input displacement field.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    sitk.Image</span>
+<span class="sd">        The inverse of the displacement, computed under padding.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">inverse</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">InvertDisplacementField</span><span class="p">(</span><span class="n">field_zero_padding</span><span class="p">(</span><span class="n">field</span><span class="p">))</span>
+    <span class="n">inverse</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Crop</span><span class="p">(</span><span class="n">inverse</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+    <span class="n">inverse</span><span class="o">.</span><span class="n">CopyInformation</span><span class="p">(</span><span class="n">field</span><span class="p">)</span>
+</div>
+    <span class="k">return</span> <span class="n">inverse</span>
+
+
+<div class="viewcode-block" id="warp_points_by_displacement"><a class="viewcode-back" href="../../index.html#disptools.displacements.warp_points_by_displacement">[docs]</a><span class="k">def</span> <span class="nf">warp_points_by_displacement</span><span class="p">(</span>
+        <span class="n">points</span>       <span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">displacement</span> <span class="p">:</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span>
+        <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Warp a set of Elastix points by a displacement field.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    points : np.ndarray</span>
+<span class="sd">        A :math:`n \times m` array representing :math:`n` points</span>
+<span class="sd">        with :math:`m` components.</span>
+<span class="sd">    displacement : sitk.Image</span>
+<span class="sd">        Displacement field.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    np.ndarray</span>
+<span class="sd">        An array representing the warped points.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">data</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">GetArrayViewFromImage</span><span class="p">(</span><span class="n">displacement</span><span class="p">)</span>
+
+    <span class="p">(</span><span class="n">ox</span><span class="p">,</span> <span class="n">oy</span><span class="p">,</span> <span class="n">oz</span><span class="p">)</span> <span class="o">=</span> <span class="n">displacement</span><span class="o">.</span><span class="n">GetOrigin</span><span class="p">()</span>
+    <span class="p">(</span><span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">nz</span><span class="p">)</span> <span class="o">=</span> <span class="n">displacement</span><span class="o">.</span><span class="n">GetSize</span><span class="p">()</span>
+    <span class="p">(</span><span class="n">sx</span><span class="p">,</span> <span class="n">sy</span><span class="p">,</span> <span class="n">sz</span><span class="p">)</span> <span class="o">=</span> <span class="n">displacement</span><span class="o">.</span><span class="n">GetSpacing</span><span class="p">()</span>
+
+    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">ox</span><span class="p">,</span> <span class="p">(</span><span class="n">nx</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">sx</span><span class="p">,</span> <span class="n">nx</span><span class="p">)</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">oy</span><span class="p">,</span> <span class="p">(</span><span class="n">ny</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">sy</span><span class="p">,</span> <span class="n">ny</span><span class="p">)</span>
+    <span class="n">z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">oz</span><span class="p">,</span> <span class="p">(</span><span class="n">nz</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">sz</span><span class="p">,</span> <span class="n">nz</span><span class="p">)</span>
+
+    <span class="c1"># NOTE: ITK images are indexed as [z,y,x]</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">interpolate</span><span class="o">.</span><span class="n">RegularGridInterpolator</span><span class="p">((</span><span class="n">z</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">),</span>
+                                                  <span class="n">data</span><span class="p">,</span>
+                                                  <span class="n">bounds_error</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="n">p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">points</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="n">p</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">points</span><span class="p">[:,</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">p</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">points</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">p</span><span class="p">[:,</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">points</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span>
+</div>
+    <span class="k">return</span> <span class="n">points</span> <span class="o">+</span> <span class="n">f</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="inverse_consistency_error"><a class="viewcode-back" href="../../index.html#disptools.displacements.inverse_consistency_error">[docs]</a><span class="k">def</span> <span class="nf">inverse_consistency_error</span><span class="p">(</span>
+        <span class="n">forward</span>  <span class="p">:</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">,</span>
+        <span class="n">backward</span> <span class="p">:</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">,</span>
+        <span class="n">mask</span>     <span class="p">:</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Compute the inverse consistency error (ICE).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    forward : sitk.Image</span>
+<span class="sd">        A displacement from the registration (maps from</span>
+<span class="sd">        reference space to moving image space).</span>
+<span class="sd">    backward : sitk.Image</span>
+<span class="sd">        A displacement from the inverse registration (maps</span>
+<span class="sd">        from moving image space to reference space)</span>
+<span class="sd">    mask : sitk.Image</span>
+<span class="sd">        ROI in the reference image space</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    sitk.Image</span>
+<span class="sd">        Map of the average inverse consistency error magnitude.</span>
+<span class="sd">    float</span>
+<span class="sd">        Average inverse consistency error.</span>
+<span class="sd">    float</span>
+<span class="sd">        Maximum inverse consistency error.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">composition</span> <span class="o">=</span> <span class="n">compose_displacements</span><span class="p">(</span><span class="n">forward</span><span class="p">,</span> <span class="n">backward</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">mask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">composition</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Mask</span><span class="p">(</span><span class="n">composition</span><span class="p">,</span> <span class="n">mask</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">sitk</span><span class="o">.</span><span class="n">GetArrayViewFromImage</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="n">reduce</span><span class="p">(</span><span class="nb">int</span><span class="o">.</span><span class="fm">__mul__</span><span class="p">,</span> <span class="n">forward</span><span class="o">.</span><span class="n">GetSize</span><span class="p">())</span>
+
+    <span class="n">vme</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">sitk</span><span class="o">.</span><span class="n">GetArrayViewFromImage</span><span class="p">(</span><span class="n">composition</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+
+    <span class="n">ic</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">GetImageFromArray</span><span class="p">(</span><span class="n">vme</span><span class="p">)</span>
+    <span class="n">ic</span><span class="o">.</span><span class="n">CopyInformation</span><span class="p">(</span><span class="n">forward</span><span class="p">)</span>
+
+    <span class="n">aic</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">vme</span><span class="p">)</span> <span class="o">/</span> <span class="n">n</span>
+    <span class="n">mic</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">vme</span><span class="p">)</span>
+</div>
+    <span class="k">return</span> <span class="n">ic</span><span class="p">,</span> <span class="n">aic</span><span class="p">,</span> <span class="n">mic</span>
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Martino Pilia.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+    <div style="padding-top: 1em;">
+        <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">
+            <img alt="Creative Commons License" 
+                 style="border-width:0"
+                 src="https://i.creativecommons.org/l/by-sa/4.0/80x15.png" />
+        </a>
+        <br/>
+        This documentation is freely available under the
+        <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">
+            Creative Commons Attribution-ShareAlike 4.0 International License
+        </a>.
+    </div>
+
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'0.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
