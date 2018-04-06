@@ -149,10 +149,10 @@ error = sitk.Mask(error, mask)
 ```
 
 A 3D rendering of the resulting displacement field:
-![error](sphinx/img/example_2.png?raw=true)
+![error](https://github.com/m-pilia/disptools/blob/master/sphinx/img/example_2.png?raw=true)
 
 And a visualisation of the the error on the Jacobian:
-![error](sphinx/img/example_1.png?raw=true)
+![error](https://github.com/m-pilia/disptools/blob/master/sphinx/img/example_1.png?raw=true)
 
 ### References
 + [1] van Eede, M. C., Scholz, J., Chakravarty, M. M., Henkelman, R. M., and Lerch, J. P. "Mapping registration sensitivity in MR mouse brain images." Neuroimage 82 (2013), 226–236.

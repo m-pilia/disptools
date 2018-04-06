@@ -20,10 +20,9 @@ if "--debug" in sys.argv:
     _DEBUG = True
     sys.argv.remove("--debug")
 
-
-long_description = '''
-This package allows to generate displacement fields with known volume changes.
-'''
+# Read description from README
+with open('README.md') as f:
+    long_description = f.read()
 
 # C preprocessor macros
 define_macros = [
@@ -46,9 +45,9 @@ cflags = {
 }
 cflags_opt = {
     'msvc'   : [],
-    'mingw32': ['-O3', '-msse4', '-mavx', '-march=native'],
-    'unix'   : ['-O3', '-msse4', '-mavx', '-march=native'],
-    'cygwin' : ['-O3', '-msse4', '-mavx', '-march=native'],
+    'mingw32': ['-O3', '-march=native'],
+    'unix'   : ['-O3', '-march=native'],
+    'cygwin' : ['-O3', '-march=native'],
 }
 cflags_debug = {
     'msvc'   : [],
@@ -112,14 +111,19 @@ disptools_c = Extension('_disptools',
                                'src/_disptools.c'
                                ])
 
+version = '0.1.1'
+
 setup(name = 'disptools',
     packages = ['disptools'],
-    version = '0.1',
+    version = version,
     description = 'Generate displacements fields with known volume changes',
     author = 'Martino Pilia',
     author_email = 'martino.pilia@gmail.com',
     url = 'https://github.com/m-pilia/disptools',
+    download_url = 'https://github.com/m-pilia/disptools/archive/v%s.tar.gz' % version,
+    keywords = ['jacobian', 'displacement', 'image processing'],
     long_description = long_description,
+    long_description_content_type='text/markdown',
     install_requires=[
         'numpy',
         'scipy',
