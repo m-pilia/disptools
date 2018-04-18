@@ -328,7 +328,7 @@ def read_elastix_parameters(filename: str) -> dict:
 
     if not hasattr(read_elastix_parameters, "parser"):
         try:
-            read_elastix_parameters.parser = ElastixParametersParser()
+            read_elastix_parameters.parser = ElastixParametersParser(debug=False, write_tables=False)
         except SyntaxError:
             raise Exception('read_elastix_parameters: unable to build the lexer. '
                             'Please make sure you are not running Python with '
