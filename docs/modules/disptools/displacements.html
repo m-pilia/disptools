@@ -201,8 +201,8 @@
 
     <span class="c1"># Call function from the underlying C library</span>
     <span class="n">_disptools</span><span class="o">.</span><span class="n">regularise</span><span class="p">(</span><span class="n">sitk</span><span class="o">.</span><span class="n">GetArrayViewFromImage</span><span class="p">(</span><span class="n">result</span><span class="p">),</span> <span class="n">epsilon</span><span class="p">)</span>
-</div>
-    <span class="k">return</span> <span class="n">result</span>
+
+    <span class="k">return</span> <span class="n">result</span></div>
 
 
 <div class="viewcode-block" id="jacobian"><a class="viewcode-back" href="../../index.html#disptools.displacements.jacobian">[docs]</a><span class="k">def</span> <span class="nf">jacobian</span><span class="p">(</span><span class="n">field</span><span class="p">:</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">:</span>
@@ -241,8 +241,8 @@
 
     <span class="n">result</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">GetImageFromArray</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
     <span class="n">result</span><span class="o">.</span><span class="n">CopyInformation</span><span class="p">(</span><span class="n">field</span><span class="p">)</span>
-</div>
-    <span class="k">return</span> <span class="n">result</span>
+
+    <span class="k">return</span> <span class="n">result</span></div>
 
 
 <span class="k">def</span> <span class="nf">_displacement</span><span class="p">(</span>
@@ -399,8 +399,8 @@
 
     <span class="n">result</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">GetImageFromArray</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
     <span class="n">result</span><span class="o">.</span><span class="n">CopyInformation</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
-</div>
-    <span class="k">return</span> <span class="n">result</span>
+
+    <span class="k">return</span> <span class="n">result</span></div>
 
 
 <span class="c1"># This function is a wrapper of `_displacement()` that adds padding/cropping</span>
@@ -542,8 +542,8 @@
     <span class="c1"># Remove padding from the result</span>
     <span class="n">field</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Crop</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="o">*</span><span class="n">pad</span><span class="p">)</span>
     <span class="n">field</span><span class="o">.</span><span class="n">SetOrigin</span><span class="p">(</span><span class="n">origin</span><span class="p">)</span>
-</div>
-    <span class="k">return</span> <span class="n">field</span>
+
+    <span class="k">return</span> <span class="n">field</span></div>
 
 
 <div class="viewcode-block" id="average_jacobian_from_displacements"><a class="viewcode-back" href="../../index.html#disptools.displacements.average_jacobian_from_displacements">[docs]</a><span class="k">def</span> <span class="nf">average_jacobian_from_displacements</span><span class="p">(</span><span class="n">input_filenames_pattern</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">:</span>
@@ -618,8 +618,8 @@
     <span class="n">average_jacobian</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mf">1.0</span><span class="o">/</span><span class="n">n</span> <span class="o">*</span> <span class="n">total_jacobian</span><span class="p">)</span>
     <span class="n">output_jacobian</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">GetImageFromArray</span><span class="p">(</span><span class="n">average_jacobian</span><span class="p">)</span>
     <span class="n">output_jacobian</span><span class="o">.</span><span class="n">SetSpacing</span><span class="p">(</span><span class="n">I</span><span class="o">.</span><span class="n">GetSpacing</span><span class="p">())</span>
-</div>
-    <span class="k">return</span> <span class="n">output_jacobian</span>
+
+    <span class="k">return</span> <span class="n">output_jacobian</span></div>
 
 
 <div class="viewcode-block" id="average_jacobian"><a class="viewcode-back" href="../../index.html#disptools.displacements.average_jacobian">[docs]</a><span class="k">def</span> <span class="nf">average_jacobian</span><span class="p">(</span><span class="n">input_filenames_pattern</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">:</span>
@@ -682,8 +682,8 @@
     <span class="n">average_jacobian</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mf">1.0</span><span class="o">/</span><span class="n">n</span> <span class="o">*</span> <span class="n">total_jacobian</span><span class="p">)</span>
     <span class="n">output_jacobian</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">GetImageFromArray</span><span class="p">(</span><span class="n">average_jacobian</span><span class="p">)</span>
     <span class="n">output_jacobian</span><span class="o">.</span><span class="n">CopyInformation</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
-</div>
-    <span class="k">return</span> <span class="n">output_jacobian</span>
+
+    <span class="k">return</span> <span class="n">output_jacobian</span></div>
 
 
 <div class="viewcode-block" id="jacobian_to_volume_change"><a class="viewcode-back" href="../../index.html#disptools.displacements.jacobian_to_volume_change">[docs]</a><span class="k">def</span> <span class="nf">jacobian_to_volume_change</span><span class="p">(</span><span class="n">jacobian</span><span class="p">:</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">:</span>
@@ -725,8 +725,8 @@
     <span class="n">processed</span><span class="p">[</span><span class="n">ind_comp</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">/</span> <span class="n">data</span><span class="p">[</span><span class="n">ind_comp</span><span class="p">])</span>
 
     <span class="n">result</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">GetImageFromArray</span><span class="p">(</span><span class="n">processed</span><span class="p">)</span>
-    <span class="n">result</span><span class="o">.</span><span class="n">CopyInformation</span><span class="p">(</span><span class="n">jacobian</span><span class="p">)</span></div>
-    <span class="k">return</span> <span class="n">result</span>
+    <span class="n">result</span><span class="o">.</span><span class="n">CopyInformation</span><span class="p">(</span><span class="n">jacobian</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">result</span></div>
 
 
 <div class="viewcode-block" id="volume_change_to_jacobian"><a class="viewcode-back" href="../../index.html#disptools.displacements.volume_change_to_jacobian">[docs]</a><span class="k">def</span> <span class="nf">volume_change_to_jacobian</span><span class="p">(</span><span class="n">volume_change</span><span class="p">:</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">:</span>
@@ -762,8 +762,8 @@
     <span class="n">processed</span><span class="p">[</span><span class="n">ind_comp</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">ind_comp</span><span class="p">]</span> <span class="o">-</span> <span class="mf">1.0</span><span class="p">)</span>
 
     <span class="n">result</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">GetImageFromArray</span><span class="p">(</span><span class="n">processed</span><span class="p">)</span>
-    <span class="n">result</span><span class="o">.</span><span class="n">CopyInformation</span><span class="p">(</span><span class="n">volume_change</span><span class="p">)</span></div>
-    <span class="k">return</span> <span class="n">result</span>
+    <span class="n">result</span><span class="o">.</span><span class="n">CopyInformation</span><span class="p">(</span><span class="n">volume_change</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">result</span></div>
 
 
 <div class="viewcode-block" id="deformation_to_displacement"><a class="viewcode-back" href="../../index.html#disptools.displacements.deformation_to_displacement">[docs]</a><span class="k">def</span> <span class="nf">deformation_to_displacement</span><span class="p">(</span><span class="n">deformation</span><span class="p">:</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">:</span>
@@ -795,8 +795,8 @@
 
     <span class="n">displacement</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">GetImageFromArray</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
     <span class="n">displacement</span><span class="o">.</span><span class="n">CopyInformation</span><span class="p">(</span><span class="n">deformation</span><span class="p">)</span>
-</div>
-    <span class="k">return</span> <span class="n">displacement</span>
+
+    <span class="k">return</span> <span class="n">displacement</span></div>
 
 
 <div class="viewcode-block" id="compose_displacements"><a class="viewcode-back" href="../../index.html#disptools.displacements.compose_displacements">[docs]</a><span class="k">def</span> <span class="nf">compose_displacements</span><span class="p">(</span><span class="o">*</span><span class="n">fields</span><span class="p">:</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">:</span>
@@ -830,8 +830,8 @@
     <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">:</span>
         <span class="n">resampled_field</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Warp</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">total_field</span><span class="p">,</span> <span class="n">outputSpacing</span><span class="o">=</span><span class="n">total_field</span><span class="o">.</span><span class="n">GetSpacing</span><span class="p">())</span>
         <span class="n">total_field</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">total_field</span><span class="p">,</span> <span class="n">resampled_field</span><span class="p">)</span>
-</div>
-    <span class="k">return</span> <span class="n">total_field</span>
+
+    <span class="k">return</span> <span class="n">total_field</span></div>
 
 
 <div class="viewcode-block" id="field_zero_padding"><a class="viewcode-back" href="../../index.html#disptools.displacements.field_zero_padding">[docs]</a><span class="k">def</span> <span class="nf">field_zero_padding</span><span class="p">(</span>
@@ -869,8 +869,8 @@
 
     <span class="n">field_pad</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">GetImageFromArray</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
     <span class="n">field_pad</span><span class="o">.</span><span class="n">SetSpacing</span><span class="p">(</span><span class="n">field</span><span class="o">.</span><span class="n">GetSpacing</span><span class="p">())</span>
-</div>
-    <span class="k">return</span> <span class="n">field_pad</span>
+
+    <span class="k">return</span> <span class="n">field_pad</span></div>
 
 
 <div class="viewcode-block" id="invert_displacement_padded"><a class="viewcode-back" href="../../index.html#disptools.displacements.invert_displacement_padded">[docs]</a><span class="k">def</span> <span class="nf">invert_displacement_padded</span><span class="p">(</span><span class="n">field</span><span class="p">:</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">:</span>
@@ -890,8 +890,8 @@
     <span class="n">inverse</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">InvertDisplacementField</span><span class="p">(</span><span class="n">field_zero_padding</span><span class="p">(</span><span class="n">field</span><span class="p">))</span>
     <span class="n">inverse</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Crop</span><span class="p">(</span><span class="n">inverse</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
     <span class="n">inverse</span><span class="o">.</span><span class="n">CopyInformation</span><span class="p">(</span><span class="n">field</span><span class="p">)</span>
-</div>
-    <span class="k">return</span> <span class="n">inverse</span>
+
+    <span class="k">return</span> <span class="n">inverse</span></div>
 
 
 <div class="viewcode-block" id="warp_points_by_displacement"><a class="viewcode-back" href="../../index.html#disptools.displacements.warp_points_by_displacement">[docs]</a><span class="k">def</span> <span class="nf">warp_points_by_displacement</span><span class="p">(</span>
@@ -933,8 +933,8 @@
     <span class="n">p</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">points</span><span class="p">[:,</span><span class="mi">2</span><span class="p">]</span>
     <span class="n">p</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">points</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span>
     <span class="n">p</span><span class="p">[:,</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">points</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span>
-</div>
-    <span class="k">return</span> <span class="n">points</span> <span class="o">+</span> <span class="n">f</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">points</span> <span class="o">+</span> <span class="n">f</span><span class="p">(</span><span class="n">p</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="inverse_consistency_error"><a class="viewcode-back" href="../../index.html#disptools.displacements.inverse_consistency_error">[docs]</a><span class="k">def</span> <span class="nf">inverse_consistency_error</span><span class="p">(</span>
@@ -980,8 +980,8 @@
 
     <span class="n">aic</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">vme</span><span class="p">)</span> <span class="o">/</span> <span class="n">n</span>
     <span class="n">mic</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">vme</span><span class="p">)</span>
-</div>
-    <span class="k">return</span> <span class="n">ic</span><span class="p">,</span> <span class="n">aic</span><span class="p">,</span> <span class="n">mic</span>
+
+    <span class="k">return</span> <span class="n">ic</span><span class="p">,</span> <span class="n">aic</span><span class="p">,</span> <span class="n">mic</span></div>
 </pre></div>
 
            </div>

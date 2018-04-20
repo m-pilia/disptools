@@ -194,8 +194,8 @@
     <span class="n">dev</span> <span class="o">=</span> <span class="n">data</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">absolute</span><span class="p">:</span>
         <span class="n">dev</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">dev</span><span class="p">)</span>
-    <span class="n">md</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">dev</span><span class="p">)</span></div>
-    <span class="k">return</span> <span class="n">data</span><span class="p">[(</span><span class="n">dev</span> <span class="o">/</span> <span class="n">md</span> <span class="k">if</span> <span class="n">md</span> <span class="k">else</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">k</span><span class="p">]</span>
+    <span class="n">md</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">dev</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">data</span><span class="p">[(</span><span class="n">dev</span> <span class="o">/</span> <span class="n">md</span> <span class="k">if</span> <span class="n">md</span> <span class="k">else</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">k</span><span class="p">]</span></div>
 
 
 <div class="viewcode-block" id="cubicity"><a class="viewcode-back" href="../../index.html#disptools.measure.cubicity">[docs]</a><span class="k">def</span> <span class="nf">cubicity</span><span class="p">(</span><span class="n">image</span><span class="p">:</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
@@ -266,8 +266,8 @@
         <span class="p">(</span><span class="n">s1</span><span class="p">,</span> <span class="n">s2</span><span class="p">,</span> <span class="n">s3</span><span class="p">)</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="o">*</span> <span class="n">s</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">([</span><span class="n">s1</span><span class="p">,</span> <span class="n">s2</span><span class="p">,</span> <span class="n">s3</span><span class="p">],</span> <span class="n">image</span><span class="o">.</span><span class="n">GetSpacing</span><span class="p">())]</span>
 
         <span class="n">volume</span> <span class="o">=</span> <span class="n">statistics</span><span class="o">.</span><span class="n">GetNumberOfPixels</span><span class="p">()</span> <span class="o">*</span> <span class="n">dv</span>
-</div>
-    <span class="k">return</span> <span class="n">volume</span> <span class="o">/</span> <span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">s1</span><span class="p">,</span> <span class="n">s2</span><span class="p">,</span> <span class="n">s3</span><span class="p">)</span> <span class="o">**</span> <span class="mi">3</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">volume</span> <span class="o">/</span> <span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">s1</span><span class="p">,</span> <span class="n">s2</span><span class="p">,</span> <span class="n">s3</span><span class="p">)</span> <span class="o">**</span> <span class="mi">3</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="sphericity"><a class="viewcode-back" href="../../index.html#disptools.measure.sphericity">[docs]</a><span class="k">def</span> <span class="nf">sphericity</span><span class="p">(</span><span class="n">image</span><span class="p">:</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
@@ -304,8 +304,8 @@
         <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;Unsupported </span><span class="si">%s</span><span class="s1"> pixel type&#39;</span> <span class="o">%</span> <span class="n">image</span><span class="o">.</span><span class="n">GetPixelIDTypeAsString</span><span class="p">())</span>
 
     <span class="n">lssif</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">LabelShapeStatisticsImageFilter</span><span class="p">()</span>
-    <span class="n">lssif</span><span class="o">.</span><span class="n">Execute</span><span class="p">(</span><span class="n">image</span><span class="p">)</span></div>
-    <span class="k">return</span> <span class="n">lssif</span><span class="o">.</span><span class="n">GetRoundness</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">lssif</span><span class="o">.</span><span class="n">Execute</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">lssif</span><span class="o">.</span><span class="n">GetRoundness</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="average_jacobian_error"><a class="viewcode-back" href="../../index.html#disptools.measure.average_jacobian_error">[docs]</a><span class="k">def</span> <span class="nf">average_jacobian_error</span><span class="p">(</span><span class="n">jacobian</span><span class="p">:</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">,</span> <span class="n">mask</span><span class="p">:</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
@@ -332,8 +332,8 @@
     <span class="n">msc</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">GetArrayViewFromImage</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span> <span class="k">if</span> <span class="n">mask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">jac</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
 
     <span class="n">idx</span> <span class="o">=</span> <span class="n">msc</span> <span class="o">&gt;</span> <span class="mf">0.5</span>
-</div>
-    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">jac</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">-</span> <span class="mf">1.0</span><span class="p">))</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">jac</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">-</span> <span class="mf">1.0</span><span class="p">))</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="minkowski_compactness"><a class="viewcode-back" href="../../index.html#disptools.measure.minkowski_compactness">[docs]</a><span class="k">def</span> <span class="nf">minkowski_compactness</span><span class="p">(</span><span class="n">image</span><span class="p">:</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">,</span> <span class="n">norm</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
@@ -370,8 +370,8 @@
     <span class="n">lssif</span><span class="o">.</span><span class="n">Execute</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
 
     <span class="n">a</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">GetArrayViewFromImage</span><span class="p">(</span><span class="n">image</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
-</div>
-    <span class="k">return</span> <span class="n">_disptools</span><span class="o">.</span><span class="n">shape_descriptor</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">lssif</span><span class="o">.</span><span class="n">GetCentroid</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">image</span><span class="o">.</span><span class="n">GetSpacing</span><span class="p">(),</span> <span class="n">descriptor</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">_disptools</span><span class="o">.</span><span class="n">shape_descriptor</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">lssif</span><span class="o">.</span><span class="n">GetCentroid</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">image</span><span class="o">.</span><span class="n">GetSpacing</span><span class="p">(),</span> <span class="n">descriptor</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="isovolumteric_radius"><a class="viewcode-back" href="../../index.html#disptools.measure.isovolumteric_radius">[docs]</a><span class="k">def</span> <span class="nf">isovolumteric_radius</span><span class="p">(</span><span class="n">image</span><span class="p">:</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">,</span> <span class="n">norm</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
@@ -398,8 +398,8 @@
         <span class="k">return</span> <span class="n">math</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="mf">3.0</span> <span class="o">/</span> <span class="mf">4.0</span> <span class="o">*</span> <span class="n">volume</span><span class="p">,</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="mf">3.0</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">norm</span> <span class="o">==</span> <span class="s1">&#39;inf&#39;</span> <span class="ow">or</span> <span class="n">norm</span> <span class="o">==</span> <span class="s1">&#39;max&#39;</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">math</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="mf">1.0</span> <span class="o">/</span> <span class="mf">8.0</span> <span class="o">*</span> <span class="n">volume</span><span class="p">,</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="mf">3.0</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span></div>
-        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;Unsupported norm </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">norm</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;Unsupported norm </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">norm</span><span class="p">))</span></div>
 
 
 <div class="viewcode-block" id="fitting_index"><a class="viewcode-back" href="../../index.html#disptools.measure.fitting_index">[docs]</a><span class="k">def</span> <span class="nf">fitting_index</span><span class="p">(</span>
@@ -464,8 +464,8 @@
 
     <span class="n">union</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">reference</span><span class="p">)</span>
     <span class="n">intersection</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">reference</span><span class="p">)</span>
-</div>
-    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">intersection</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">union</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">intersection</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">union</span><span class="p">)</span></div>
 </pre></div>
 
            </div>

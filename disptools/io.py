@@ -20,7 +20,7 @@ except ImportError as e:
           "Some functionalities depending upon it may be unavailable.")
 
 
-class ElastixParametersLexer():
+class _ElastixParametersLexer():
     r""" Lexer for Elastix parameter files.
     """
 
@@ -79,7 +79,7 @@ class ElastixParametersLexer():
         t.lexer.lineno += t.value.count("\n")
 
 
-class ElastixParametersParser():
+class _ElastixParametersParser():
     r""" Parser object for Elastix parameter files.
 
     The `parse(text)` method accepts as input the content of an Elastix
@@ -89,7 +89,7 @@ class ElastixParametersParser():
 
     def __init__(self, lexer_opts={}, **kwargs):
         self.names = {}
-        self.lexer = ElastixParametersLexer(**lexer_opts)
+        self.lexer = _ElastixParametersLexer(**lexer_opts)
         self.tokens = self.lexer.tokens
         self.parser = yacc.yacc(module=self, **kwargs)
 
@@ -328,7 +328,7 @@ def read_elastix_parameters(filename: str) -> dict:
 
     if not hasattr(read_elastix_parameters, "parser"):
         try:
-            read_elastix_parameters.parser = ElastixParametersParser(debug=False, write_tables=False)
+            read_elastix_parameters.parser = _ElastixParametersParser(debug=False, write_tables=False)
         except SyntaxError:
             raise Exception('read_elastix_parameters: unable to build the lexer. '
                             'Please make sure you are not running Python with '

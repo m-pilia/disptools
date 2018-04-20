@@ -191,8 +191,8 @@
 
     <span class="n">result</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">GetImageFromArray</span><span class="p">(</span><span class="n">volumes</span><span class="p">)</span>
     <span class="n">result</span><span class="o">.</span><span class="n">CopyInformation</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
-</div>
-    <span class="k">return</span> <span class="n">result</span>
+
+    <span class="k">return</span> <span class="n">result</span></div>
 
 
 <div class="viewcode-block" id="read_deformation"><a class="viewcode-back" href="../../index.html#disptools.predict.read_deformation">[docs]</a><span class="k">def</span> <span class="nf">read_deformation</span><span class="p">(</span><span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">size</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">:</span>
@@ -236,8 +236,8 @@
         <span class="n">b</span><span class="p">[</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">z</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">a</span><span class="p">[</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">z</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="p">(</span><span class="n">z</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
         <span class="n">b</span><span class="p">[</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">z</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">a</span><span class="p">[</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">z</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="p">(</span><span class="n">y</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
         <span class="n">b</span><span class="p">[</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">z</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">a</span><span class="p">[</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">z</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="p">(</span><span class="n">x</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
-</div>
-    <span class="k">return</span> <span class="n">sitk</span><span class="o">.</span><span class="n">GetImageFromArray</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">sitk</span><span class="o">.</span><span class="n">GetImageFromArray</span><span class="p">(</span><span class="n">b</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="read_img"><a class="viewcode-back" href="../../index.html#disptools.predict.read_img">[docs]</a><span class="k">def</span> <span class="nf">read_img</span><span class="p">(</span><span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">size</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">:</span>
@@ -275,8 +275,8 @@
     <span class="c1"># coordinate system to ITK&#39;s</span>
     <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">ndindex</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]):</span>
         <span class="n">b</span><span class="p">[</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,:]</span> <span class="o">=</span> <span class="n">a</span><span class="p">[</span><span class="n">y</span><span class="p">,</span><span class="n">x</span><span class="p">,:]</span>
-</div>
-    <span class="k">return</span> <span class="n">sitk</span><span class="o">.</span><span class="n">GetImageFromArray</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">sitk</span><span class="o">.</span><span class="n">GetImageFromArray</span><span class="p">(</span><span class="n">b</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="write_img"><a class="viewcode-back" href="../../index.html#disptools.predict.write_img">[docs]</a><span class="k">def</span> <span class="nf">write_img</span><span class="p">(</span><span class="n">image</span><span class="p">:</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">,</span> <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -312,8 +312,8 @@
     <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">ndindex</span><span class="p">(</span><span class="n">b</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]):</span>
         <span class="n">b</span><span class="p">[</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,:]</span> <span class="o">=</span> <span class="n">a</span><span class="p">[</span><span class="n">y</span><span class="p">,</span><span class="n">x</span><span class="p">,:]</span>
 
-    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span></div>
-        <span class="n">b</span><span class="o">.</span><span class="n">tofile</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">b</span><span class="o">.</span><span class="n">tofile</span><span class="p">(</span><span class="n">f</span><span class="p">)</span></div>
 
 
 </pre></div>

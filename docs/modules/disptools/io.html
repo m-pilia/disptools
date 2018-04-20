@@ -166,6 +166,124 @@
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Warning: cannot import &#39;vtk&#39; module. &quot;</span> <span class="o">+</span>
           <span class="s2">&quot;Some functionalities depending upon it may be unavailable.&quot;</span><span class="p">)</span>
 
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">ply</span>
+    <span class="kn">import</span> <span class="nn">ply.lex</span> <span class="k">as</span> <span class="nn">lex</span>
+    <span class="kn">import</span> <span class="nn">ply.yacc</span> <span class="k">as</span> <span class="nn">yacc</span>
+<span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Warning: cannot import &#39;ply&#39; module. &quot;</span> <span class="o">+</span>
+          <span class="s2">&quot;Some functionalities depending upon it may be unavailable.&quot;</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">_ElastixParametersLexer</span><span class="p">():</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Lexer for Elastix parameter files.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lexer</span> <span class="o">=</span> <span class="n">lex</span><span class="o">.</span><span class="n">lex</span><span class="p">(</span><span class="n">module</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">test</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lexer</span><span class="o">.</span><span class="n">input</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+             <span class="n">tok</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lexer</span><span class="o">.</span><span class="n">token</span><span class="p">()</span>
+             <span class="k">if</span> <span class="ow">not</span> <span class="n">tok</span><span class="p">:</span>
+                 <span class="k">break</span>
+             <span class="nb">print</span><span class="p">(</span><span class="n">tok</span><span class="p">)</span>
+
+    <span class="n">t_ignore</span> <span class="o">=</span> <span class="s2">&quot; </span><span class="se">\t</span><span class="s2">&quot;</span>
+
+    <span class="n">tokens</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s1">&#39;LPAREN&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;RPAREN&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;IDENTIFIER&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;STRING&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;NUMBER&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;COMMENT&#39;</span>
+    <span class="p">)</span>
+
+    <span class="n">t_LPAREN</span>     <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;\(&#39;</span>
+    <span class="n">t_RPAREN</span>     <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;\)&#39;</span>
+    <span class="n">t_IDENTIFIER</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;[a-zA-Z_][a-zA-Z0-9_]*&#39;</span>
+
+    <span class="k">def</span> <span class="nf">t_NUMBER</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+        <span class="sa">r</span><span class="s1">&#39;[+-]?[0-9]*\.?[0-9]+([eE][+-]?[0-9]+)?&#39;</span>
+        <span class="n">t</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">t</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">is_integer</span><span class="p">():</span>
+            <span class="n">t</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">t</span>
+
+    <span class="k">def</span> <span class="nf">t_STRING</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+        <span class="sa">r</span><span class="s1">&#39;&quot;[^&quot;]*&quot;&#39;</span>
+        <span class="n">t</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">value</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">t</span><span class="o">.</span><span class="n">value</span> <span class="o">==</span> <span class="s1">&#39;true&#39;</span><span class="p">:</span>
+            <span class="n">t</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">elif</span> <span class="n">t</span><span class="o">.</span><span class="n">value</span> <span class="o">==</span> <span class="s1">&#39;false&#39;</span><span class="p">:</span>
+            <span class="n">t</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="n">t</span>
+
+    <span class="k">def</span> <span class="nf">t_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Lexer error while reading parameter file at line </span><span class="si">%d</span><span class="s2">, token &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span>
+                        <span class="o">%</span> <span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">lexer</span><span class="o">.</span><span class="n">lineno</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+
+    <span class="k">def</span> <span class="nf">t_COMMENT</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+        <span class="sa">r</span><span class="s1">&#39;//.*&#39;</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">t_newline</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+        <span class="sa">r</span><span class="s1">&#39;\n+&#39;</span>
+        <span class="n">t</span><span class="o">.</span><span class="n">lexer</span><span class="o">.</span><span class="n">lineno</span> <span class="o">+=</span> <span class="n">t</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">_ElastixParametersParser</span><span class="p">():</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Parser object for Elastix parameter files.</span>
+
+<span class="sd">    The `parse(text)` method accepts as input the content of an Elastix</span>
+<span class="sd">    parameter file, and returns a dictionary containing couples of</span>
+<span class="sd">    parameters with their respective values.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lexer_opts</span><span class="o">=</span><span class="p">{},</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">names</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lexer</span> <span class="o">=</span> <span class="n">_ElastixParametersLexer</span><span class="p">(</span><span class="o">**</span><span class="n">lexer_opts</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tokens</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lexer</span><span class="o">.</span><span class="n">tokens</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span> <span class="o">=</span> <span class="n">yacc</span><span class="o">.</span><span class="n">yacc</span><span class="p">(</span><span class="n">module</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">parse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">names</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">lexer</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">lexer</span><span class="o">.</span><span class="n">lexer</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">names</span>
+
+    <span class="n">precedence</span> <span class="o">=</span> <span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">p_program</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;program : program statement</span>
+<span class="sd">                   | statement&#39;&#39;&#39;</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">p_statement_assign</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;statement : LPAREN IDENTIFIER rvaluelist RPAREN&#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">names</span><span class="p">[</span><span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">p_statement_comment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;statement : COMMENT&#39;&#39;&#39;</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">p_expression_rvalue</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;rvalue : NUMBER</span>
+<span class="sd">                  | STRING&#39;&#39;&#39;</span>
+        <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">p_expression_rvaluelist_2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;rvaluelist : rvalue</span>
+<span class="sd">                      | rvaluelist rvalue&#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span>
+
+    <span class="k">def</span> <span class="nf">p_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Syntax error while reading parameter file at &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">p</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+
 
 <div class="viewcode-block" id="make_unique_directory"><a class="viewcode-back" href="../../index.html#disptools.io.make_unique_directory">[docs]</a><span class="k">def</span> <span class="nf">make_unique_directory</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Create a unique directory.</span>
@@ -197,8 +315,8 @@
         <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_path</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_</span><span class="si">%d%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">extension</span><span class="p">))</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
             <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">path</span></div>
-        <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">return</span> <span class="n">path</span>
+        <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span></div>
 
 
 <div class="viewcode-block" id="read_rvf"><a class="viewcode-back" href="../../index.html#disptools.io.read_rvf">[docs]</a><span class="k">def</span> <span class="nf">read_rvf</span><span class="p">(</span><span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">:</span>
@@ -224,8 +342,8 @@
 
     <span class="n">image</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">GetImageFromArray</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="o">*</span><span class="n">size</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;C&#39;</span><span class="p">))</span>
     <span class="n">image</span><span class="o">.</span><span class="n">SetSpacing</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">spacing</span><span class="p">))</span>
-</div>
-    <span class="k">return</span> <span class="n">image</span>
+
+    <span class="k">return</span> <span class="n">image</span></div>
 
 
 <div class="viewcode-block" id="write_vtk_points"><a class="viewcode-back" href="../../index.html#disptools.io.write_vtk_points">[docs]</a><span class="k">def</span> <span class="nf">write_vtk_points</span><span class="p">(</span><span class="n">points</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -255,8 +373,8 @@
 
     <span class="n">writer</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkPolyDataWriter</span><span class="p">()</span>
     <span class="n">writer</span><span class="o">.</span><span class="n">SetInputData</span><span class="p">(</span><span class="n">polydata</span><span class="p">)</span>
-    <span class="n">writer</span><span class="o">.</span><span class="n">SetFileName</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span></div>
-    <span class="n">writer</span><span class="o">.</span><span class="n">Update</span><span class="p">()</span>
+    <span class="n">writer</span><span class="o">.</span><span class="n">SetFileName</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+    <span class="n">writer</span><span class="o">.</span><span class="n">Update</span><span class="p">()</span></div>
 
 
 <div class="viewcode-block" id="read_elastix_points"><a class="viewcode-back" href="../../index.html#disptools.io.read_elastix_points">[docs]</a><span class="k">def</span> <span class="nf">read_elastix_points</span><span class="p">(</span><span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
@@ -299,8 +417,8 @@
                 <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;Invalid point file format&#39;</span><span class="p">)</span>
 
             <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
-</div>
-        <span class="k">return</span> <span class="n">points</span>
+
+        <span class="k">return</span> <span class="n">points</span></div>
 
 
 <div class="viewcode-block" id="write_elastix_points"><a class="viewcode-back" href="../../index.html#disptools.io.write_elastix_points">[docs]</a><span class="k">def</span> <span class="nf">write_elastix_points</span><span class="p">(</span>
@@ -332,8 +450,76 @@
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
         <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">point_format</span><span class="p">)</span>
         <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%d</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">points</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">points</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span></div>
-            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%.10e</span><span class="se">\t</span><span class="si">%.10e</span><span class="se">\t</span><span class="si">%.10e</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">points</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="n">points</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="n">points</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">2</span><span class="p">]))</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">points</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%.10e</span><span class="se">\t</span><span class="si">%.10e</span><span class="se">\t</span><span class="si">%.10e</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">points</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="n">points</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="n">points</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">2</span><span class="p">]))</span></div>
+
+
+<div class="viewcode-block" id="read_elastix_parameters"><a class="viewcode-back" href="../../index.html#disptools.io.read_elastix_parameters">[docs]</a><span class="k">def</span> <span class="nf">read_elastix_parameters</span><span class="p">(</span><span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Read an Elastix parameter file.</span>
+
+<span class="sd">    Read an Elastix parameter file, returning a dictionary mapping each</span>
+<span class="sd">    parameter name to a list of values. Booleans are converted to Python</span>
+<span class="sd">    `bool`s, same for `int` and `float` values. Strings do not need to be</span>
+<span class="sd">    quoted. Comments are discarded.</span>
+
+<span class="sd">    .. warning::</span>
+<span class="sd">        This function will not work if Python is allowed to discard docstrings</span>
+<span class="sd">        (e.g. due to the option -OO).</span>
+
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    filename : str</span>
+<span class="sd">        Name of the parameter file to be read.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict</span>
+<span class="sd">        Dictionary of parameters.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="s1">&#39;ply&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;read_elastix_parameters: ply module is required to use this feature.&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">read_elastix_parameters</span><span class="p">,</span> <span class="s2">&quot;parser&quot;</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">read_elastix_parameters</span><span class="o">.</span><span class="n">parser</span> <span class="o">=</span> <span class="n">_ElastixParametersParser</span><span class="p">(</span><span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">write_tables</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">SyntaxError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;read_elastix_parameters: unable to build the lexer. &#39;</span>
+                            <span class="s1">&#39;Please make sure you are not running Python with &#39;</span>
+                            <span class="s1">&#39;docstring discarding enabled (-OO).&#39;</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">read_elastix_parameters</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="write_elastix_parameters"><a class="viewcode-back" href="../../index.html#disptools.io.write_elastix_parameters">[docs]</a><span class="k">def</span> <span class="nf">write_elastix_parameters</span><span class="p">(</span><span class="n">parameters</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Write Elastix parameters to file.</span>
+
+<span class="sd">    Write an Elastix parameter file. Parameters are passed as a dictionary</span>
+<span class="sd">    mapping each parameter name to a list of values. Python `bool`s, `int`s,</span>
+<span class="sd">    and `float`s are converted automatically.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    parameters : dict</span>
+<span class="sd">        Dictionary of parameters.</span>
+
+<span class="sd">    filename : str</span>
+<span class="sd">        Name of the parameter file to be read.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">_format</span><span class="p">(</span><span class="n">p</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
+            <span class="k">return</span> <span class="s1">&#39;&quot;true&quot;&#39;</span> <span class="k">if</span> <span class="n">p</span> <span class="k">else</span> <span class="s1">&#39;&quot;false&quot;&#39;</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">return</span> <span class="s1">&#39;&quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span> <span class="o">%</span> <span class="n">p</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">p</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">parameters</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;(</span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1">)</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">_format</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">v</span><span class="p">])))</span></div>
+
 </pre></div>
 
            </div>

@@ -208,8 +208,8 @@
     <span class="n">resampler</span><span class="o">.</span><span class="n">SetSize</span><span class="p">(</span><span class="n">new_size</span><span class="p">)</span>
     <span class="n">resampler</span><span class="o">.</span><span class="n">SetOutputSpacing</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">spacing</span><span class="p">))</span>
     <span class="n">resampler</span><span class="o">.</span><span class="n">SetInterpolator</span><span class="p">(</span><span class="n">interpolator</span><span class="p">)</span>
-</div>
-    <span class="k">return</span> <span class="n">resampler</span><span class="o">.</span><span class="n">Execute</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">resampler</span><span class="o">.</span><span class="n">Execute</span><span class="p">(</span><span class="n">image</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="polar_conversion"><a class="viewcode-back" href="../../index.html#disptools.drawing.polar_conversion">[docs]</a><span class="k">def</span> <span class="nf">polar_conversion</span><span class="p">(</span>
@@ -259,8 +259,8 @@
     <span class="n">theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">rho</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">arccos</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span><span class="n">zn</span><span class="p">,</span> <span class="n">rho</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">rho</span><span class="o">.</span><span class="n">shape</span><span class="p">),</span> <span class="n">where</span><span class="o">=</span><span class="p">(</span><span class="n">rho</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">))),</span> <span class="mf">0.0</span><span class="p">)</span>
     <span class="n">phi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">yn</span><span class="p">,</span> <span class="n">xn</span><span class="p">)</span>
     <span class="n">rho</span> <span class="o">=</span> <span class="n">rho</span> <span class="o">/</span> <span class="n">radius</span> <span class="c1"># normalise rho to [0,1]</span>
-</div>
-    <span class="k">return</span> <span class="n">rho</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">phi</span>
+
+    <span class="k">return</span> <span class="n">rho</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">phi</span></div>
 
 
 <div class="viewcode-block" id="create_sphere"><a class="viewcode-back" href="../../index.html#disptools.drawing.create_sphere">[docs]</a><span class="k">def</span> <span class="nf">create_sphere</span><span class="p">(</span>
@@ -381,8 +381,8 @@
             <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;point</span><span class="se">\n</span><span class="si">%d</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">points</span><span class="p">))</span>
             <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="ow">in</span> <span class="n">points</span><span class="p">:</span>
                 <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%f</span><span class="se">\t</span><span class="si">%f</span><span class="se">\t</span><span class="si">%f</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">))</span>
-</div>
-    <span class="k">return</span> <span class="n">sphere</span>
+
+    <span class="k">return</span> <span class="n">sphere</span></div>
 
 
 <div class="viewcode-block" id="mask"><a class="viewcode-back" href="../../index.html#disptools.drawing.mask">[docs]</a><span class="k">def</span> <span class="nf">mask</span><span class="p">(</span>
@@ -424,8 +424,8 @@
         <span class="n">cast_mask</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Cast</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">image</span><span class="o">.</span><span class="n">GetPixelID</span><span class="p">())</span>
         <span class="n">cast_mask</span><span class="o">.</span><span class="n">SetSpacing</span><span class="p">(</span><span class="n">image</span><span class="o">.</span><span class="n">GetSpacing</span><span class="p">())</span>
         <span class="n">result</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Multiply</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">cast_mask</span><span class="p">)</span>
-</div>
-    <span class="k">return</span> <span class="n">result</span>
+
+    <span class="k">return</span> <span class="n">result</span></div>
 
 
 <div class="viewcode-block" id="float_dilate"><a class="viewcode-back" href="../../index.html#disptools.drawing.float_dilate">[docs]</a><span class="k">def</span> <span class="nf">float_dilate</span><span class="p">(</span><span class="n">image</span><span class="p">:</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">,</span> <span class="n">dilate</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">:</span>
@@ -451,8 +451,8 @@
     <span class="n">image</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Cast</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">sitk</span><span class="o">.</span><span class="n">sitkUInt8</span><span class="p">)</span>
     <span class="n">image</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">BinaryDilate</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">dilate</span><span class="p">)</span>
     <span class="n">image</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Cast</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">original_type</span><span class="p">)</span>
-</div>
-    <span class="k">return</span> <span class="n">image</span>
+
+    <span class="k">return</span> <span class="n">image</span></div>
 
 
 <div class="viewcode-block" id="sitk_to_itk"><a class="viewcode-back" href="../../index.html#disptools.drawing.sitk_to_itk">[docs]</a><span class="k">def</span> <span class="nf">sitk_to_itk</span><span class="p">(</span><span class="n">image</span><span class="p">:</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
@@ -504,8 +504,8 @@
 
     <span class="n">result</span><span class="o">.</span><span class="n">SetSpacing</span><span class="p">(</span><span class="n">image</span><span class="o">.</span><span class="n">GetSpacing</span><span class="p">())</span>
     <span class="n">result</span><span class="o">.</span><span class="n">SetOrigin</span><span class="p">(</span><span class="n">image</span><span class="o">.</span><span class="n">GetOrigin</span><span class="p">())</span>
-</div>
-    <span class="k">return</span> <span class="n">result</span>
+
+    <span class="k">return</span> <span class="n">result</span></div>
 
 
 <div class="viewcode-block" id="sin_vector_field"><a class="viewcode-back" href="../../index.html#disptools.drawing.sin_vector_field">[docs]</a><span class="k">def</span> <span class="nf">sin_vector_field</span><span class="p">(</span><span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">:</span>
@@ -529,8 +529,8 @@
     <span class="n">data</span><span class="p">[:,:,:,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">xx</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">yy</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">zz</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
     <span class="n">data</span><span class="p">[:,:,:,</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:,:,:,</span><span class="mi">0</span><span class="p">]</span>
     <span class="n">data</span><span class="p">[:,:,:,</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:,:,:,</span><span class="mi">0</span><span class="p">]</span>
-</div>
-    <span class="k">return</span> <span class="n">sitk</span><span class="o">.</span><span class="n">GetImageFromArray</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">sitk</span><span class="o">.</span><span class="n">GetImageFromArray</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="extract_slice"><a class="viewcode-back" href="../../index.html#disptools.drawing.extract_slice">[docs]</a><span class="k">def</span> <span class="nf">extract_slice</span><span class="p">(</span>
@@ -597,8 +597,8 @@
 
     <span class="k">if</span> <span class="n">colormap</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">slice_image</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">ScalarToRGBColormap</span><span class="p">(</span><span class="n">slice_image</span><span class="p">,</span> <span class="n">colormap</span><span class="p">,</span> <span class="n">useInputImageExtremaForScaling</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-</div>
-    <span class="k">return</span> <span class="n">slice_image</span>
+
+    <span class="k">return</span> <span class="n">slice_image</span></div>
 </pre></div>
 
            </div>
