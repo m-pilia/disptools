@@ -58,18 +58,28 @@
 
 // Debug
 #ifndef DISPTOOLS_DEBUG
-#define DISPTOOLS_DEBUG 0
+    #define DISPTOOLS_DEBUG 0
 #else
-#undef DISPTOOLS_DEBUG
-#define DISPTOOLS_DEBUG 1
+    #if DISPTOOLS_DEBUG
+        #undef DISPTOOLS_DEBUG
+        #define DISPTOOLS_DEBUG 1
+    #else
+        #undef DISPTOOLS_DEBUG
+        #define DISPTOOLS_DEBUG 0
+    #endif
 #endif
 
 // Verbose
 #ifndef DISPTOOLS_VERBOSE
-#define DISPTOOLS_VERBOSE 0
+    #define DISPTOOLS_VERBOSE 0
 #else
-#undef DISPTOOLS_VERBOSE
-#define DISPTOOLS_VERBOSE 1
+    #if DISPTOOLS_VERBOSE
+        #undef DISPTOOLS_VERBOSE
+        #define DISPTOOLS_VERBOSE 1
+    #else
+        #undef DISPTOOLS_VERBOSE
+        #define DISPTOOLS_VERBOSE 0
+    #endif
 #endif
 
 // Verbose output
