@@ -25,24 +25,17 @@
   
 
   
-  
     <link rel="stylesheet" href="static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-        <link rel="index" title="Index"
-              href="genindex.html"/>
-        <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="disptools 0.1 documentation" href="index.html"/> 
+  <link rel="stylesheet" href="static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
 
   
   <script src="static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
@@ -119,7 +112,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+      <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">disptools</a>
@@ -127,9 +120,10 @@
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
 
 
@@ -202,15 +196,16 @@ published in [2] and [3]. The implementation comes from the <a class="reference 
 <p>The library is a cross-platform Python 3.5+ package, with a compiled C extension. The Python dependencies are:</p>
 <ul class="simple">
 <li><a class="reference external" href="https://github.com/numpy/numpy">numpy</a> (<a class="reference external" href="https://pypi.python.org/pypi/numpy">pypi package</a>)</li>
-<li><a class="reference external" href="https://github.com/scipy/scipy">scipy</a> (<a class="reference external" href="https://pypi.python.org/pypi/scipy/1.0.0">pypi package</a>)</li>
-<li><a class="reference external" href="https://github.com/SimpleITK/SimpleITK">SimpleITK</a> (<a class="reference external" href="https://pypi.python.org/pypi/SimpleITK/1.0.1">pypi package</a>)</li>
+<li><a class="reference external" href="https://github.com/scipy/scipy">scipy</a> (<a class="reference external" href="https://pypi.org/pypi/scipy">pypi package</a>)</li>
+<li><a class="reference external" href="https://github.com/SimpleITK/SimpleITK">SimpleITK</a> (<a class="reference external" href="https://pypi.org/pypi/SimpleITK">pypi package</a>)</li>
 </ul>
 <p>Build dependencies are a standard C99 compiler (tested with gcc 7.3 on Linux, mingw-w64 7.2 on Windows 10), the <a class="reference external" href="https://pypi.python.org/pypi/numpy">numpy</a> and the <a class="reference external" href="https://pypi.python.org/pypi/setuptools">setuptools</a> packages. <a class="reference external" href="https://pypi.python.org/pypi/scikit-build">scikit-build</a> may be required to build the other Python dependencies.</p>
 <p>Some optional dependencies are required only for a limited set of features, and the package should build and run without them:</p>
 <ul class="simple">
-<li><a class="reference external" href="https://github.com/InsightSoftwareConsortium/ITK">itk</a> (for <code class="docutils literal notranslate"><span class="pre">disptools.drawing.sitk_to_itk</span></code>)</li>
-<li><a class="reference external" href="https://github.com/Kitware/VTK">vtk</a> (for <code class="docutils literal notranslate"><span class="pre">disptools.io.write_vtk_points</span></code>)</li>
-<li><a class="reference external" href="https://github.com/scikit-image/scikit-image">scikit-image</a> (to run the unit tests)</li>
+<li><a class="reference external" href="https://github.com/InsightSoftwareConsortium/ITK">itk</a> (<a class="reference external" href="https://pypi.org/project/itk">pypi package</a>): for <code class="docutils literal notranslate"><span class="pre">disptools.drawing.sitk_to_itk</span></code></li>
+<li><a class="reference external" href="https://github.com/Kitware/VTK">vtk</a> (<a class="reference external" href="https://pypi.org/project/vtk">pypi package</a>): for <code class="docutils literal notranslate"><span class="pre">disptools.io.write_vtk_points</span></code></li>
+<li><a class="reference external" href="https://github.com/dabeaz/ply">ply</a> (<a class="reference external" href="https://pypi.org/project/ply">pypi package</a>): for <code class="docutils literal notranslate"><span class="pre">disptools.io.read_elastix_parameters</span></code></li>
+<li><a class="reference external" href="https://github.com/scikit-image/scikit-image">scikit-image</a> (<a class="reference external" href="https://pypi.org/project/scikit-image">pypi package</a>): to run the unit tests</li>
 </ul>
 </div>
 <div class="section" id="build-and-install">
@@ -350,9 +345,7 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 
            </div>
-           <div class="articleComments">
-            
-           </div>
+           
           </div>
           <footer>
   
@@ -365,7 +358,7 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
     <div style="padding-top: 1em;">
         <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">
             <img alt="Creative Commons License" 
@@ -397,6 +390,7 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
             VERSION:'0.1',
+            LANGUAGE:'None',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
@@ -414,14 +408,13 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
     <script type="text/javascript" src="static/js/theme.js"></script>
   
 
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          
+          SphinxRtdTheme.Navigation.enableSticky();
+          
       });
-  </script>
-   
+  </script> 
 
 </body>
 </html>

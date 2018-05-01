@@ -28,15 +28,16 @@ The project is structured in three layers:
 
 The library is a cross-platform Python 3.5+ package, with a compiled C extension. The Python dependencies are:
 + [numpy](https://github.com/numpy/numpy) ([pypi package](https://pypi.python.org/pypi/numpy))
-+ [scipy](https://github.com/scipy/scipy) ([pypi package](https://pypi.python.org/pypi/scipy/1.0.0))
-+ [SimpleITK](https://github.com/SimpleITK/SimpleITK) ([pypi package](https://pypi.python.org/pypi/SimpleITK/1.0.1))
++ [scipy](https://github.com/scipy/scipy) ([pypi package](https://pypi.org/pypi/scipy))
++ [SimpleITK](https://github.com/SimpleITK/SimpleITK) ([pypi package](https://pypi.org/pypi/SimpleITK))
 
 Build dependencies are a standard C99 compiler (tested with gcc 7.3 on Linux, mingw-w64 7.2 on Windows 10), the [numpy](https://pypi.python.org/pypi/numpy) and the [setuptools](https://pypi.python.org/pypi/setuptools) packages. [scikit-build](https://pypi.python.org/pypi/scikit-build) may be required to build the other Python dependencies.
 
 Some optional dependencies are required only for a limited set of features, and the package should build and run without them:
-+ [itk](https://github.com/InsightSoftwareConsortium/ITK) (for `disptools.drawing.sitk_to_itk`)
-+ [vtk](https://github.com/Kitware/VTK) (for `disptools.io.write_vtk_points`)
-+ [scikit-image](https://github.com/scikit-image/scikit-image) (to run the unit tests)
++ [itk](https://github.com/InsightSoftwareConsortium/ITK) ([pypi package](https://pypi.org/project/itk)): for `disptools.drawing.sitk_to_itk`
++ [vtk](https://github.com/Kitware/VTK) ([pypi package](https://pypi.org/project/vtk)): for `disptools.io.write_vtk_points`
++ [ply](https://github.com/dabeaz/ply) ([pypi package](https://pypi.org/project/ply)): for `disptools.io.read_elastix_parameters`
++ [scikit-image](https://github.com/scikit-image/scikit-image) ([pypi package](https://pypi.org/project/scikit-image)): to run the unit tests
 
 ### Build and install
 
