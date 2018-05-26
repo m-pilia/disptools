@@ -462,7 +462,7 @@ def average_jacobian_from_displacements(input_filenames_pattern: str, epsilon: f
 
     average_jacobian = np.exp(1.0/n * total_jacobian)
     output_jacobian = sitk.GetImageFromArray(average_jacobian)
-    output_jacobian.SetSpacing(I.GetSpacing())
+    output_jacobian.CopyInformation(I)
 
     return output_jacobian
 
@@ -674,6 +674,7 @@ def compose_displacements(*fields: sitk.Image) -> sitk.Image:
 
     for field in fields:
         resampled_field = sitk.Warp(field, total_field, outputSpacing=total_field.GetSpacing())
+        resampled_field.CopyInformation(total_field)
         total_field = sitk.Add(total_field, resampled_field)
 
     return total_field

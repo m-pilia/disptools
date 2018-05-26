@@ -257,17 +257,17 @@ def mask(
         background = np.logical_not(sitk.GetArrayViewFromImage(mask)).astype(np_float_type)
         background = sitk.GetImageFromArray(background)
         background = sitk.Cast(background, image.GetPixelID())
-        background.SetSpacing(image.GetSpacing())
+        background.CopyInformation(image)
 
         cast_mask = sitk.Cast(mask, image.GetPixelID())
-        cast_mask.SetSpacing(image.GetSpacing())
+        cast_mask.CopyInformation(image)
 
         result = sitk.Multiply(image, cast_mask)
         result = sitk.Add(result, background)
 
     else:
         cast_mask = sitk.Cast(mask, image.GetPixelID())
-        cast_mask.SetSpacing(image.GetSpacing())
+        cast_mask.CopyInformation(image)
         result = sitk.Multiply(image, cast_mask)
 
     return result
