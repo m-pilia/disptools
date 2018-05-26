@@ -39,7 +39,14 @@ Some optional dependencies are required only for a limited set of features, and 
 + [ply](https://github.com/dabeaz/ply) ([pypi package](https://pypi.org/project/ply)): for `disptools.io.read_elastix_parameters`
 + [scikit-image](https://github.com/scikit-image/scikit-image) ([pypi package](https://pypi.org/project/scikit-image)): to run the unit tests
 
-### Build and install
+### Install
+
+This package is available on [PyPI](https://pypi.org/project/disptools) both as source distribution and as a Windows pre-compiled binary wheel. You can install it with `pip`:
+```bash
+ python3 -m pip install disptools
+```
+
+### Build from source
 
 #### Linux
 
@@ -58,7 +65,7 @@ which should build the C extension and install the Python package.
 
 1. First, be sure that the Python executables [are in your PATH](https://docs.python.org/3/using/windows.html#excursus-setting-environment-variables).
 
-2. Since `msvc` (Visual Studio) does not support the C99 standard, this package should be compiled with [mingw](https://mingw-w64.org) (or any other C99-compliant compiler or your choice; in the following, instructions for `mingw` are provided). Install `mingw` and add its binary folder to your path. Ensure that `gcc` is working correctly:
+2. Since `msvc` (Visual Studio) does not support the C99 standard, this package should be compiled with [mingw](https://mingw-w64.org) (or any other C99-compliant compiler of your choice; in the following, instructions for `mingw` are provided). Install `mingw` and add its binary folder to your path. Ensure that `gcc` is working correctly:
 ```none
 > gcc --version
 gcc (x86_64-posix-seh-rev1, Built by MinGW-W64 project) 7.2.0
