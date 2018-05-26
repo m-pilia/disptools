@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>disptools &mdash; disptools 0.1 documentation</title>
+  <title>disptools &mdash; disptools 0.2.2 documentation</title>
   
 
   
@@ -57,7 +57,7 @@
             
             
               <div class="version">
-                0.1
+                0.2.2
               </div>
             
           
@@ -88,7 +88,8 @@
 <li><a class="reference internal" href="#documentation">Documentation</a></li>
 <li><a class="reference internal" href="#architecture">Architecture</a></li>
 <li><a class="reference internal" href="#requirements">Requirements</a></li>
-<li><a class="reference internal" href="#build-and-install">Build and install</a><ul>
+<li><a class="reference internal" href="#install">Install</a></li>
+<li><a class="reference internal" href="#build-from-source">Build from source</a><ul>
 <li><a class="reference internal" href="#linux">Linux</a></li>
 <li><a class="reference internal" href="#windows">Windows</a></li>
 </ul>
@@ -221,8 +222,15 @@ published in [2] and [3]. The implementation comes from the <a class="reference 
 <li><a class="reference external" href="https://github.com/scikit-image/scikit-image">scikit-image</a> (<a class="reference external" href="https://pypi.org/project/scikit-image">pypi package</a>): to run the unit tests</li>
 </ul>
 </div>
-<div class="section" id="build-and-install">
-<h3>Build and install<a class="headerlink" href="#build-and-install" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="install">
+<h3>Install<a class="headerlink" href="#install" title="Permalink to this headline">¶</a></h3>
+<p>This package is available on <a class="reference external" href="https://pypi.org/project/disptools">PyPI</a> both as source distribution and as a Windows pre-compiled binary wheel. You can install it with <code class="docutils literal notranslate"><span class="pre">pip</span></code>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3 -m pip install disptools
+</pre></div>
+</div>
+</div>
+<div class="section" id="build-from-source">
+<h3>Build from source<a class="headerlink" href="#build-from-source" title="Permalink to this headline">¶</a></h3>
 <div class="section" id="linux">
 <h4>Linux<a class="headerlink" href="#linux" title="Permalink to this headline">¶</a></h4>
 <p>Install the dependencies with your favourite package manager. For example, with <code class="docutils literal notranslate"><span class="pre">pip</span></code>:</p>
@@ -240,7 +248,7 @@ published in [2] and [3]. The implementation comes from the <a class="reference 
 <ol class="arabic">
 <li><p class="first">First, be sure that the Python executables <a class="reference external" href="https://docs.python.org/3/using/windows.html#excursus-setting-environment-variables">are in your PATH</a>.</p>
 </li>
-<li><p class="first">Since <code class="docutils literal notranslate"><span class="pre">msvc</span></code> (Visual Studio) does not support the C99 standard, this package should be compiled with <a class="reference external" href="https://mingw-w64.org">mingw</a> (or any other C99-compliant compiler or your choice; in the following, instructions for <code class="docutils literal notranslate"><span class="pre">mingw</span></code> are provided). Install <code class="docutils literal notranslate"><span class="pre">mingw</span></code> and add its binary folder to your path. Ensure that <code class="docutils literal notranslate"><span class="pre">gcc</span></code> is working correctly:</p>
+<li><p class="first">Since <code class="docutils literal notranslate"><span class="pre">msvc</span></code> (Visual Studio) does not support the C99 standard, this package should be compiled with <a class="reference external" href="https://mingw-w64.org">mingw</a> (or any other C99-compliant compiler of your choice; in the following, instructions for <code class="docutils literal notranslate"><span class="pre">mingw</span></code> are provided). Install <code class="docutils literal notranslate"><span class="pre">mingw</span></code> and add its binary folder to your path. Ensure that <code class="docutils literal notranslate"><span class="pre">gcc</span></code> is working correctly:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>&gt; gcc --version
 gcc (x86_64-posix-seh-rev1, Built by MinGW-W64 project) 7.2.0
 Copyright (C) 2017 Free Software Foundation, Inc.
@@ -1620,7 +1628,7 @@ volume loss, so <img class="math" src="images/math/eb2d3efbc548b649a2c29d6470b1f
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'0.1',
+            VERSION:'0.2.2',
             LANGUAGE:'None',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
@@ -1641,9 +1649,7 @@ volume loss, so <img class="math" src="images/math/eb2d3efbc548b649a2c29d6470b1f
 
   <script type="text/javascript">
       jQuery(function () {
-          
-          SphinxRtdTheme.Navigation.enableSticky();
-          
+          SphinxRtdTheme.Navigation.enable(true);
       });
   </script> 
 
