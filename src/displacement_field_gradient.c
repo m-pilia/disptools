@@ -113,22 +113,22 @@ static inline void gradient(
 }
 
 /*!
- * \brief Move `old_field` along direction `g` with step size `gamma`.
+ * \brief Move `old_field` along direction `g` with step size `eta`.
  */
 static inline void move_field(
         const Image old_field,
         const Image new_field,
         const Image g,
-        const FLOATING gamma
+        const FLOATING eta
         )
 {
     #pragma omp parallel for collapse(3) schedule(static)
     for (size_t z = 0; z < new_field.nz; ++z) {
         for (size_t y = 0; y < new_field.ny; ++y) {
             for (size_t x = 0; x < new_field.nx; ++x) {
-                _(new_field, x, y, z, X) = _(old_field, x, y, z, X) - gamma * _(g, x, y, z, X);
-                _(new_field, x, y, z, Y) = _(old_field, x, y, z, Y) - gamma * _(g, x, y, z, Y);
-                _(new_field, x, y, z, Z) = _(old_field, x, y, z, Z) - gamma * _(g, x, y, z, Z);
+                _(new_field, x, y, z, X) = _(old_field, x, y, z, X) - eta * _(g, x, y, z, X);
+                _(new_field, x, y, z, Y) = _(old_field, x, y, z, Y) - eta * _(g, x, y, z, Y);
+                _(new_field, x, y, z, Z) = _(old_field, x, y, z, Z) - eta * _(g, x, y, z, Z);
             }
         }
     }
