@@ -697,6 +697,7 @@ void volume_matching_3d(
         )
 {
     verbose_printf(DISPTOOLS_DEBUG,
+                   "%s\n"
                    "nx:        %lu\n"
                    "ny:        %lu\n"
                    "nz:        %lu\n"
@@ -713,6 +714,7 @@ void volume_matching_3d(
                    "tolerance: %f\n"
                    "strict:    %d\n"
                    "it_max:    %lu\n",
+                   __func__,
                    nx, ny, nz,
                    dx, dy, dz,
                    alpha, beta, gamma, delta,
