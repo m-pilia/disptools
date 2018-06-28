@@ -297,7 +297,7 @@ static PyObject *method_displacement(PyObject *self, PyObject *args)
                 it_max,
                 (void*)field_data);
     }
-    else if (strcmp(algorithm, ALGORITHM_GREEDY)) {
+    else if (!strcmp(algorithm, ALGORITHM_GREEDY)) {
         generate_displacement_greedy(
                 nx, ny, nz,
                 spacing[0], spacing[1], spacing[2],
@@ -315,7 +315,7 @@ static PyObject *method_displacement(PyObject *self, PyObject *args)
                 it_max,
                 (void*)field_data);
     }
-    else if (strcmp(algorithm, ALGORITHM_MATCHING)) {
+    else if (!strcmp(algorithm, ALGORITHM_MATCHING)) {
         volume_matching_3d(
                 nx, ny, nz,
                 spacing[0], spacing[1], spacing[2],
