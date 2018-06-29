@@ -26,8 +26,11 @@
 static inline void gradient(
         const Image f,
         const Image g,
+        const Image J,
         FLOATING *g_norm_2,
-        const Image voxel_error
+        const Image voxel_error,
+        const FLOATING delta,
+        const FLOATING zeta
         )
 {
     // Do not iterate over the voxels on the boundary
@@ -48,12 +51,33 @@ static inline void gradient(
         for (size_t y = 1; y < y_max; ++y) {
             for (size_t x = 1; x < x_max; ++x) {
 
-                const FLOATING error_xb = __(voxel_error, x-1, y,   z  );
-                const FLOATING error_xf = __(voxel_error, x+1, y,   z  );
-                const FLOATING error_yb = __(voxel_error, x,   y-1, z  );
-                const FLOATING error_yf = __(voxel_error, x,   y+1, z  );
-                const FLOATING error_zb = __(voxel_error, x,   y,   z-1);
-                const FLOATING error_zf = __(voxel_error, x,   y,   z+1);
+                // Actual cost
+                FLOATING error_xb = __(voxel_error, x-1, y,   z  );
+                FLOATING error_xf = __(voxel_error, x+1, y,   z  );
+                FLOATING error_yb = __(voxel_error, x,   y-1, z  );
+                FLOATING error_yf = __(voxel_error, x,   y+1, z  );
+                FLOATING error_zb = __(voxel_error, x,   y,   z-1);
+                FLOATING error_zf = __(voxel_error, x,   y,   z+1);
+
+                // Regularisation terms
+                if (__(J, x-1, y, z) < delta) {
+                    error_xb += zeta * (__(J, x-1, y, z) - delta);
+                }
+                if (__(J, x+1, y, z) < delta) {
+                    error_xf += zeta * (__(J, x+1, y, z) - delta);
+                }
+                if (__(J, x, y-1, z) < delta) {
+                    error_yb += zeta * (__(J, x, y-1, z) - delta);
+                }
+                if (__(J, x, y+1, z) < delta) {
+                    error_yf += zeta * (__(J, x, y+1, z) - delta);
+                }
+                if (__(J, x, y, z-1) < delta) {
+                    error_zb += zeta * (__(J, x, y, z-1) - delta);
+                }
+                if (__(J, x, y, z+1) < delta) {
+                    error_zf += zeta * (__(J, x, y, z+1) - delta);
+                }
 
                 // dc/dx
                 _(g, x, y, z, X) =
@@ -271,8 +295,11 @@ void generate_displacement_gradient(
     // Compute gradient
     gradient(field_[old_buffer],
              g,
+             J_field_[old_buffer],
              &g_norm_2,
-             voxel_error
+             voxel_error,
+             delta,
+             zeta
              );
 
     // Find an high initial eta
@@ -320,8 +347,11 @@ void generate_displacement_gradient(
         // Compute gradient
         gradient(field_[old_buffer],
                  g,
+                 J_field_[old_buffer],
                  &g_norm_2,
-                 voxel_error
+                 voxel_error,
+                 delta,
+                 zeta
                  );
 
         // Backtracking line search
