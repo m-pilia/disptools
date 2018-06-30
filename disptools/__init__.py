@@ -38,5 +38,5 @@ else:
                      % _disptools.get_float_type_size())
     raise Exception('Unsupported floating point type size')
 
-logging.basicConfig(stream=sys.stderr, level=logging.INFO)
+logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 

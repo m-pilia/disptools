@@ -84,7 +84,7 @@
 
 // Verbose output
 #if DISPTOOLS_VERBOSE || DISPTOOLS_DEBUG
-    #define verbose_printf(cond, ...) if (cond) {fprintf(stderr, __VA_ARGS__);}
+    #define verbose_printf(cond, ...) if (cond) {fprintf(stdout, __VA_ARGS__);}
 #else
     #define verbose_printf(cond, ...)
 #endif // DISPTOOLS_VERBOSE || DISPTOOLS_DEBUG
