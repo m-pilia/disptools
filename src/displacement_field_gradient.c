@@ -230,10 +230,6 @@ void generate_displacement_gradient(
                    strict,
                    it_max);
 
-    // Unused parameters
-    (void) delta;
-    (void) zeta;
-
     // Image size
     const size_t voxel_number = nx * ny * nz;
     const size_t image_size = voxel_number * sizeof (FLOATING);
