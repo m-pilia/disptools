@@ -311,3 +311,29 @@ def fitting_index(
     intersection = np.logical_and(data, reference)
 
     return np.sum(intersection) / np.sum(union)
+
+
+def centre_of_mass(image: sitk.Image) -> np.ndarray:
+    r""" Compute the centre of mass of the image.
+
+    A real-valued image represents the distribution of mass, and its
+    centre of mass is defined as :math:`\frac{1}{\sum_p I(p)} \sum_p p I(p)`.
+
+    Parameters
+    ----------
+    image : sitk.Image
+        Input image.
+
+    Returns
+    -------
+    np.ndarray
+        World coordinates (x, y, z) of the centre of mass.
+    """
+    data = sitk.GetArrayViewFromImage(image)
+
+    grid = np.meshgrid(*[range(i) for i in data.shape], indexing='ij')
+    grid = np.vstack([a.flatten() for a in grid]).T
+
+    cm = np.average(grid, axis=0, weights=data.flatten())
+
+    return np.multiply(np.flip(cm, axis=0), image.GetSpacing()) - image.GetOrigin()
