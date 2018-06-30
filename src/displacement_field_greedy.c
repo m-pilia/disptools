@@ -212,8 +212,9 @@ void generate_displacement_greedy(
         verbose_printf(true,
                        "Iteration %5ld:  "
                        "total error %6e  "
-                       "max voxel error %6e\n",
-                       it, error, max_voxel_error);
+                       "max voxel error %6e  "
+                       "eta %6e\n",
+                       it, error, max_voxel_error, eta);
 
         // Stopping conditions
 

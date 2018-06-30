@@ -285,8 +285,9 @@ void generate_displacement_gradient(
     verbose_printf(true,
                    "Iteration %5ld:  "
                    "total error %6e  "
-                   "max voxel error %6e\n",
-                   0l, last_error, max_voxel_error);
+                   "max voxel error %6e  "
+                   "eta %6e\n",
+                   0l, last_error, max_voxel_error, eta);
 
     // Compute gradient
     gradient(field_[old_buffer],
@@ -389,8 +390,9 @@ void generate_displacement_gradient(
         verbose_printf(true,
                        "Iteration %5ld:  "
                        "total error %6e  "
-                       "max voxel error %6e\n",
-                       it, error, max_voxel_error);
+                       "max voxel error %6e  "
+                       "eta %6e\n",
+                       it, error, max_voxel_error, eta);
 
         // Stopping conditions
 

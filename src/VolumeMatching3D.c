@@ -517,8 +517,9 @@ int VolumeMatching3D(float **f, float **g, float **e, float *TV, int r, int c, i
         verbose_printf(true,
                        "Iteration %5d:  "
                        "total error %6e  "
-                       "max voxel error %6e\n",
-                       itnum, H[itnum], max_voxel_error);
+                       "max voxel error %6e  "
+                       "eta %6e\n",
+                       itnum, H[itnum], max_voxel_error, alpha);
         }
         if (VERBOSITY) {printf("."); fflush(stdout);}
     }
