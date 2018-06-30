@@ -90,9 +90,10 @@ def jacobian(field: sitk.Image) -> sitk.Image:
     return result
 
 
+# This function wraps the C call.
 def _displacement(
         image         : sitk.Image,
-        body_mask     : sitk.Image = None,
+        mask          : sitk.Image = None,
         initial_guess : sitk.Image = None,
         epsilon       : float = 9.99e-4,
         tolerance     : float = 0.2,
@@ -113,35 +114,7 @@ def _displacement(
 
     Parameters
     ---------
-    image : sitk.Image
-        Input Jacobian.
-    boady_mask : sitk.Image
-        Binary mask of the body volume.
-    initial_guess : sitk.Image
-        Initial estimation of the solution. The default is a null
-        displacement field.
-    epsilon : float
-        A floating point value, representing the tolerance per
-        voxel on the Jacobian of the resulting field.
-    tolerance : float
-        Tolerance on Jacobian outside the mask.
-    it_max : int
-        Maximum number of iterations allowed.
-    alpha : float
-        Coefficient that controls the increase of the step length.
-    beta : float
-        Coefficient that controls the decrease of the step length.
-    gamma : float
-        Armijo-Goldstein parameter.
-    delta : float
-        Lower threshold for Jacobian regularisation.
-    strict : bool
-        If True, reject iterations that not decrease the maximum
-        voxel error.
-    eta : float
-        Initial step length
-    algorithm : str
-        Algorithm to generate the field, one of `greedy`, `gradient`, or `matching`.
+    See the documentation for `displacement`.
 
     Returns
     -------
@@ -151,12 +124,12 @@ def _displacement(
 
     jacobian = sitk.GetArrayViewFromImage(image).astype(np_float_type, copy=True)
 
-    if body_mask == None:
+    if mask == None:
         # Default mask: whole image
         mask = np.ones(jacobian.shape, dtype=np.bool)
     else:
         # Get mask as numpy array of booleans
-        mask = sitk.GetArrayViewFromImage(body_mask).astype(bool, copy=True)
+        mask = sitk.GetArrayViewFromImage(mask).astype(bool, copy=True)
 
     # Create objects for the result, initialise initial guess
     if initial_guess is not None:
@@ -252,10 +225,23 @@ def redistribute_volume_change(image: sitk.Image, mask: sitk.Image) -> sitk.Imag
 # and handles the multi-resolution pyramid.
 def displacement(
         jacobian     : sitk.Image,
+        *,
         levels       : int = 1,
         pad          : int = 0,
         redistribute : bool = False,
-        **parameters : Any
+        mask          : sitk.Image = None,
+        initial_guess : sitk.Image = None,
+        epsilon       : float = 9.99e-4,
+        tolerance     : float = 0.2,
+        it_max        : Union[int, List[int]] = 50000,
+        alpha         : float = 1.2,
+        beta          : float = 0.5,
+        gamma         : float = .1,
+        delta         : float = 1e-3,
+        zeta          : float = 10.0,
+        strict        : bool = False,
+        eta           : float = 0.4,
+        algorithm     : str = 'gradient'
         ) -> sitk.Image:
     r""" Generate a displacement field that realises a given Jacobian.
 
@@ -270,13 +256,34 @@ def displacement(
       published in [2]_ and [3]_. The implementation comes from
       the `atrophysim tool`_.
 
+    The initial value of the step length in the gradient descent is
+    given by the parameter ``eta``. The ``gradient`` and ``matching``
+    algorithms use an `Armijo condition`_ to control the step length,
+    in the form
+
+    .. math::
+        E(d - \eta \nabla E(d)) - E(d) \le -\gamma \eta ||\nabla E(d)||^2
+
+    where :math:`d` is the displacement, :math:`E` the loss function,
+    :math:`\eta` the current step length, and :math:`\gamma \in (0, 1)` a
+    parameter of the condition. At each iteration the step length is increased
+    multiplying it by ``alpha``, and if the Armijo condition is not met after
+    the update, ``eta`` is decreased multiplying it by ``beta`` until the
+    truth of the inequality in the Armijo condition is restored.
+
+    The ``gradient`` and ``matching`` algorithms have a regularisation term
+    that penalises values of the Jacobian below a certain threshold, given
+    by ``delta``. The importance of the regularisation term is controlled
+    by the parameter ``zeta`` (set to ``0`` to have no regularisation).
+
     .. _atrophysim tool: https://www.nitrc.org/projects/atrophysim
+    .. _Armijo condition: https://en.wikipedia.org/wiki/Wolfe_conditions
 
     .. note::
         The displacement is generally not accurate on image boundary voxels.
 
     .. note::
-        The C verbose output is written to `stderr`. If you want to capture
+        The C verbose output is written to `stdout`. If you want to capture
         it from within Python, the `wurlitzer package`_ might be helpful.
 
     .. warning::
@@ -292,23 +299,23 @@ def displacement(
     .. [2] Karaçali, B., and Davatzikos, C. "Estimating topology preserving and smooth displacement fields."
            IEEE Transactions on Medical Imaging 23, 7 (2004), 868–880.
     .. [3] Karaçali, B., and Davatzikos, C. "Simulation of tissue atrophy using a topology preserving
-           ransformation model." IEEE transactions on medical imaging 25, 5 (2006), 649–652.
+           transformation model." IEEE transactions on medical imaging 25, 5 (2006), 649–652.
 
     Parameters
     ----------
     jacobian : sitk.Image
         Input Jacobian.
     levels : int
-        Number of resolution levels; the size of the image along
-        each direction is halven at each level.
+        Number of levels in the multi-resolution pyramid; the size of
+        the image along each direction is halven at each level.
     pad : int
         Thickness of the zero-padding around the volume (0 for
         the mask, 1.0 for the Jacobian) to be used during the
         computation. The padding is removed before returning the result.
     redistribute : bool
         Redistribute the volume change inside the mask to the background.
-    boady_mask : sitk.Image
-        Binary mask of the body volume.
+    mask : sitk.Image
+        Binary mask for the region of interest.
     initial_guess : sitk.Image
         Initial estimation of the solution. The default is a null
         displacement field.
@@ -317,8 +324,13 @@ def displacement(
         voxel on the Jacobian of the resulting field.
     tolerance : float
         Tolerance on Jacobian outside the mask.
-    it_max : int
-        Maximum number of iterations allowed.
+    it_max : Union[int, List[int]]
+        Maximum number of iterations allowed. If it is a list, its
+        length must match the number of levels in the multi-resolution
+        pyramid, and each value is used for a single level, with the
+        first element of the list representing the level with lowest
+        resolution. If it is a scalar, then the same number of
+        iterations is used for all pyramid levels.
     alpha : float
         Coefficient that controls the increase of the step length.
     beta : float
@@ -341,9 +353,15 @@ def displacement(
         A displacement field whose Jacobian matches the input.
     """
 
+    # Filter parameters used locally and parameters propagated to the
+    # wrapped function
+    parameters = locals().copy()
+    used = ['jacobian', 'levels', 'pad', 'redistribute', 'mask',
+            'initial_guess', 'it_max']
+    [parameters.pop(p) for p in used]
+
     jacobian = sitk.Cast(jacobian, sitk_float_type)
 
-    mask = parameters.pop('mask', None)
     if mask is None:
         mask = np.ones(tuple(jacobian.GetSize()), dtype=np_float_type)
         mask = sitk.GetImageFromArray(mask)
@@ -374,15 +392,21 @@ def displacement(
         jacobian_pyramid.append(drawing.resize_image(jacobian, new_size))
         mask_pyramid.append(drawing.resize_image(mask, new_size, sitk.sitkNearestNeighbor))
 
+    # Set maximum number of iterations for each pyramid level
+    if not isinstance(it_max, list):
+        it_max = [it_max for i in range(levels)]
+    elif len(it_max) != levels:
+        raise ValueError('len(it_max) should equal the value of `levels`')
+
     # Set initial guess
-    field = parameters.pop('initial_guess', None)
+    field = initial_guess
 
     # Multi-resolution algorithm
-    for jacobian, mask in zip(reversed(jacobian_pyramid), reversed(mask_pyramid)):
+    for jacobian, mask, it in zip(jacobian_pyramid[::-1], mask_pyramid[::-1], it_max):
         size = jacobian.GetSize()
         logging.info('Size %s' % str(size))
         field = drawing.resize_image(field, size) if field is not None else None
-        field = _displacement(jacobian, mask, initial_guess=field, **parameters)
+        field = _displacement(jacobian, mask, initial_guess=field, it_max=it, **parameters)
 
     # Remove padding from the result
     field = sitk.Crop(field, *pad)
