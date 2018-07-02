@@ -337,3 +337,4 @@ def centre_of_mass(image: sitk.Image) -> np.ndarray:
     cm = np.average(grid, axis=0, weights=data.flatten())
 
     return np.multiply(np.flip(cm, axis=0), image.GetSpacing()) - image.GetOrigin()
+

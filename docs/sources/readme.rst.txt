@@ -1,3 +1,6 @@
+.. role:: raw-html-m2r(raw)
+   :format: html
+
 
 disptools
 =========
@@ -11,9 +14,9 @@ The three algorithms implemented are referred as:
 
 
 * ``gradient``\ : a gradient descent method (default).
-* ``greedy``\ : a greedy search method based on the method proposed in [1].
+* ``greedy``\ : a greedy search method based on the method proposed in `[1] <#1>`_.
 * ``matching``\ : a volume matching routine based on gradient descent,
-  published in [2] and [3]. The implementation comes from the `atrophysim tool <https://www.nitrc.org/projects/atrophysim>`_.
+  published in `[2] <#2>`_ and `[3] <#3>`_. The implementation comes from the `atrophysim tool <https://www.nitrc.org/projects/atrophysim>`_.
 
 The library is built on top of SimpleITK, in order to provide a simple yet powerful set of functionalities for image analysis. Images stored as numpy arrays can be easily converted from and to `SimpleITK <http://simpleitk.github.io/SimpleITK-Notebooks/01_Image_Basics.html>`_ and `ITK <https://blog.kitware.com/convert-itk-data-structures-to-numpy-arrays/>`_ image objects.
 
@@ -210,9 +213,9 @@ References
 ^^^^^^^^^^
 
 
-* [1] van Eede, M. C., Scholz, J., Chakravarty, M. M., Henkelman, R. M., and Lerch, J. P. "Mapping registration sensitivity in MR mouse brain images." Neuroimage 82 (2013), 226–236.
-* [2] Karaçali, B., and Davatzikos, C. "Estimating topology preserving and smooth displacement fields." IEEE Transactions on Medical Imaging 23, 7 (2004), 868–880.
-* [3] Karaçali, B., and Davatzikos, C. "Simulation of tissue atrophy using a topology preserving transformation model." IEEE transactions on medical imaging 25, 5 (2006), 649–652.
+* :raw-html-m2r:`<a id="1"></a>`\ [1] van Eede, M. C., Scholz, J., Chakravarty, M. M., Henkelman, R. M., and Lerch, J. P. "Mapping registration sensitivity in MR mouse brain images." Neuroimage 82 (2013), 226–236.
+* :raw-html-m2r:`<a id="2"></a>`\ [2] Karaçali, B., and Davatzikos, C. "Estimating topology preserving and smooth displacement fields." IEEE Transactions on Medical Imaging 23, 7 (2004), 868–880.
+* :raw-html-m2r:`<a id="3"></a>`\ [3] Karaçali, B., and Davatzikos, C. "Simulation of tissue atrophy using a topology preserving transformation model." IEEE transactions on medical imaging 25, 5 (2006), 649–652.
 
 License
 ^^^^^^^

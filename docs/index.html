@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>disptools &mdash; disptools 0.2.3 documentation</title>
+  <title>disptools &mdash; disptools 0.3.0 documentation</title>
   
 
   
@@ -56,7 +56,7 @@
             
             
               <div class="version">
-                0.2.3
+                0.3.0
               </div>
             
           
@@ -186,9 +186,9 @@
 <p>The three algorithms implemented are referred as:</p>
 <ul class="simple">
 <li><code class="docutils literal notranslate"><span class="pre">gradient</span></code>: a gradient descent method (default).</li>
-<li><code class="docutils literal notranslate"><span class="pre">greedy</span></code>: a greedy search method based on the method proposed in [1].</li>
+<li><code class="docutils literal notranslate"><span class="pre">greedy</span></code>: a greedy search method based on the method proposed in <a class="reference external" href="#1">[1]</a>.</li>
 <li><code class="docutils literal notranslate"><span class="pre">matching</span></code>: a volume matching routine based on gradient descent,
-published in [2] and [3]. The implementation comes from the <a class="reference external" href="https://www.nitrc.org/projects/atrophysim">atrophysim tool</a>.</li>
+published in <a class="reference external" href="#2">[2]</a> and <a class="reference external" href="#3">[3]</a>. The implementation comes from the <a class="reference external" href="https://www.nitrc.org/projects/atrophysim">atrophysim tool</a>.</li>
 </ul>
 <p>The library is built on top of SimpleITK, in order to provide a simple yet powerful set of functionalities for image analysis. Images stored as numpy arrays can be easily converted from and to <a class="reference external" href="http://simpleitk.github.io/SimpleITK-Notebooks/01_Image_Basics.html">SimpleITK</a> and <a class="reference external" href="https://blog.kitware.com/convert-itk-data-structures-to-numpy-arrays/">ITK</a> image objects.</p>
 <div class="section" id="documentation">
@@ -351,9 +351,9 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 <div class="section" id="references">
 <h3>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li>[1] van Eede, M. C., Scholz, J., Chakravarty, M. M., Henkelman, R. M., and Lerch, J. P. “Mapping registration sensitivity in MR mouse brain images.” Neuroimage 82 (2013), 226–236.</li>
-<li>[2] Karaçali, B., and Davatzikos, C. “Estimating topology preserving and smooth displacement fields.” IEEE Transactions on Medical Imaging 23, 7 (2004), 868–880.</li>
-<li>[3] Karaçali, B., and Davatzikos, C. “Simulation of tissue atrophy using a topology preserving transformation model.” IEEE transactions on medical imaging 25, 5 (2006), 649–652.</li>
+<li><span class="raw-html-m2r"><a id="1"></a></span>[1] van Eede, M. C., Scholz, J., Chakravarty, M. M., Henkelman, R. M., and Lerch, J. P. “Mapping registration sensitivity in MR mouse brain images.” Neuroimage 82 (2013), 226–236.</li>
+<li><span class="raw-html-m2r"><a id="2"></a></span>[2] Karaçali, B., and Davatzikos, C. “Estimating topology preserving and smooth displacement fields.” IEEE Transactions on Medical Imaging 23, 7 (2004), 868–880.</li>
+<li><span class="raw-html-m2r"><a id="3"></a></span>[3] Karaçali, B., and Davatzikos, C. “Simulation of tissue atrophy using a topology preserving transformation model.” IEEE transactions on medical imaging 25, 5 (2006), 649–652.</li>
 </ul>
 </div>
 <div class="section" id="license">
@@ -499,7 +499,7 @@ transform and a displacement field <img class="math" src="images/math/b9d10b5474
 
 <dl class="function">
 <dt id="disptools.displacements.displacement">
-<code class="descclassname">disptools.displacements.</code><code class="descname">displacement</code><span class="sig-paren">(</span><em>jacobian</em>, <em>levels=1</em>, <em>pad=0</em>, <em>redistribute=False</em>, <em>**parameters</em><span class="sig-paren">)</span><a class="reference internal" href="modules/disptools/displacements.html#displacement"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#disptools.displacements.displacement" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">disptools.displacements.</code><code class="descname">displacement</code><span class="sig-paren">(</span><em>jacobian</em>, <em>*</em>, <em>levels=1</em>, <em>pad=0</em>, <em>redistribute=False</em>, <em>mask=None</em>, <em>initial_guess=None</em>, <em>epsilon=0.000999</em>, <em>tolerance=0.2</em>, <em>it_max=50000</em>, <em>alpha=1.2</em>, <em>beta=0.5</em>, <em>gamma=0.1</em>, <em>delta=0.001</em>, <em>zeta=10.0</em>, <em>strict=False</em>, <em>eta=0.1</em>, <em>algorithm='gradient'</em><span class="sig-paren">)</span><a class="reference internal" href="modules/disptools/displacements.html#displacement"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#disptools.displacements.displacement" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate a displacement field that realises a given Jacobian.</p>
 <p>Given a 3D scalar image encoding a Jacobian map, compute a
 3D vector image encoding a vector field whose Jacobian map
@@ -507,18 +507,34 @@ matches the input up to a certain tolerance.
 The three algorithms provided are:</p>
 <ul class="simple">
 <li><code class="docutils literal notranslate"><span class="pre">gradient</span></code>: a gradient descent method (default).</li>
-<li><code class="docutils literal notranslate"><span class="pre">greedy</span></code>: a greedy search method based on the method proposed in <a class="footnote-reference" href="#id15" id="id11">[1]</a>.</li>
+<li><code class="docutils literal notranslate"><span class="pre">greedy</span></code>: a greedy search method based on the method proposed in <a class="footnote-reference" href="#id18" id="id14">[1]</a>.</li>
 <li><code class="docutils literal notranslate"><span class="pre">matching</span></code>: a volume matching routine based on gradient descent,
-published in <a class="footnote-reference" href="#id16" id="id12">[2]</a> and <a class="footnote-reference" href="#id17" id="id13">[3]</a>. The implementation comes from
+published in <a class="footnote-reference" href="#id19" id="id15">[2]</a> and <a class="footnote-reference" href="#id20" id="id16">[3]</a>. The implementation comes from
 the <a class="reference external" href="https://www.nitrc.org/projects/atrophysim">atrophysim tool</a>.</li>
 </ul>
+<p>The initial value of the step length in the gradient descent is
+given by the parameter <code class="docutils literal notranslate"><span class="pre">eta</span></code>. The <code class="docutils literal notranslate"><span class="pre">gradient</span></code> and <code class="docutils literal notranslate"><span class="pre">matching</span></code>
+algorithms use an <a class="reference external" href="https://en.wikipedia.org/wiki/Wolfe_conditions">Armijo condition</a> to control the step length,
+in the form</p>
+<div class="math">
+<p><img src="images/math/f86c130f621761dc3ec4e61348c704312d0eb47f.png" alt="E(d - \eta \nabla E(d)) - E(d) \le -\gamma \eta ||\nabla E(d)||^2"/></p>
+</div><p>where <img class="math" src="images/math/b9d10b54744d07746b97f53c55eb98046fd76c8c.png" alt="d"/> is the displacement, <img class="math" src="images/math/4b6222b865b812d2a59368cd1629eed6b54454d5.png" alt="E"/> the loss function,
+<img class="math" src="images/math/5635a7c34414599c2452d72430811e816b460335.png" alt="\eta"/> the current step length, and <img class="math" src="images/math/a9cab5a99c33c86c7ef9496a7dd174b8c484dbe6.png" alt="\gamma \in (0, 1)"/> a
+parameter of the condition. At each iteration the step length is increased
+multiplying it by <code class="docutils literal notranslate"><span class="pre">alpha</span></code>, and if the Armijo condition is not met after
+the update, <code class="docutils literal notranslate"><span class="pre">eta</span></code> is decreased multiplying it by <code class="docutils literal notranslate"><span class="pre">beta</span></code> until the
+truth of the inequality in the Armijo condition is restored.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">gradient</span></code> and <code class="docutils literal notranslate"><span class="pre">matching</span></code> algorithms have a regularisation term
+that penalises values of the Jacobian below a certain threshold, given
+by <code class="docutils literal notranslate"><span class="pre">delta</span></code>. The importance of the regularisation term is controlled
+by the parameter <code class="docutils literal notranslate"><span class="pre">zeta</span></code> (set to <code class="docutils literal notranslate"><span class="pre">0</span></code> to have no regularisation).</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">The displacement is generally not accurate on image boundary voxels.</p>
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">The C verbose output is written to <cite>stderr</cite>. If you want to capture
+<p class="last">The C verbose output is written to <cite>stdout</cite>. If you want to capture
 it from within Python, the <a class="reference external" href="https://github.com/minrk/wurlitzer">wurlitzer package</a> might be helpful.</p>
 </div>
 <div class="admonition warning">
@@ -527,25 +543,25 @@ it from within Python, the <a class="reference external" href="https://github.co
 the REPL.</p>
 </div>
 <p class="rubric">References</p>
-<table class="docutils footnote" frame="void" id="id15" rules="none">
+<table class="docutils footnote" frame="void" id="id18" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id11">[1]</a></td><td>van Eede, M. C., Scholz, J., Chakravarty, M. M., Henkelman, R. M., and Lerch, J. P.
+<tr><td class="label"><a class="fn-backref" href="#id14">[1]</a></td><td>van Eede, M. C., Scholz, J., Chakravarty, M. M., Henkelman, R. M., and Lerch, J. P.
 “Mapping registration sensitivity in MR mouse brain images.” Neuroimage 82 (2013), 226–236.</td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id16" rules="none">
+<table class="docutils footnote" frame="void" id="id19" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id12">[2]</a></td><td>Karaçali, B., and Davatzikos, C. “Estimating topology preserving and smooth displacement fields.”
+<tr><td class="label"><a class="fn-backref" href="#id15">[2]</a></td><td>Karaçali, B., and Davatzikos, C. “Estimating topology preserving and smooth displacement fields.”
 IEEE Transactions on Medical Imaging 23, 7 (2004), 868–880.</td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id17" rules="none">
+<table class="docutils footnote" frame="void" id="id20" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id13">[3]</a></td><td>Karaçali, B., and Davatzikos, C. “Simulation of tissue atrophy using a topology preserving
-ransformation model.” IEEE transactions on medical imaging 25, 5 (2006), 649–652.</td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id16">[3]</a></td><td>Karaçali, B., and Davatzikos, C. “Simulation of tissue atrophy using a topology preserving
+transformation model.” IEEE transactions on medical imaging 25, 5 (2006), 649–652.</td></tr>
 </tbody>
 </table>
 <table class="docutils field-list" frame="void" rules="none">
@@ -554,19 +570,24 @@ ransformation model.” IEEE transactions on medical imaging 25, 5 (2006), 649�
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>jacobian</strong> (<em>sitk.Image</em>) – Input Jacobian.</li>
-<li><strong>levels</strong> (<em>int</em>) – Number of resolution levels; the size of the image along
-each direction is halven at each level.</li>
+<li><strong>levels</strong> (<em>int</em>) – Number of levels in the multi-resolution pyramid; the size of
+the image along each direction is halven at each level.</li>
 <li><strong>pad</strong> (<em>int</em>) – Thickness of the zero-padding around the volume (0 for
 the mask, 1.0 for the Jacobian) to be used during the
 computation. The padding is removed before returning the result.</li>
 <li><strong>redistribute</strong> (<em>bool</em>) – Redistribute the volume change inside the mask to the background.</li>
-<li><strong>boady_mask</strong> (<em>sitk.Image</em>) – Binary mask of the body volume.</li>
+<li><strong>mask</strong> (<em>sitk.Image</em>) – Binary mask for the region of interest.</li>
 <li><strong>initial_guess</strong> (<em>sitk.Image</em>) – Initial estimation of the solution. The default is a null
 displacement field.</li>
 <li><strong>epsilon</strong> (<em>float</em>) – A floating point value, representing the tolerance per
 voxel on the Jacobian of the resulting field.</li>
 <li><strong>tolerance</strong> (<em>float</em>) – Tolerance on Jacobian outside the mask.</li>
-<li><strong>it_max</strong> (<em>int</em>) – Maximum number of iterations allowed.</li>
+<li><strong>it_max</strong> (<em>Union[int, List[int]]</em>) – Maximum number of iterations allowed. If it is a list, its
+length must match the number of levels in the multi-resolution
+pyramid, and each value is used for a single level, with the
+first element of the list representing the level with lowest
+resolution. If it is a scalar, then the same number of
+iterations is used for all pyramid levels.</li>
 <li><strong>alpha</strong> (<em>float</em>) – Coefficient that controls the increase of the step length.</li>
 <li><strong>beta</strong> (<em>float</em>) – Coefficient that controls the decrease of the step length.</li>
 <li><strong>gamma</strong> (<em>float</em>) – Armijo-Goldstein parameter.</li>
@@ -1135,8 +1156,8 @@ row for each point and three columns, one per coordinate.</p>
 <code class="descclassname">disptools.io.</code><code class="descname">write_elastix_parameters</code><span class="sig-paren">(</span><em>parameters</em>, <em>filename</em><span class="sig-paren">)</span><a class="reference internal" href="modules/disptools/io.html#write_elastix_parameters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#disptools.io.write_elastix_parameters" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write Elastix parameters to file.</p>
 <p>Write an Elastix parameter file. Parameters are passed as a dictionary
-mapping each parameter name to a list of values. Python <a href="#id18"><span class="problematic" id="id19">`</span></a>bool`s, <a href="#id20"><span class="problematic" id="id21">`</span></a>int`s,
-and <a href="#id22"><span class="problematic" id="id23">`</span></a>float`s are converted automatically.</p>
+mapping each parameter name to a list of values. Python <a href="#id21"><span class="problematic" id="id22">`</span></a>bool`s, <a href="#id23"><span class="problematic" id="id24">`</span></a>int`s,
+and <a href="#id25"><span class="problematic" id="id26">`</span></a>float`s are converted automatically.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1232,10 +1253,30 @@ a constant unit Jacobian map.</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="disptools.measure.centre_of_mass">
+<code class="descclassname">disptools.measure.</code><code class="descname">centre_of_mass</code><span class="sig-paren">(</span><em>image</em><span class="sig-paren">)</span><a class="reference internal" href="modules/disptools/measure.html#centre_of_mass"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#disptools.measure.centre_of_mass" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the centre of mass of the image.</p>
+<p>A real-valued image represents the distribution of mass, and its
+centre of mass is defined as <img class="math" src="images/math/94a2d12dde6a677d3d29683db05f8ce2a9712279.png" alt="\frac{1}{\sum_p I(p)} \sum_p p I(p)"/>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>image</strong> (<em>sitk.Image</em>) – Input image.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">World coordinates (x, y, z) of the centre of mass.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">np.ndarray</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
 <dt id="disptools.measure.cubicity">
 <code class="descclassname">disptools.measure.</code><code class="descname">cubicity</code><span class="sig-paren">(</span><em>image</em><span class="sig-paren">)</span><a class="reference internal" href="modules/disptools/measure.html#cubicity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#disptools.measure.cubicity" title="Permalink to this definition">¶</a></dt>
 <dd><p>Measure the cubicity of an object.</p>
-<p>The cubicity is defined <a class="footnote-reference" href="#id25" id="id24">[4]</a> as the ratio between the volume of the
+<p>The cubicity is defined <a class="footnote-reference" href="#id28" id="id27">[4]</a> as the ratio between the volume of the
 object and the volume of its bounding cube.
 A cube has cubicity equal to 1, a sphere has cubicity pi/6, and in
 general non-cubic objects have cubicity strictly lesser than 1.</p>
@@ -1243,10 +1284,10 @@ general non-cubic objects have cubicity strictly lesser than 1.</p>
 equal to the longest side of the oriented bounding box of the
 object.</p>
 <p class="rubric">References</p>
-<table class="docutils footnote" frame="void" id="id25" rules="none">
+<table class="docutils footnote" frame="void" id="id28" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id24">[4]</a></td><td>O’Flannery, LJ and O’Mahony, MM, “Precise shape grading of
+<tr><td class="label"><a class="fn-backref" href="#id27">[4]</a></td><td>O’Flannery, LJ and O’Mahony, MM, “Precise shape grading of
 coarse aggregate”. Magazine of Concrete Research 51.5 (1999),
 pp. 319-324.</td></tr>
 </tbody>
@@ -1378,24 +1419,24 @@ than <img class="math" src="images/math/594ebcbbd5600cb0d94b76641d6eb0d9865742bc
 <dt id="disptools.measure.sphericity">
 <code class="descclassname">disptools.measure.</code><code class="descname">sphericity</code><span class="sig-paren">(</span><em>image</em><span class="sig-paren">)</span><a class="reference internal" href="modules/disptools/measure.html#sphericity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#disptools.measure.sphericity" title="Permalink to this definition">¶</a></dt>
 <dd><p>Measure the sphericity of a object.</p>
-<p>The sphericity is defined <a class="footnote-reference" href="#id28" id="id26">[5]</a> <a class="footnote-reference" href="#id29" id="id27">[6]</a> as the ratio between the surface of a sphere
+<p>The sphericity is defined <a class="footnote-reference" href="#id31" id="id29">[5]</a> <a class="footnote-reference" href="#id32" id="id30">[6]</a> as the ratio between the surface of a sphere
 with the same volume of the object and the surface of the object itself.</p>
 <div class="math">
 <p><img src="images/math/04b03a85023e4e414fef40a8bec32aacf302ac08.png" alt="\frac{\pi^{\frac{1}{3}}(6V)^{\frac{2}{3}}}{A}"/></p>
 </div><p>A sphere has sphericity equal to 1, non-spherical objects have sphericity
 strictly lesser than 1.</p>
 <p class="rubric">References</p>
-<table class="docutils footnote" frame="void" id="id28" rules="none">
+<table class="docutils footnote" frame="void" id="id31" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id26">[5]</a></td><td>Wadell, Hakon. “Volume, shape, and roundness of quartz particles.”
+<tr><td class="label"><a class="fn-backref" href="#id29">[5]</a></td><td>Wadell, Hakon. “Volume, shape, and roundness of quartz particles.”
 The Journal of Geology 43.3 (1935): 250-280.</td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id29" rules="none">
+<table class="docutils footnote" frame="void" id="id32" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id27">[6]</a></td><td>Lehmann, Gaëthan. “Label object representation and manipulation with ITK”
+<tr><td class="label"><a class="fn-backref" href="#id30">[6]</a></td><td>Lehmann, Gaëthan. “Label object representation and manipulation with ITK”
 Insight Journal, July-December 2007</td></tr>
 </tbody>
 </table>
@@ -1627,7 +1668,7 @@ volume loss, so <img class="math" src="images/math/eb2d3efbc548b649a2c29d6470b1f
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'0.2.3',
+            VERSION:'0.3.0',
             LANGUAGE:'None',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
