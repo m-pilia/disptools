@@ -236,11 +236,11 @@ def displacement(
         it_max        : Union[int, List[int]] = 50000,
         alpha         : float = 1.2,
         beta          : float = 0.5,
-        gamma         : float = .1,
+        gamma         : float = 0.1,
         delta         : float = 1e-3,
         zeta          : float = 10.0,
         strict        : bool = False,
-        eta           : float = 0.4,
+        eta           : float = 0.1,
         algorithm     : str = 'gradient'
         ) -> sitk.Image:
     r""" Generate a displacement field that realises a given Jacobian.
