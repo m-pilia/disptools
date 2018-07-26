@@ -697,7 +697,12 @@ def compose_displacements(*fields: sitk.Image) -> sitk.Image:
     total_field = sitk.Image(fields.pop(0))
 
     for field in fields:
-        resampled_field = sitk.Warp(field, total_field, outputSpacing=total_field.GetSpacing())
+        resampled_field = sitk.Warp(field,
+                                    total_field,
+                                    outputSize=total_field.GetSize(),
+                                    outputSpacing=total_field.GetSpacing(),
+                                    outputOrigin=total_field.GetOrigin(),
+                                    outputDirection=total_field.GetDirection())
         resampled_field.CopyInformation(total_field)
         total_field = sitk.Add(total_field, resampled_field)
 
@@ -780,6 +785,8 @@ def field_zero_padding(
 
     field_pad = sitk.GetImageFromArray(a)
     field_pad.SetSpacing(field.GetSpacing())
+    field_pad.SetOrigin(field.GetOrigin())
+    field_pad.SetDirection(field.GetDirection())
 
     return field_pad
 
