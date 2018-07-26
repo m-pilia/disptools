@@ -704,6 +704,47 @@ def compose_displacements(*fields: sitk.Image) -> sitk.Image:
     return total_field
 
 
+def decompose_displacements(
+        field1: sitk.Image,
+        field2: sitk.Image
+        ) -> sitk.Image:
+    r""" Decompose two displacement fields.
+
+    Given two displacement fields :math:`d_1` and :math:`d_2`
+    associated to the transforms :math:`f_1` and :math:`f_2`,
+    find a third displacement :math:`d_3` associated to the
+    transform :math:`f_3`, such that
+
+    .. math::
+        f_1 = f_3 \circ f_2
+        d_1(x) = d_2(x) + d_3(d_2(x))
+
+    Parameters
+    ----------
+    field1 : sitk.Image
+        Total displacement.
+
+    field2 : sitk.Image
+        Component to be decomposed from the total displacement.
+
+    Returns
+    -------
+    sitk.Image
+        A vector image representing a displacement field such
+        that its composition with the second argument gives
+        the first argument.
+    """
+
+    field3 = sitk.Warp(field1 - field2,
+                       sitk.InvertDisplacementField(field2),
+                       outputSize=field1.GetSize(),
+                       outputSpacing=field1.GetSpacing(),
+                       outputOrigin=field1.GetOrigin(),
+                       outputDirection=field1.GetDirection())
+    field3.CopyInformation(field1)
+    return field3
+
+
 def field_zero_padding(
         field  : sitk.Image,
         size_x : Tuple[int,int] = (1,1),
