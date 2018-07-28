@@ -1,5 +1,6 @@
 import SimpleITK as sitk
 import numpy as np
+import scipy.ndimage as ndimage
 import math
 import functools
 from typing import *
@@ -337,4 +338,80 @@ def centre_of_mass(image: sitk.Image) -> np.ndarray:
     cm = np.average(grid, axis=0, weights=data.flatten())
 
     return np.multiply(np.flip(cm, axis=0), image.GetSpacing()) - image.GetOrigin()
+
+
+def mutual_information(
+        image1     : sitk.Image,
+        image2     : sitk.Image,
+        bins       : int = 256,
+        sigma      : float = 0.0,
+        window     : Tuple[Tuple[float, float], Tuple[float, float]] = None,
+        normalised : bool = False
+        ) -> np.ndarray:
+    r""" Compute the mutual information of two images.
+
+    The mutual information of two random variables :math:`X \approx p_X(x)` and
+    :math:`Y \approx p_Y(y)` with joint probability distribution
+    :math:`p_{XY}(x, y)` is defined as
+
+    .. math::
+        MI(X, Y) = \iint p_{XY}(x, y) \log \frac{p_{XY}(x, y)}{p_X(x) p_Y(y)} dx dy
+
+    Mutual information is estimated by approximating the joint
+    probability density with a joint histogram for the intensity of the
+    two images.
+
+    Parameters
+    ----------
+    image1 : sitk.Image
+        Input image. Must have the same size of `image2`.
+
+    image2 : sitk.Image
+        Input image. Must have the same size of `image1`.
+
+    bins : Union[int, List[int, int], np.ndarray, List[np.ndarray, np.ndarray]]
+        Number of bins for the marginal intensity histograms:
+          + If `int`, use the same number of bins for both images.
+          + If `List[int, int]`, use two different bis sizes for the two images.
+          + If `np.ndarray`, specity the same bin edges for the two images.
+          + If `List[np.ndarray, np.ndarray]`, specity different bin edges
+            for the two images.
+
+    sigma : float
+        Standard deviation for Gaussian smoothing of the joint
+        histogram. If zero, no smoothing is used.
+
+    window : Tuple[Tuple[float, float], Tuple[float, float]]
+        Intensity window for the two images, in the form
+        `[[min1, max1], [min2, max2]]`. If not `None`, then values
+        outside the provided window are considered outliers and excluded
+        from the computation.
+
+    normalised : bool
+        If `True`, compute the normalised mutual information as
+        :math:`NMI(X, Y) = \frac{MI(X, Y)}{\sqrt{H(X) H(Y)}}`.
+
+    Returns
+    -------
+    float
+        An estimation of the mutual information for the two images.
+    """
+    data1 = sitk.GetArrayViewFromImage(image1).flatten()
+    data2 = sitk.GetArrayViewFromImage(image2).flatten()
+
+    joint, _, _ = np.histogram2d(data1, data2, bins=bins, range=window)
+    joint = ndimage.gaussian_filter(joint, sigma, mode='constant')
+    joint = joint / float(np.sum(joint))
+
+    fx = np.sum(joint, axis=1)
+    fy = np.sum(joint, axis=0)
+    fxfy = fx[:, None] * fy[None, :]
+
+    idx = joint > 0
+    mi = np.sum(joint[idx] * np.log(joint[idx] / fxfy[idx]))
+
+    if normalised:
+        mi /= np.sqrt(np.sum(fx * np.log(fx)) * np.sum(fy * np.log(fy)))
+
+    return float(mi)
 
