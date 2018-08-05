@@ -30,17 +30,60 @@
     #define PY_FMT_REGULARISE "Of"
     #define PY_FMT_SHAPE_DESCRIPTOR "OOOs"
     #define PY_FMT_JACOBIAN "OOO"
-    #define PY_FMT_DISPLACEMENT "OOOffffffffplOs"
+    #define PY_FMT_DISPLACEMENT "OOOffffffffffplOs"
     #define NUMPY_FLOATING_TYPE NPY_FLOAT
 #else
     #define PY_FMT_FLOATING "d"
     #define PY_FMT_REGULARISE "Od"
     #define PY_FMT_SHAPE_DESCRIPTOR "OOOs"
     #define PY_FMT_JACOBIAN "OOO"
-    #define PY_FMT_DISPLACEMENT "OOOddddddddplOs"
+    #define PY_FMT_DISPLACEMENT "OOOddddddddddplOs"
     #define NUMPY_FLOATING_TYPE NPY_DOUBLE
 #endif
 
+
+/*!
+ * Type for the function that computes the displacement
+ */
+typedef void (*DisplacementFunction)(
+    const size_t nx,
+    const size_t ny,
+    const size_t nz,
+    const FLOATING dx,
+    const FLOATING dy,
+    const FLOATING dz,
+    const FLOATING J[nz][ny][nx],
+    const bool mask[nz][ny][nx],
+    const FLOATING epsilon,
+    const FLOATING tolerance,
+    FLOATING eta,
+    const FLOATING alpha,
+    const FLOATING beta,
+    const FLOATING gamma,
+    const FLOATING delta,
+    const FLOATING zeta,
+    const FLOATING theta,
+    const FLOATING iota,
+    const bool strict,
+    const size_t it_max,
+    FLOATING field[3][nz][ny][nx]
+    );
+
+/*!
+ * Type for the shape descriptor function.
+ */
+typedef FLOATING (*ShapeDescriptorFunction)(
+        const bool * restrict image,
+        const size_t nx,
+        const size_t ny,
+        const size_t nz,
+        const FLOATING xc,
+        const FLOATING yc,
+        const FLOATING zc,
+        const FLOATING sx,
+        const FLOATING sy,
+        const FLOATING sz
+        );
 
 /*!
  * Read a tuple of 3 floats and return an array of FLOATING.
@@ -155,19 +198,20 @@ static PyObject *method_shape_descriptor(PyObject *self, PyObject *args)
     /* Get the data pointers */
     FLOATING *image_data = (FLOATING*) PyArray_DATA(image);
 
-    /* Call the library function to compute the shape descriptor */
+    /* Select the appropriate function for the algorithm */
+    ShapeDescriptorFunction shape_descriptor_function = NULL;
     if (!strcmp(descriptor, CUBENESS)) {
-        result = cubeness((void*) image_data,
-                          nx, ny, nz,
-                          centroid[0], centroid[1], centroid[2],
-                          spacing[0], spacing[1], spacing[2]);
+        shape_descriptor_function = &cubeness;
     }
     else if (!strcmp(descriptor, OCTAHEDRONESS)) {
-        result = octahedroness((void*) image_data,
-                               nx, ny, nz,
-                               centroid[0], centroid[1], centroid[2],
-                               spacing[0], spacing[1], spacing[2]);
+        shape_descriptor_function = &octahedroness;
     }
+
+    /* Call the library function to compute the shape descriptor */
+    result = shape_descriptor_function((void*) image_data,
+                                       nx, ny, nz,
+                                       centroid[0], centroid[1], centroid[2],
+                                       spacing[0], spacing[1], spacing[2]);
 
     return Py_BuildValue(PY_FMT_FLOATING, result);
 }
@@ -221,7 +265,7 @@ static PyObject *method_displacement(PyObject *self, PyObject *args)
     FLOATING spacing[3];
     PyObject *spacing_tuple = NULL;
     PyArrayObject *field = NULL, *jacobian = NULL, *mask = NULL;
-    const FLOATING epsilon, tolerance, eta, alpha, beta, gamma, delta, zeta;
+    const FLOATING epsilon, tolerance, eta, alpha, beta, gamma, delta, zeta, theta, iota;
     const bool strict;
     const long it_max;
     const char *algorithm;
@@ -242,6 +286,8 @@ static PyObject *method_displacement(PyObject *self, PyObject *args)
                           &gamma,
                           &delta,
                           &zeta,
+                          &theta,
+                          &iota,
                           &strict,
                           &it_max,
                           &field,
@@ -278,61 +324,37 @@ static PyObject *method_displacement(PyObject *self, PyObject *args)
     bool *mask_data = (bool*) PyArray_DATA(mask);
     FLOATING *field_data = (FLOATING*) PyArray_DATA(field);
 
-    /* Call the library function to compute the displacement */
+    /* Select the appropriate function for the algorithm */
+    DisplacementFunction displacement_function = NULL;
     if (!strcmp(algorithm, ALGORITHM_GRADIENT)) {
-        generate_displacement_gradient(
-                nx, ny, nz,
-                spacing[0], spacing[1], spacing[2],
-                (void*)jacobian_data,
-                (void*)mask_data,
-                epsilon,
-                tolerance,
-                eta,
-                alpha,
-                beta,
-                gamma,
-                delta,
-                zeta,
-                strict,
-                it_max,
-                (void*)field_data);
+        displacement_function = &generate_displacement_gradient;
     }
     else if (!strcmp(algorithm, ALGORITHM_GREEDY)) {
-        generate_displacement_greedy(
-                nx, ny, nz,
-                spacing[0], spacing[1], spacing[2],
-                (void*)jacobian_data,
-                (void*)mask_data,
-                epsilon,
-                tolerance,
-                eta,
-                alpha,
-                beta,
-                gamma,
-                delta,
-                zeta,
-                strict,
-                it_max,
-                (void*)field_data);
+        displacement_function = &generate_displacement_greedy;
     }
     else if (!strcmp(algorithm, ALGORITHM_MATCHING)) {
-        volume_matching_3d(
-                nx, ny, nz,
-                spacing[0], spacing[1], spacing[2],
-                (void*)jacobian_data,
-                (void*)mask_data,
-                epsilon,
-                tolerance,
-                eta,
-                alpha,
-                beta,
-                gamma,
-                delta,
-                zeta,
-                strict,
-                it_max,
-                (void*)field_data);
+        displacement_function = &volume_matching_3d;
     }
+
+    /* Call the library function to compute the displacement */
+    displacement_function(
+            nx, ny, nz,
+            spacing[0], spacing[1], spacing[2],
+            (void*)jacobian_data,
+            (void*)mask_data,
+            epsilon,
+            tolerance,
+            eta,
+            alpha,
+            beta,
+            gamma,
+            delta,
+            zeta,
+            theta,
+            iota,
+            strict,
+            it_max,
+            (void*)field_data);
 
     return Py_None;
 }
@@ -432,6 +454,8 @@ static char docstring_displacement[] =
     "    Gamma parameter (float)\n"
     "    Delta parameter (float)\n"
     "    Zeta parameter (float)\n"
+    "    Theta parameter (float)\n"
+    "    Iota parameter (float)\n"
     "    Strict parameter (bool)\n"
     "    it_max parameter (int)\n"
     "    Output displacement field (numpy.ndarray of type float and dimension 4, indices dzyx)\n"

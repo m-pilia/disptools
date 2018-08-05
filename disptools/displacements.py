@@ -103,6 +103,8 @@ def _displacement(
         gamma         : float = .1,
         delta         : float = 1e-3,
         zeta          : float = 100.0,
+        theta         : float = 1e-6,
+        iota          : float = 1e-9,
         strict        : bool = False,
         eta           : float = 0.4,
         algorithm     : str = 'gradient'
@@ -156,6 +158,8 @@ def _displacement(
         gamma,
         delta,
         zeta,
+        theta,
+        iota,
         strict,
         it_max,
         field_tmp,
@@ -239,6 +243,8 @@ def displacement(
         gamma         : float = 0.1,
         delta         : float = 1e-3,
         zeta          : float = 10.0,
+        theta         : float = 1e-6,
+        iota          : float = 1e-9,
         strict        : bool = False,
         eta           : float = 0.1,
         algorithm     : str = 'gradient'
@@ -275,6 +281,12 @@ def displacement(
     that penalises values of the Jacobian below a certain threshold, given
     by ``delta``. The importance of the regularisation term is controlled
     by the parameter ``zeta`` (set to ``0`` to have no regularisation).
+
+    Termination is controlled by a condition on the improvement on the result
+    and one on the step length. If the percentual improvement of the cost
+    drops below the value given by ``theta``, the algorithm terminates.
+    Termination happens also if the step length becomes smaller than
+    ``iota``.
 
     .. _atrophysim tool: https://www.nitrc.org/projects/atrophysim
     .. _Armijo condition: https://en.wikipedia.org/wiki/Wolfe_conditions
@@ -339,6 +351,13 @@ def displacement(
         Armijo-Goldstein parameter.
     delta : float
         Lower threshold for Jacobian regularisation.
+    zeta : float
+        Weight for the regularisation term.
+    theta : float
+        Terminate if the percentage improvement of the cost per
+        iteration drops below this value.
+    iota : float
+        Terminate if the step length drops below this value.
     strict : bool
         If True, reject iterations that not decrease the maximum
         voxel error.

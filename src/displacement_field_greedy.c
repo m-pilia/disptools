@@ -91,6 +91,8 @@ void generate_displacement_greedy(
         const FLOATING gamma,          /*!< Armijo-Goldstein parameter */
         const FLOATING delta,          /*!< Jacobian regularisation threshold */
         const FLOATING zeta,           /*!< Jacobian regularisation weight */
+        const FLOATING theta,          /*!< Termination condition based on improvement */
+        const FLOATING iota,           /*!< Termination condition based on eta */
         const bool strict,             /*!< Always improve maximum voxel error */
         const size_t it_max,           /*!< Maximum number of iterations */
         FLOATING field[3][nz][ny][nx]  /*!< Resulting displacement field */
@@ -102,6 +104,8 @@ void generate_displacement_greedy(
     assert(delta > 0.0 && "delta must be positive");
     assert(zeta > 0.0 && "zeta must be positive");
     assert(eta > 0.0 && "eta must be positive");
+    assert(theta >= 0.0 && "Theta must be positive");
+    assert(iota >= 0.0 && "Iota must be positive");
     assert(tolerance >= 0.0 && "Tolerance must be positive");
     assert(epsilon > 0.0 && "Epsilon must be positive");
 
@@ -113,21 +117,23 @@ void generate_displacement_greedy(
                    "dx:        %f\n"
                    "dy:        %f\n"
                    "dz:        %f\n"
-                   "alpha:     %f\n"
-                   "beta:      %f\n"
-                   "gamma:     %f\n"
-                   "delta:     %f\n"
-                   "epsilon:   %f\n"
-                   "zeta:      %f\n"
-                   "eta:       %f\n"
-                   "tolerance: %f\n"
+                   "alpha:     %e\n"
+                   "beta:      %e\n"
+                   "gamma:     %e\n"
+                   "delta:     %e\n"
+                   "epsilon:   %e\n"
+                   "zeta:      %e\n"
+                   "eta:       %e\n"
+                   "theta:     %e\n"
+                   "iota:      %e\n"
+                   "tolerance: %e\n"
                    "strict:    %d\n"
                    "it_max:    %lu\n",
                    __func__,
                    nx, ny, nz,
                    dx, dy, dz,
                    alpha, beta, gamma, delta,
-                   epsilon, zeta, eta,
+                   epsilon, zeta, eta, theta, iota,
                    tolerance,
                    strict,
                    it_max);
@@ -228,7 +234,7 @@ void generate_displacement_greedy(
             eta *= beta;
 
             // Terminate if eta is too small
-            if (eta < 1e-9) {
+            if (eta < iota) {
                 verbose_printf(true, "Error not decreasing, terminating.\n");
                 break;
             }
@@ -240,7 +246,7 @@ void generate_displacement_greedy(
             continue;
         }
 
-		if (error / last_error > 0.999999) {
+		if (1.0 - error / last_error < theta) {
             verbose_printf(true, "Error not decreasing, terminating.\n");
             break;
 		}

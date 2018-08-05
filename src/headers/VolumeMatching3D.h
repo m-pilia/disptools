@@ -21,6 +21,8 @@ void volume_matching_3d(
         const FLOATING gamma,          /*!< Armijo-Goldstein parameter */
         const FLOATING delta,          /*!< Jacobian regularisation threshold */
         const FLOATING zeta,           /*!< Jacobian regularisation weight */
+        const FLOATING theta,          /*!< Termination condition based on improvement */
+        const FLOATING iota,           /*!< Termination condition based on eta */
         const bool strict,             /*!< Always improve maximum voxel error */
         const size_t it_max,           /*!< Maximum number of iterations */
         FLOATING field[3][nz][ny][nx]  /*!< Resulting displacement field */

@@ -692,6 +692,8 @@ void volume_matching_3d(
         const FLOATING gamma,          /*!< Armijo-Goldstein parameter */
         const FLOATING delta,          /*!< Jacobian regularisation threshold */
         const FLOATING zeta,           /*!< Jacobian regularisation weight */
+        const FLOATING theta,          /*!< Termination condition based on improvement */
+        const FLOATING iota,           /*!< Termination condition based on eta */
         const bool strict,             /*!< Always improve maximum voxel error */
         const size_t it_max,           /*!< Maximum number of iterations */
         FLOATING field[3][nz][ny][nx]  /*!< Resulting displacement field */
@@ -712,6 +714,8 @@ void volume_matching_3d(
                    "epsilon:   %f\n"
                    "zeta:      %f\n"
                    "eta:       %f\n"
+                   "theta:     %f\n"
+                   "iota:      %f\n"
                    "tolerance: %f\n"
                    "strict:    %d\n"
                    "it_max:    %lu\n",
@@ -719,7 +723,7 @@ void volume_matching_3d(
                    nx, ny, nz,
                    dx, dy, dz,
                    alpha, beta, gamma, delta,
-                   epsilon, zeta, eta,
+                   epsilon, zeta, eta, theta, iota,
                    tolerance,
                    strict,
                    it_max);
@@ -731,6 +735,8 @@ void volume_matching_3d(
     (void) mask;
     (void) tolerance;
     (void) eta;
+    (void) theta;
+    (void) iota;
     (void) alpha;
     (void) beta;
     (void) gamma;
