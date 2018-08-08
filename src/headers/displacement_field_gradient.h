@@ -16,6 +16,7 @@ void generate_displacement_gradient(
         const FLOATING epsilon,        /*!< Tolerance on the Jacobian per voxel */
         const FLOATING tolerance,      /*!< Jacobian tolerance on background */
         FLOATING eta,                  /*!< Step length for the optimisation */
+        const FLOATING eta_max,        /*!< Maximum step length allowed */
         const FLOATING alpha,          /*!< Step length increase coefficient */
         const FLOATING beta,           /*!< Step length decrease coefficient */
         const FLOATING gamma,          /*!< Armijo-Goldstein parameter */

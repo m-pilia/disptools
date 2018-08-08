@@ -687,6 +687,7 @@ void volume_matching_3d(
         const FLOATING epsilon,        /*!< Tolerance on the Jacobian per voxel */
         const FLOATING tolerance,      /*!< Jacobian tolerance on background */
         FLOATING eta,                  /*!< Initial step length for the optimisation */
+        const FLOATING eta_max,        /*!< Maximum step length allowed */
         const FLOATING alpha,          /*!< Step length increase coefficient */
         const FLOATING beta,           /*!< Step length decrease coefficient */
         const FLOATING gamma,          /*!< Armijo-Goldstein parameter */
@@ -707,23 +708,24 @@ void volume_matching_3d(
                    "dx:        %f\n"
                    "dy:        %f\n"
                    "dz:        %f\n"
-                   "alpha:     %f\n"
-                   "beta:      %f\n"
-                   "gamma:     %f\n"
-                   "delta:     %f\n"
-                   "epsilon:   %f\n"
-                   "zeta:      %f\n"
-                   "eta:       %f\n"
-                   "theta:     %f\n"
-                   "iota:      %f\n"
-                   "tolerance: %f\n"
+                   "alpha:     %e\n"
+                   "beta:      %e\n"
+                   "gamma:     %e\n"
+                   "delta:     %e\n"
+                   "epsilon:   %e\n"
+                   "zeta:      %e\n"
+                   "eta:       %e\n"
+                   "eta_max:   %e\n"
+                   "theta:     %e\n"
+                   "iota:      %e\n"
+                   "tolerance: %e\n"
                    "strict:    %d\n"
                    "it_max:    %lu\n",
                    __func__,
                    nx, ny, nz,
                    dx, dy, dz,
                    alpha, beta, gamma, delta,
-                   epsilon, zeta, eta, theta, iota,
+                   epsilon, zeta, eta, eta_max, theta, iota,
                    tolerance,
                    strict,
                    it_max);
@@ -735,6 +737,7 @@ void volume_matching_3d(
     (void) mask;
     (void) tolerance;
     (void) eta;
+    (void) eta_max;
     (void) theta;
     (void) iota;
     (void) alpha;

@@ -106,7 +106,8 @@ def _displacement(
         theta         : float = 1e-6,
         iota          : float = 1e-9,
         strict        : bool = False,
-        eta           : float = 0.4,
+        eta           : float = 0.1,
+        eta_max       : float = 0.4,
         algorithm     : str = 'gradient'
         ):
     r""" Compute a displacement field that realises a prescribed Jacobian.
@@ -153,6 +154,7 @@ def _displacement(
         epsilon,
         tolerance,
         eta,
+        eta_max,
         alpha,
         beta,
         gamma,
@@ -247,6 +249,7 @@ def displacement(
         iota          : float = 1e-9,
         strict        : bool = False,
         eta           : float = 0.1,
+        eta_max       : float = 0.4,
         algorithm     : str = 'gradient'
         ) -> sitk.Image:
     r""" Generate a displacement field that realises a given Jacobian.
@@ -275,7 +278,8 @@ def displacement(
     parameter of the condition. At each iteration the step length is increased
     multiplying it by ``alpha``, and if the Armijo condition is not met after
     the update, ``eta`` is decreased multiplying it by ``beta`` until the
-    truth of the inequality in the Armijo condition is restored.
+    truth of the inequality in the Armijo condition is restored. A maximum
+    value for ``eta`` can be set through the parameter ``eta_max``.
 
     The ``gradient`` and ``matching`` algorithms have a regularisation term
     that penalises values of the Jacobian below a certain threshold, given
@@ -362,7 +366,9 @@ def displacement(
         If True, reject iterations that not decrease the maximum
         voxel error.
     eta : float
-        Initial step length
+        Initial step length.
+    eta_max : float
+        Maximum step length allowed.
     algorithm : str
         Algorithm to generate the field, one of `greedy`, `gradient`, or `matching`.
 

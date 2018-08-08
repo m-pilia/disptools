@@ -16,6 +16,7 @@ void volume_matching_3d(
         const FLOATING epsilon,        /*!< Tolerance on the Jacobian per voxel */
         const FLOATING tolerance,      /*!< Jacobian tolerance on background */
         FLOATING eta,                  /*!< Initial step length for the optimisation */
+        const FLOATING eta_max,        /*!< Maximum step length allowed */
         const FLOATING alpha,          /*!< Step length increase coefficient */
         const FLOATING beta,           /*!< Step length decrease coefficient */
         const FLOATING gamma,          /*!< Armijo-Goldstein parameter */

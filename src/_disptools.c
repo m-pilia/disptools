@@ -30,14 +30,14 @@
     #define PY_FMT_REGULARISE "Of"
     #define PY_FMT_SHAPE_DESCRIPTOR "OOOs"
     #define PY_FMT_JACOBIAN "OOO"
-    #define PY_FMT_DISPLACEMENT "OOOffffffffffplOs"
+    #define PY_FMT_DISPLACEMENT "OOOfffffffffffplOs"
     #define NUMPY_FLOATING_TYPE NPY_FLOAT
 #else
     #define PY_FMT_FLOATING "d"
     #define PY_FMT_REGULARISE "Od"
     #define PY_FMT_SHAPE_DESCRIPTOR "OOOs"
     #define PY_FMT_JACOBIAN "OOO"
-    #define PY_FMT_DISPLACEMENT "OOOddddddddddplOs"
+    #define PY_FMT_DISPLACEMENT "OOOdddddddddddplOs"
     #define NUMPY_FLOATING_TYPE NPY_DOUBLE
 #endif
 
@@ -57,6 +57,7 @@ typedef void (*DisplacementFunction)(
     const FLOATING epsilon,
     const FLOATING tolerance,
     FLOATING eta,
+    const FLOATING eta_max,
     const FLOATING alpha,
     const FLOATING beta,
     const FLOATING gamma,
@@ -265,7 +266,7 @@ static PyObject *method_displacement(PyObject *self, PyObject *args)
     FLOATING spacing[3];
     PyObject *spacing_tuple = NULL;
     PyArrayObject *field = NULL, *jacobian = NULL, *mask = NULL;
-    const FLOATING epsilon, tolerance, eta, alpha, beta, gamma, delta, zeta, theta, iota;
+    const FLOATING epsilon, tolerance, eta, eta_max, alpha, beta, gamma, delta, zeta, theta, iota;
     const bool strict;
     const long it_max;
     const char *algorithm;
@@ -281,6 +282,7 @@ static PyObject *method_displacement(PyObject *self, PyObject *args)
                           &epsilon,
                           &tolerance,
                           &eta,
+                          &eta_max,
                           &alpha,
                           &beta,
                           &gamma,
@@ -345,6 +347,7 @@ static PyObject *method_displacement(PyObject *self, PyObject *args)
             epsilon,
             tolerance,
             eta,
+            eta_max,
             alpha,
             beta,
             gamma,
@@ -449,6 +452,7 @@ static char docstring_displacement[] =
     "    Epsilon parameter (float)\n"
     "    Tolerance parameter (float)\n"
     "    Eta parameter (float)\n"
+    "    Eta max parameter (float)\n"
     "    Alpha parameter (float)\n"
     "    Beta parameter (float)\n"
     "    Gamma parameter (float)\n"

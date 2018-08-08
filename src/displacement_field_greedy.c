@@ -86,6 +86,7 @@ void generate_displacement_greedy(
         const FLOATING epsilon,        /*!< Tolerance on the Jacobian per voxel */
         const FLOATING tolerance,      /*!< Jacobian tolerance on background */
         FLOATING eta,                  /*!< Step length for the optimisation */
+        const FLOATING eta_max,        /*!< Maximum step length allowed */
         const FLOATING alpha,          /*!< Step length increase coefficient */
         const FLOATING beta,           /*!< Step length decrease coefficient */
         const FLOATING gamma,          /*!< Armijo-Goldstein parameter */
@@ -104,6 +105,7 @@ void generate_displacement_greedy(
     assert(delta > 0.0 && "delta must be positive");
     assert(zeta > 0.0 && "zeta must be positive");
     assert(eta > 0.0 && "eta must be positive");
+    assert(eta_max > 0.0 && "eta_max must be positive");
     assert(theta >= 0.0 && "Theta must be positive");
     assert(iota >= 0.0 && "Iota must be positive");
     assert(tolerance >= 0.0 && "Tolerance must be positive");
@@ -124,6 +126,7 @@ void generate_displacement_greedy(
                    "epsilon:   %e\n"
                    "zeta:      %e\n"
                    "eta:       %e\n"
+                   "eta_max:   %e\n"
                    "theta:     %e\n"
                    "iota:      %e\n"
                    "tolerance: %e\n"
@@ -133,7 +136,7 @@ void generate_displacement_greedy(
                    nx, ny, nz,
                    dx, dy, dz,
                    alpha, beta, gamma, delta,
-                   epsilon, zeta, eta, theta, iota,
+                   epsilon, zeta, eta, eta_max, theta, iota,
                    tolerance,
                    strict,
                    it_max);
@@ -143,6 +146,7 @@ void generate_displacement_greedy(
     (void) gamma;
     (void) delta;
     (void) zeta;
+    (void) eta_max;
     (void) strict;
 
     // Image size
