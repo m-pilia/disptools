@@ -343,6 +343,7 @@ def centre_of_mass(image: sitk.Image) -> np.ndarray:
 def mutual_information(
         image1     : sitk.Image,
         image2     : sitk.Image,
+        mask       : sitk.Image,
         bins       : int = 256,
         sigma      : float = 0.0,
         window     : Tuple[Tuple[float, float], Tuple[float, float]] = None,
@@ -368,6 +369,9 @@ def mutual_information(
 
     image2 : sitk.Image
         Input image. Must have the same size of `image1`.
+
+    mask : sitk.Image
+        Binary image masking a region of interest.
 
     bins : Union[int, List[int, int], np.ndarray, List[np.ndarray, np.ndarray]]
         Number of bins for the marginal intensity histograms:
@@ -398,6 +402,11 @@ def mutual_information(
     """
     data1 = sitk.GetArrayViewFromImage(image1).flatten()
     data2 = sitk.GetArrayViewFromImage(image2).flatten()
+
+    if mask is not None:
+        idx = sitk.GetArrayViewFromImage(mask).flatten() > 0.0
+        data1 = data1[idx]
+        data2 = data2[idx]
 
     joint, _, _ = np.histogram2d(data1, data2, bins=bins, range=window)
     joint = ndimage.gaussian_filter(joint, sigma, mode='constant')
