@@ -37,7 +37,7 @@ Some optional dependencies are required only for a limited set of features, and 
 + [itk](https://github.com/InsightSoftwareConsortium/ITK) ([pypi package](https://pypi.org/project/itk)): for `disptools.drawing.sitk_to_itk`
 + [vtk](https://github.com/Kitware/VTK) ([pypi package](https://pypi.org/project/vtk)): for `disptools.io.write_vtk_points`
 + [ply](https://github.com/dabeaz/ply) ([pypi package](https://pypi.org/project/ply)): for `disptools.io.read_elastix_parameters`
-+ [scikit-image](https://github.com/scikit-image/scikit-image) ([pypi package](https://pypi.org/project/scikit-image)): to run the unit tests
++ [scikit-image](https://github.com/scikit-image/scikit-image) ([pypi package](https://pypi.org/project/scikit-image)): for `disptools.drawing.extract_slice`, and to run the unit tests
 
 ### Install
 

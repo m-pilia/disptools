@@ -2,6 +2,7 @@ import sys
 import SimpleITK as sitk
 import numpy as np
 from scipy.spatial import distance
+import scipy.interpolate as interpolate
 import math
 from typing import *
 from disptools import *
@@ -10,6 +11,12 @@ try:
     import itk
 except ImportError as e:
     print("Warning: cannot import 'itk' module. " +
+          "Some functionalities depending upon it may be unavailable.")
+
+try:
+    import skimage.color
+except ImportError as e:
+    print("Warning: cannot import 'skimage' module. " +
           "Some functionalities depending upon it may be unavailable.")
 
 
@@ -379,12 +386,13 @@ def sin_vector_field(n: int) -> sitk.Image:
 
 
 def extract_slice(
-        image    : sitk.Image,
-        index    : int = None,
-        axis     : int = 2,
-        rescale  : bool = False,
-        colormap : int = sitk.ScalarToRGBColormapImageFilter.Grey,
-        window   : Tuple[float, float] = None
+        image             : sitk.Image,
+        index             : int = None,
+        axis              : int = 2,
+        rescale           : bool = False,
+        colormap          : Union[int, np.ndarray] = sitk.ScalarToRGBColormapImageFilter.Grey,
+        hsv_interpolation : bool = False,
+        window            : Tuple[float, float] = None
         ) -> sitk.Image:
     """ Extract a slice.
 
@@ -402,10 +410,17 @@ def extract_slice(
         Integer index of the axis orthogonal to the slice plane.
     rescale : bool
         If True, do min-max rescaling of the image intensity to [0,255].
-    colormap : int
-        One of the colormaps defined in sitk.ScalarToRGBColormapImageFilter.
-        If None, the result will be a grayscale image; if not None, map
-        the intensity values to RGB colours through the selected colormap.
+    colormap : Union[int, np.ndarray]
+        One of the colormaps defined in sitk.ScalarToRGBColormapImageFilter,
+        or an $n \times 4$ array of node colours for a custom colour
+        map, where the first column gives an intensity value and the
+        other three the RGB components in the range $[0,1]$ for the node
+        colours to be interpolated.  If None, the result will be a
+        grayscale image; if not None, map the intensity values to RGB
+        colours through the selected colormap.
+    hsv_interpolation : bool
+        If `True`, perform colour interpolation in HSV space when using
+        a custom colour map.
     window : (float, float)
         Tuple composed by a couple of minimum and maximum values for
         intensity windowing.
@@ -416,13 +431,14 @@ def extract_slice(
         A sitk.sitkUInt8 image containing the desired slice.
     """
 
+    if hsv_interpolation and 'skimage' not in sys.modules:
+        raise Exception('extract_slice: skimage module is required to use hsv interpolation.')
+
     if window is not None:
         image = sitk.IntensityWindowing(image, *window)
 
     if rescale:
         image = sitk.RescaleIntensity(image)
-
-    image = sitk.Cast(image, sitk.sitkUInt8)
 
     size = list(image.GetSize())
 
@@ -440,7 +456,26 @@ def extract_slice(
     slice_image = sitk.Resample(slice_image, tuple(new_size))
     slice_image.SetSpacing(tuple([1 for _ in new_size]))
 
-    if colormap is not None:
+    if isinstance(colormap, np.ndarray):
+        colormap = colormap[colormap[:,0].argsort()]
+        intensities = colormap[:,0]
+        colours = colormap[:,1:]
+        filler = (colours[0,:], colours[-1,:])
+        if hsv_interpolation:
+            colours = skimage.color.rgb2hsv(colours[np.newaxis,:]).reshape(colours.shape)
+        f = interpolate.interp1d(intensities,
+                                 colours,
+                                 axis=0,
+                                 bounds_error=False,
+                                 fill_value=filler)
+        data = sitk.GetArrayViewFromImage(slice_image)
+        data = f(data.flatten()).reshape([*data.shape, 3])
+        if hsv_interpolation:
+            data = skimage.color.hsv2rgb(data)
+        data = (255.0 * data).astype(np.uint8)
+        slice_image = sitk.GetImageFromArray(data, isVector=True)
+    elif colormap is not None:
+        slice_image = sitk.Cast(slice_image, sitk.sitkUInt8)
         slice_image = sitk.ScalarToRGBColormap(slice_image, colormap, useInputImageExtremaForScaling=False)
 
     return slice_image
