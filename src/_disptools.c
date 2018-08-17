@@ -25,20 +25,20 @@
 #define ALGORITHM_MATCHING "matching"
 
 // Float size
-#if FLOAT_SIZE == 32
-    #define PY_FMT_FLOATING "f"
-    #define PY_FMT_REGULARISE "Of"
-    #define PY_FMT_SHAPE_DESCRIPTOR "OOOs"
-    #define PY_FMT_JACOBIAN "OOO"
-    #define PY_FMT_DISPLACEMENT "OOOfffffffffffplOs"
-    #define NUMPY_FLOATING_TYPE NPY_FLOAT
-#else
+#if FLOAT_SIZE == 64
     #define PY_FMT_FLOATING "d"
     #define PY_FMT_REGULARISE "Od"
     #define PY_FMT_SHAPE_DESCRIPTOR "OOOs"
     #define PY_FMT_JACOBIAN "OOO"
     #define PY_FMT_DISPLACEMENT "OOOdddddddddddplOs"
     #define NUMPY_FLOATING_TYPE NPY_DOUBLE
+#else
+    #define PY_FMT_FLOATING "f"
+    #define PY_FMT_REGULARISE "Of"
+    #define PY_FMT_SHAPE_DESCRIPTOR "OOOs"
+    #define PY_FMT_JACOBIAN "OOO"
+    #define PY_FMT_DISPLACEMENT "OOOfffffffffffplOs"
+    #define NUMPY_FLOATING_TYPE NPY_FLOAT
 #endif
 
 

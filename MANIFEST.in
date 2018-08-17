@@ -1,1 +1,4 @@
 include src/headers/*.h
+include src/*.c
+include src/CMakeLists.txt
+include CMakeLists.txt

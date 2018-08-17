@@ -1,14 +1,12 @@
+import os
+import platform
 import re
+import subprocess
 import sys
 import sysconfig
 import numpy.distutils
 from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext
-
-_PEDANTIC = False
-if "--pedantic" in sys.argv:
-    _PEDANTIC = True
-    sys.argv.remove("--pedantic")
 
 _OPT = False
 if "--opt" in sys.argv:
@@ -24,94 +22,87 @@ if "--debug" in sys.argv:
 with open('README.md') as f:
     long_description = f.read()
 
-# C preprocessor macros
-define_macros = [
-    ('DISPTOOLS_VERBOSE',  '1'),
-    ('ORDER_PD', '4'),
-    ('FLOAT_SIZE', '32'),
-]
-if _DEBUG:
-    define_macros.append(('DISPTOOLS_DEBUG', '1'))
-else:
-    define_macros.append(('DISPTOOLS_DEBUG', '0'))
+
+class CMakeExtension(Extension):
+    def __init__(self, name, cmake_lists_dir='', **kwa):
+        Extension.__init__(self, name, **kwa)
+        self.cmake_lists_dir = os.path.abspath(cmake_lists_dir)
 
 
-# C compiler and linker flags
-cflags = {
-    'msvc'   : ['/openmp', '/Ox', '/fp:fast'],
-    'mingw32': ['-Wall', '-std=c99', '-fPIC', '-fopenmp'],
-    'unix'   : ['-Wall', '-std=c99', '-fPIC', '-fopenmp'],
-    'cygwin' : ['-Wall', '-std=c99', '-fPIC', '-fopenmp'],
-}
-cflags_opt = {
-    'msvc'   : [],
-    'mingw32': ['-O3', '-march=native'],
-    'unix'   : ['-O3', '-march=native'],
-    'cygwin' : ['-O3', '-march=native'],
-}
-cflags_debug = {
-    'msvc'   : [],
-    'mingw32': ['-O0', '-g'],
-    'unix'   : ['-O0', '-g'],
-    'cygwin' : ['-O0', '-g'],
-}
-ldflags = {
-    'msvc'    : [],
-    'mingw32' : ['-lm', '-lgomp'],
-    'unix'    : ['-lm', '-lgomp'],
-    'cygwin'  : ['-lm', '-lgomp'],
-}
-
-
-class build_ext_xplatform(build_ext):
-    """ Class to build the extension with a cross platform setup.
-    """
+class CMakeBuild(build_ext):
 
     def build_extensions(self):
-        compiler = self.compiler.compiler_type
+        try:
+            out = subprocess.check_output(['cmake', '--version'])
+        except OSError:
+            raise RuntimeError('Cannot find CMake executable')
 
-        if compiler == 'msvc':
-            raise Exception(
-                    'You are trying to compile this package with msvc (Visual Studio). ' +
-                    'msvc does not support C99. Please compile this package with mingw. ' +
-                    'Refer to the documentation for more details')
+        for ext in self.extensions:
 
-        if compiler in cflags.keys():
+            if self.compiler.compiler_type == 'msvc':
+                raise RuntimeError(
+                        'You are trying to compile this package with MSVC (Visual Studio). ' +
+                        'MSVC does not support standard C99. Please compile this package with mingw. ' +
+                        'Refer to the documentation for more details')
+
+            extdir = os.path.abspath(os.path.dirname(self.get_ext_fullpath(ext.name)))
+            cfg = 'Debug' if _DEBUG else 'Release'
+            build_args = ['--config', cfg]
+
+            cmake_args = [
+                '-DDISPTOOLS_DEBUG=%s' % ('ON' if cfg == 'Debug' else 'OFF'),
+                '-DDISPTOOLS_OPT=%s' % ('ON' if _OPT else 'OFF'),
+                '-DDISPTOOLS_VERBOSE=ON',
+                '-DDISPTOOLS_LOW_ORDER_PD=OFF',
+                '-DDISPTOOLS_DOUBLE=OFF',
+                '-DCMAKE_BUILD_TYPE=%s' % cfg,
+                '-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=' + extdir,
+            ]
+
+            if platform.system() == "Windows":
+                cmake_args += [
+                    '-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{}={}'.format(cfg.upper(), extdir),
+                    '-G', 'MinGW Makefiles',
+                ]
+
+            if not os.path.exists(self.build_temp):
+                os.makedirs(self.build_temp)
+
+            subprocess.check_call(['cmake', ext.cmake_lists_dir] + cmake_args,
+                                  cwd=self.build_temp)
+            subprocess.check_call(['cmake', '--build', '.'] + build_args,
+                                  cwd=self.build_temp)
+
             for e in self.extensions:
-                e.extra_compile_args = cflags[compiler]
-                if _PEDANTIC:
-                    e.extra_compile_args.append('--pedantic')
+                e.extra_compile_args = [
+                    '-fopenmp',
+                ]
+                if _OPT:
+                    e.extra_compile_args += ['-O3', '-march=native']
                 if _DEBUG:
-                    e.extra_compile_args += cflags_debug[compiler]
-                elif _OPT:
-                    e.extra_compile_args += cflags_opt[compiler]
-                print('extra_compile_args: ' + str(e.extra_compile_args))
+                    e.extra_compile_args += ['-O0', '-g']
 
-        if compiler in ldflags.keys():
-            for e in self.extensions:
-                e.extra_link_args = ldflags[compiler]
-                print('extra_link_args: ' + str(e.extra_link_args))
+                e.extra_link_args = [
+                    '-ldisptools',
+                    '-lgomp',
+                    '-lm',
+                    '-L' + os.path.join(self.build_temp, 'src'),
+                ]
 
-        build_ext.build_extensions(self)
+            build_ext.build_extensions(self)
 
 
-disptools_c = Extension('_disptools',
-                    define_macros = define_macros,
+disptools_c = CMakeExtension('_disptools',
+                    cmake_lists_dir='.',
+                    define_macros=[('ORDER_PD', 4)],
                     include_dirs = ['src/headers',
                                     sysconfig.get_path('include')] +
                                     numpy.distutils.misc_util.get_numpy_include_dirs(),
                     libraries = [],
                     library_dirs = [],
-                    sources = ['src/displacement_field_gradient.c',
-                               'src/displacement_field_greedy.c',
-                               'src/field.c',
-                               'src/jacobian.c',
-                               'src/shape_descriptors.c',
-                               'src/VolumeMatching3D.c',
-                               'src/_disptools.c'
-                               ])
+                    sources = ['src/_disptools.c'])
 
-version = '0.3.0'
+version = '0.4.0'
 
 setup(name = 'disptools',
     packages = ['disptools'],
@@ -130,6 +121,7 @@ setup(name = 'disptools',
         'SimpleITK',
     ],
     ext_modules = [disptools_c],
-    cmdclass = {'build_ext': build_ext_xplatform}
+    cmdclass = {'build_ext': CMakeBuild},
+    zip_safe=False,
     )
 

@@ -31,7 +31,7 @@ The library is a cross-platform Python 3.5+ package, with a compiled C extension
 + [scipy](https://github.com/scipy/scipy) ([pypi package](https://pypi.org/pypi/scipy))
 + [SimpleITK](https://github.com/SimpleITK/SimpleITK) ([pypi package](https://pypi.org/pypi/SimpleITK))
 
-Build dependencies are a standard C99 compiler (tested with gcc 7.3 on Linux, mingw-w64 7.2 on Windows 10), the [numpy](https://pypi.python.org/pypi/numpy) and the [setuptools](https://pypi.python.org/pypi/setuptools) packages. [scikit-build](https://pypi.python.org/pypi/scikit-build) may be required to build the other Python dependencies.
+Build dependencies are a standard C99 compiler (tested with gcc 7.3 on Linux, mingw-w64 7.2 on Windows 10), [CMake](https://cmake.org/), the [numpy](https://pypi.python.org/pypi/numpy) and the [setuptools](https://pypi.python.org/pypi/setuptools) packages. [scikit-build](https://pypi.python.org/pypi/scikit-build) may be required to build the other Python dependencies.
 
 Some optional dependencies are required only for a limited set of features, and the package should build and run without them:
 + [itk](https://github.com/InsightSoftwareConsortium/ITK) ([pypi package](https://pypi.org/project/itk)): for `disptools.drawing.sitk_to_itk`
@@ -63,9 +63,9 @@ which should build the C extension and install the Python package.
 
 #### Windows
 
-1. First, be sure that the Python executables [are in your PATH](https://docs.python.org/3/using/windows.html#excursus-setting-environment-variables).
+1. First, be sure that CMake is installed and the Python executables [are in your PATH](https://docs.python.org/3/using/windows.html#excursus-setting-environment-variables).
 
-2. Since `msvc` (Visual Studio) does not support the C99 standard, this package should be compiled with [mingw](https://mingw-w64.org) (or any other C99-compliant compiler of your choice; in the following, instructions for `mingw` are provided). Install `mingw` and add its binary folder to your path. Ensure that `gcc` is working correctly:
+2. Since `msvc` (Visual Studio) does not support the C99 standard, this package should be compiled with [mingw](https://mingw-w64.org). Install `mingw` and add its binary folder to your path. Ensure that `gcc` is working correctly:
 ```none
 > gcc --version
 gcc (x86_64-posix-seh-rev1, Built by MinGW-W64 project) 7.2.0
