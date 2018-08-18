@@ -46,10 +46,18 @@ static inline void gradient(
     // Local variable for the squared norm
     FLOATING squared_norm = 0.0;
 
+#ifdef __GNUC__
     #pragma omp parallel for reduction(+: squared_norm) collapse(3) schedule(static)
     for (size_t z = 1; z < z_max; ++z) {
         for (size_t y = 1; y < y_max; ++y) {
             for (size_t x = 1; x < x_max; ++x) {
+#else // MSVC 15 does not support OpenMP > 2.0
+    int z;
+    #pragma omp parallel for reduction(+: squared_norm)
+    for (z = 1; z < z_max; ++z) {
+        for (size_t y = 1; y < y_max; ++y) {
+            for (size_t x = 1; x < x_max; ++x) {
+#endif
 
                 // Actual cost
                 FLOATING error_xb = __(voxel_error, x-1, y,   z  );
@@ -146,10 +154,18 @@ static inline void move_field(
         const FLOATING eta
         )
 {
+#ifdef __GNUC__
     #pragma omp parallel for collapse(3) schedule(static)
     for (size_t z = 0; z < new_field.nz; ++z) {
         for (size_t y = 0; y < new_field.ny; ++y) {
             for (size_t x = 0; x < new_field.nx; ++x) {
+#else // MSVC 15 does not support OpenMP > 2.0
+    int z;
+    #pragma omp parallel for
+    for (z = 0; z < new_field.nz; ++z) {
+        for (size_t y = 0; y < new_field.ny; ++y) {
+            for (size_t x = 0; x < new_field.nx; ++x) {
+#endif
                 _(new_field, x, y, z, X) = _(old_field, x, y, z, X) - eta * _(g, x, y, z, X);
                 _(new_field, x, y, z, Y) = _(old_field, x, y, z, Y) - eta * _(g, x, y, z, Y);
                 _(new_field, x, y, z, Z) = _(old_field, x, y, z, Z) - eta * _(g, x, y, z, Z);
@@ -173,29 +189,29 @@ static inline void move_field(
  * current displacement field.
  */
 void generate_displacement_gradient(
-        const size_t nx,               /*!< Width of the image  */
-        const size_t ny,               /*!< Length of the image */
-        const size_t nz,               /*!< Depth of the image  */
-        const FLOATING dx,             /*!< x spacing */
-        const FLOATING dy,             /*!< y spacing */
-        const FLOATING dz,             /*!< z spacing */
-        const FLOATING J[nz][ny][nx],  /*!< Target Jacobian */
-        const bool mask[nz][ny][nx],   /*!< Body mask */
-        const FLOATING epsilon,        /*!< Tolerance on the Jacobian per voxel */
-        const FLOATING tolerance,      /*!< Jacobian tolerance on background */
-        FLOATING eta,                  /*!< Initial step length for the optimisation */
-        const FLOATING eta_max,        /*!< Maximum step length allowed */
-        const FLOATING alpha,          /*!< Step length increase coefficient */
-        const FLOATING beta,           /*!< Step length decrease coefficient */
-        const FLOATING gamma,          /*!< Armijo-Goldstein parameter */
-        const FLOATING delta,          /*!< Jacobian regularisation threshold */
-        const FLOATING zeta,           /*!< Jacobian regularisation weight */
-        const FLOATING theta,          /*!< Termination condition based on improvement */
-        const FLOATING iota,           /*!< Termination condition based on eta */
-        const bool strict,             /*!< Always improve maximum voxel error */
-        const size_t it_max,           /*!< Maximum number of iterations */
-        FLOATING field[3][nz][ny][nx]  /*!< Resulting displacement field */
-        )
+    const size_t nx,          /*!< Width of the image  */
+    const size_t ny,          /*!< Length of the image */
+    const size_t nz,          /*!< Depth of the image  */
+    const FLOATING dx,        /*!< x spacing */
+    const FLOATING dy,        /*!< y spacing */
+    const FLOATING dz,        /*!< z spacing */
+    const FLOATING *J,        /*!< Target Jacobian */
+    const bool *mask,         /*!< Body mask */
+    const FLOATING epsilon,   /*!< Tolerance on the Jacobian per voxel */
+    const FLOATING tolerance, /*!< Jacobian tolerance on background */
+    FLOATING eta,             /*!< Step length for the optimisation */
+    const FLOATING eta_max,   /*!< Maximum step length allowed */
+    const FLOATING alpha,     /*!< Step length increase coefficient */
+    const FLOATING beta,      /*!< Step length decrease coefficient */
+    const FLOATING gamma,     /*!< Armijo-Goldstein parameter */
+    const FLOATING delta,     /*!< Jacobian regularisation threshold */
+    const FLOATING zeta,      /*!< Jacobian regularisation weight */
+    const FLOATING theta,     /*!< Termination condition based on improvement */
+    const FLOATING iota,      /*!< Termination condition based on eta */
+    const bool strict,        /*!< Always improve maximum voxel error */
+    const size_t it_max,      /*!< Maximum number of iterations */
+    FLOATING *field           /*!< Resulting displacement field */
+)
 {
     assert(alpha > 0.0 && "alpha must be positive");
     assert(beta > 0.0 && "beta must be positive");
@@ -416,10 +432,10 @@ void generate_displacement_gradient(
             break;
         }
 
-		if (1.0 - error / last_error < theta) {
+        if (1.0 - error / last_error < theta) {
             verbose_printf(true, "Error not decreasing, terminating.\n");
             break;
-		}
+        }
 
         if (!isnormal(max_voxel_error)) {
             verbose_printf(true, "Terminating: voxel error exploded.\n");

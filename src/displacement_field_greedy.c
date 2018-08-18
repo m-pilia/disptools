@@ -38,10 +38,18 @@ static inline void greedy_step(
     const FLOATING ddz = eta * old_field.dz * .5f;
 
     // Update the displacement vectors in each voxel according to the error
+#ifdef __GNUC__
     #pragma omp parallel for collapse(3) schedule(static)
     for (size_t z = 1; z < z_max; ++z) {
         for (size_t y = 1; y < y_max; ++y) {
             for (size_t x = 1; x < x_max; ++x) {
+#else // MSVC 15 does not support OpenMP > 2.0
+    int z;
+    #pragma omp parallel for
+    for (z = 1; z < z_max; ++z) {
+        for (size_t y = 1; y < y_max; ++y) {
+            for (size_t x = 1; x < x_max; ++x) {
+#endif
 
                 const FLOATING delta_x = ddx * (__(voxel_error, x+1, y,   z  ) -
                                                 __(voxel_error, x-1, y,   z  ));
@@ -75,28 +83,28 @@ static inline void greedy_step(
  * current displacement field.
  */
 void generate_displacement_greedy(
-        const size_t nx,               /*!< Width of the image  */
-        const size_t ny,               /*!< Length of the image */
-        const size_t nz,               /*!< Depth of the image  */
-        const FLOATING dx,             /*!< x spacing */
-        const FLOATING dy,             /*!< y spacing */
-        const FLOATING dz,             /*!< z spacing */
-        const FLOATING J[nz][ny][nx],  /*!< Target Jacobian */
-        const bool mask[nz][ny][nx],   /*!< Body mask */
-        const FLOATING epsilon,        /*!< Tolerance on the Jacobian per voxel */
-        const FLOATING tolerance,      /*!< Jacobian tolerance on background */
-        FLOATING eta,                  /*!< Step length for the optimisation */
-        const FLOATING eta_max,        /*!< Maximum step length allowed */
-        const FLOATING alpha,          /*!< Step length increase coefficient */
-        const FLOATING beta,           /*!< Step length decrease coefficient */
-        const FLOATING gamma,          /*!< Armijo-Goldstein parameter */
-        const FLOATING delta,          /*!< Jacobian regularisation threshold */
-        const FLOATING zeta,           /*!< Jacobian regularisation weight */
-        const FLOATING theta,          /*!< Termination condition based on improvement */
-        const FLOATING iota,           /*!< Termination condition based on eta */
-        const bool strict,             /*!< Always improve maximum voxel error */
-        const size_t it_max,           /*!< Maximum number of iterations */
-        FLOATING field[3][nz][ny][nx]  /*!< Resulting displacement field */
+        const size_t nx,          /*!< Width of the image  */
+        const size_t ny,          /*!< Length of the image */
+        const size_t nz,          /*!< Depth of the image  */
+        const FLOATING dx,        /*!< x spacing */
+        const FLOATING dy,        /*!< y spacing */
+        const FLOATING dz,        /*!< z spacing */
+        const FLOATING *J,        /*!< Target Jacobian */
+        const bool *mask,         /*!< Body mask */
+        const FLOATING epsilon,   /*!< Tolerance on the Jacobian per voxel */
+        const FLOATING tolerance, /*!< Jacobian tolerance on background */
+        FLOATING eta,             /*!< Initial step length for the optimisation */
+        const FLOATING eta_max,   /*!< Maximum step length allowed */
+        const FLOATING alpha,     /*!< Step length increase coefficient */
+        const FLOATING beta,      /*!< Step length decrease coefficient */
+        const FLOATING gamma,     /*!< Armijo-Goldstein parameter */
+        const FLOATING delta,     /*!< Jacobian regularisation threshold */
+        const FLOATING zeta,      /*!< Jacobian regularisation weight */
+        const FLOATING theta,     /*!< Termination condition based on improvement */
+        const FLOATING iota,      /*!< Termination condition based on eta */
+        const bool strict,        /*!< Always improve maximum voxel error */
+        const size_t it_max,      /*!< Maximum number of iterations */
+        FLOATING *field           /*!< Resulting displacement field */
         )
 {
     assert(alpha > 0.0 && "alpha must be positive");
@@ -250,10 +258,10 @@ void generate_displacement_greedy(
             continue;
         }
 
-		if (1.0 - error / last_error < theta) {
+        if (1.0 - error / last_error < theta) {
             verbose_printf(true, "Error not decreasing, terminating.\n");
             break;
-		}
+        }
 
         if (!isnormal(max_voxel_error)) {
             verbose_printf(true, "Terminating: voxel error exploded.\n");

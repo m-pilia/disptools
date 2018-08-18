@@ -5,6 +5,7 @@ import subprocess
 import sys
 import sysconfig
 import numpy.distutils
+from pprint import pprint
 from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext
 
@@ -39,12 +40,6 @@ class CMakeBuild(build_ext):
 
         for ext in self.extensions:
 
-            if self.compiler.compiler_type == 'msvc':
-                raise RuntimeError(
-                        'You are trying to compile this package with MSVC (Visual Studio). ' +
-                        'MSVC does not support standard C99. Please compile this package with mingw. ' +
-                        'Refer to the documentation for more details')
-
             extdir = os.path.abspath(os.path.dirname(self.get_ext_fullpath(ext.name)))
             cfg = 'Debug' if _DEBUG else 'Release'
             build_args = ['--config', cfg]
@@ -56,14 +51,22 @@ class CMakeBuild(build_ext):
                 '-DDISPTOOLS_LOW_ORDER_PD=OFF',
                 '-DDISPTOOLS_DOUBLE=OFF',
                 '-DCMAKE_BUILD_TYPE=%s' % cfg,
-                '-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=' + extdir,
+                '-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{}={}'.format(cfg.upper(), extdir),
+                '-DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_{}={}'.format(cfg.upper(), extdir),
             ]
 
             if platform.system() == "Windows":
-                cmake_args += [
-                    '-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{}={}'.format(cfg.upper(), extdir),
-                    '-G', 'MinGW Makefiles',
-                ]
+                if self.compiler.compiler_type == 'msvc':
+                    cmake_args += [
+                        '-DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=TRUE',
+                        '-DCMAKE_GENERATOR_PLATFORM=%s' % 'x64' if platform.architecture()[0] == '64bit' else 'x32'
+                    ]
+                else:
+                    cmake_args += [
+                        '-G', 'MinGW Makefiles',
+                    ]
+
+            pprint(cmake_args)
 
             if not os.path.exists(self.build_temp):
                 os.makedirs(self.build_temp)
@@ -74,20 +77,35 @@ class CMakeBuild(build_ext):
                                   cwd=self.build_temp)
 
             for e in self.extensions:
-                e.extra_compile_args = [
-                    '-fopenmp',
-                ]
-                if _OPT:
-                    e.extra_compile_args += ['-O3', '-march=native']
-                if _DEBUG:
-                    e.extra_compile_args += ['-O0', '-g']
 
-                e.extra_link_args = [
-                    '-ldisptools',
-                    '-lgomp',
-                    '-lm',
-                    '-L' + os.path.join(self.build_temp, 'src'),
-                ]
+                if self.compiler.compiler_type == 'msvc':
+                    e.extra_compile_args = [
+                        '/openmp',
+                    ]
+                    if _OPT:
+                        e.extra_compile_args += ['/Ox', '/fp:fast']
+                    if _DEBUG:
+                        e.extra_compile_args += ['/Zi']
+
+                    e.extra_link_args = [
+                        '"%s"' % os.path.join(extdir, 'disptools.lib'),
+                    ]
+                else:
+                    e.extra_compile_args = [
+                        '-fopenmp',
+                    ]
+                    if _OPT:
+                        e.extra_compile_args += ['-O3', '-march=native']
+                    if _DEBUG:
+                        e.extra_compile_args += ['-O0', '-g']
+
+                    e.extra_link_args = [
+                        '-ldisptools',
+                        '-lgomp',
+                        '-lm',
+                        '-L"%s"' % extdir,
+                    ]
+
 
             build_ext.build_extensions(self)
 

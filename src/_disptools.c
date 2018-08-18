@@ -52,8 +52,8 @@ typedef void (*DisplacementFunction)(
     const FLOATING dx,
     const FLOATING dy,
     const FLOATING dz,
-    const FLOATING J[nz][ny][nx],
-    const bool mask[nz][ny][nx],
+    const FLOATING *J,
+    const bool *mask,
     const FLOATING epsilon,
     const FLOATING tolerance,
     FLOATING eta,
@@ -67,14 +67,14 @@ typedef void (*DisplacementFunction)(
     const FLOATING iota,
     const bool strict,
     const size_t it_max,
-    FLOATING field[3][nz][ny][nx]
+    FLOATING *field
     );
 
 /*!
  * Type for the shape descriptor function.
  */
 typedef FLOATING (*ShapeDescriptorFunction)(
-        const bool * restrict image,
+        const bool * __restrict image,
         const size_t nx,
         const size_t ny,
         const size_t nz,
@@ -122,7 +122,7 @@ static PyObject *method_get_float_type_size(PyObject *module) {
  */
 static PyObject *method_regularise(PyObject *self, PyObject *args)
 {
-    const FLOATING epsilon;
+    FLOATING epsilon;
     PyArrayObject *jacobian = NULL;
 
     (void) self;
@@ -266,9 +266,9 @@ static PyObject *method_displacement(PyObject *self, PyObject *args)
     FLOATING spacing[3];
     PyObject *spacing_tuple = NULL;
     PyArrayObject *field = NULL, *jacobian = NULL, *mask = NULL;
-    const FLOATING epsilon, tolerance, eta, eta_max, alpha, beta, gamma, delta, zeta, theta, iota;
-    const bool strict;
-    const long it_max;
+    FLOATING epsilon, tolerance, eta, eta_max, alpha, beta, gamma, delta, zeta, theta, iota;
+    bool strict;
+    long it_max;
     const char *algorithm;
 
     (void) self;

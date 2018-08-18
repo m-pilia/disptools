@@ -7,7 +7,7 @@ set(DISPTOOLS_SRCS
     "VolumeMatching3D.c"
 )
 
-add_library(disptools ${DISPTOOLS_SRCS})
+add_library(disptools STATIC ${DISPTOOLS_SRCS})
 target_include_directories(disptools PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     )

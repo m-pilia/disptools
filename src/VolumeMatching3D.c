@@ -62,7 +62,7 @@ int MAXITNUM=1000;
 int NORESTRICTION=1;
 int VERBOSITY=1;
 int NODEFORMATION=1;
-float max_voxel_error=DBL_MAX;
+FLOATING max_voxel_error = (FLOATING) DBL_MAX;
 float eps_jacobian=0.001;
 float zeta_jacobian=100.0;
 
@@ -676,28 +676,28 @@ int HandleOptions(int argc,char *argv[])
  * \brief Wrapper function.
  */
 void volume_matching_3d(
-        const size_t nx,               /*!< Width of the image  */
-        const size_t ny,               /*!< Length of the image */
-        const size_t nz,               /*!< Depth of the image  */
-        const FLOATING dx,             /*!< x spacing */
-        const FLOATING dy,             /*!< y spacing */
-        const FLOATING dz,             /*!< z spacing */
-        const FLOATING J[nz][ny][nx],  /*!< Target Jacobian */
-        const bool mask[nz][ny][nx],   /*!< Body mask */
-        const FLOATING epsilon,        /*!< Tolerance on the Jacobian per voxel */
-        const FLOATING tolerance,      /*!< Jacobian tolerance on background */
-        FLOATING eta,                  /*!< Initial step length for the optimisation */
-        const FLOATING eta_max,        /*!< Maximum step length allowed */
-        const FLOATING alpha,          /*!< Step length increase coefficient */
-        const FLOATING beta,           /*!< Step length decrease coefficient */
-        const FLOATING gamma,          /*!< Armijo-Goldstein parameter */
-        const FLOATING delta,          /*!< Jacobian regularisation threshold */
-        const FLOATING zeta,           /*!< Jacobian regularisation weight */
-        const FLOATING theta,          /*!< Termination condition based on improvement */
-        const FLOATING iota,           /*!< Termination condition based on eta */
-        const bool strict,             /*!< Always improve maximum voxel error */
-        const size_t it_max,           /*!< Maximum number of iterations */
-        FLOATING field[3][nz][ny][nx]  /*!< Resulting displacement field */
+        const size_t nx,          /*!< Width of the image  */
+        const size_t ny,          /*!< Length of the image */
+        const size_t nz,          /*!< Depth of the image  */
+        const FLOATING dx,        /*!< x spacing */
+        const FLOATING dy,        /*!< y spacing */
+        const FLOATING dz,        /*!< z spacing */
+        const FLOATING *J,        /*!< Target Jacobian */
+        const bool *mask,         /*!< Body mask */
+        const FLOATING epsilon,   /*!< Tolerance on the Jacobian per voxel */
+        const FLOATING tolerance, /*!< Jacobian tolerance on background */
+        FLOATING eta,             /*!< Initial step length for the optimisation */
+        const FLOATING eta_max,   /*!< Maximum step length allowed */
+        const FLOATING alpha,     /*!< Step length increase coefficient */
+        const FLOATING beta,      /*!< Step length decrease coefficient */
+        const FLOATING gamma,     /*!< Armijo-Goldstein parameter */
+        const FLOATING delta,     /*!< Jacobian regularisation threshold */
+        const FLOATING zeta,      /*!< Jacobian regularisation weight */
+        const FLOATING theta,     /*!< Termination condition based on improvement */
+        const FLOATING iota,      /*!< Termination condition based on eta */
+        const bool strict,        /*!< Always improve maximum voxel error */
+        const size_t it_max,      /*!< Maximum number of iterations */
+        FLOATING *field           /*!< Resulting displacement field */
         )
 {
     verbose_printf(DISPTOOLS_DEBUG,
@@ -745,6 +745,9 @@ void volume_matching_3d(
     (void) gamma;
     (void) strict;
 
+    #define AT3(A, z, y, x) ((A)[(z)*ny*nx + (y)*nx + (x)])
+    #define AT4(A, d, z, y, x) ((A)[(d)*nz*ny*nx + (z)*ny*nx + (y)*nx + (x)])
+
     r = nx;
     c = ny;
     s = nz;
@@ -764,9 +767,9 @@ void volume_matching_3d(
             for (i=1;i<r+1;i++)
             {
                 // Add displacement component (initial guess)
-                f[ind]=(float)j + field[Y][k-1][j-1][i-1] / dy;
-                g[ind]=(float)i + field[X][k-1][j-1][i-1] / dx;
-                e[ind]=(float)k + field[Z][k-1][j-1][i-1] / dz;
+                f[ind]=(float)j + AT4(field, Y, k-1, j-1, i-1) / dy;
+                g[ind]=(float)i + AT4(field, X, k-1, j-1, i-1) / dx;
+                e[ind]=(float)k + AT4(field, Z, k-1, j-1, i-1) / dz;
                 ind++;
             }
 	
@@ -774,7 +777,7 @@ void volume_matching_3d(
     for (k=0;k<s-1;k++)
         for (j=0;j<c-1;j++)
             for (i=0;i<r-1;i++)
-                TV[k*(c-1)*(r-1) + j*(r-1) + i] = J[k][j][i];
+                TV[k*(c-1)*(r-1) + j*(r-1) + i] = AT3(J, k, j, i);
     
     VolumeMatching3D(&f,&g,&e,TV,r,c,s,MAXITNUM,NORESTRICTION,RestrictionMap,epsilon);
 
@@ -785,9 +788,9 @@ void volume_matching_3d(
     for (size_t z = 0; z < nz; ++z) {
         for (size_t y = 0; y < ny; ++y) {
             for (size_t x = 0; x < nx; ++x) {
-                field[X][z][y][x] = (g[z*nx*ny + y*nx + x] - (x+1)) * dx;
-                field[Y][z][y][x] = (f[z*nx*ny + y*nx + x] - (y+1)) * dy;
-                field[Z][z][y][x] = (e[z*nx*ny + y*nx + x] - (z+1)) * dz;
+                AT4(field, X, z, y, x) = (g[z*nx*ny + y*nx + x] - (x+1)) * dx;
+                AT4(field, Y, z, y, x) = (f[z*nx*ny + y*nx + x] - (y+1)) * dy;
+                AT4(field, Z, z, y, x) = (e[z*nx*ny + y*nx + x] - (z+1)) * dz;
             }
         }
     }
@@ -797,6 +800,9 @@ void volume_matching_3d(
     free(e);
     free(TV);
     free(RestrictionMap);
+
+    #undef AT3
+    #undef AT4
 }
 
 

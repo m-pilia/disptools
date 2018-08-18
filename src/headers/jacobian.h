@@ -204,11 +204,11 @@
  */
 
 void regularise(
-        const size_t nx,        /*!< Width of the image */
-        const size_t ny,        /*!< Length of the image */
-        const size_t nz,        /*!< Depth of the image */
-        FLOATING J[nz][ny][nx], /*!< Jacobian map */
-        FLOATING epsilon        /*!< Minimum value allowed */
+        const size_t nx, /*!< Width of the image */
+        const size_t ny, /*!< Length of the image */
+        const size_t nz, /*!< Depth of the image */
+        FLOATING *J,     /*!< Jacobian map */
+        FLOATING epsilon /*!< Minimum value allowed */
         );
 
 /*!
@@ -257,11 +257,18 @@ static inline void jacobian(
     const size_t z_stop = f.nz - ORDER_PD / 2 ;
 
     // Inner voxels
+#ifdef __GNUC__
     #pragma omp parallel for collapse(3) schedule(static)
     for (size_t z = z_start; z < z_stop; ++z) {
         for (size_t y = y_start; y < y_stop; ++y) {
             for (size_t x = x_start; x < x_stop; ++x) {
-
+#else // MSVC 15 does not support OpenMP > 2.0
+    int z;
+    #pragma omp parallel for
+    for (z = z_start; z < z_stop; ++z) {
+        for (size_t y = y_start; y < y_stop; ++y) {
+            for (size_t x = x_start; x < x_stop; ++x) {
+#endif
                 // Approximate partial derivatives with central differences
                 #if ORDER_PD == 2
                     __(J, x, y, z) = Jacobian_2(f, x, y, z, idx, idy, idz);

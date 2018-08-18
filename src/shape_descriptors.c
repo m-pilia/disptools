@@ -23,7 +23,7 @@
  * [1] Martinez-Ortiz, Carlos A. "2D and 3D shape descriptors." (2010).
  */
 FLOATING cubeness(
-        const bool * restrict image,
+        const bool * __restrict image,
         const size_t nx,
         const size_t ny,
         const size_t nz,
@@ -41,10 +41,18 @@ FLOATING cubeness(
     double volume = 0.0;
     const double dv = sx * sy * sz;
 
+#ifdef __GNUC__
     #pragma omp parallel for reduction(+: volume, integral)
     for (size_t z = 0; z < nz; ++z) {
         for (size_t y = 0; y < ny; ++y) {
             for (size_t x = 0; x < nx; ++x) {
+#else // MSVC 15 does not support OpenMP > 2.0
+    int z;
+    #pragma omp parallel for reduction(+: volume, integral)
+    for (z = 0; z < nz; ++z) {
+        for (size_t y = 0; y < ny; ++y) {
+            for (size_t x = 0; x < nx; ++x) {
+#endif
                 if (image[z*ny*nx + y*nx + x]) {
                     volume += dv;
                     integral += max(sx * abs(x - xc),
@@ -79,7 +87,7 @@ FLOATING cubeness(
  * [1] Martinez-Ortiz, Carlos A. "2D and 3D shape descriptors." (2010).
  */
 FLOATING octahedroness(
-        const bool * restrict image,
+        const bool * __restrict image,
         const size_t nx,
         const size_t ny,
         const size_t nz,
@@ -97,10 +105,18 @@ FLOATING octahedroness(
     double volume = 0.0;
     const double dv = sx * sy * sz;
 
+#ifdef __GNUC__
     #pragma omp parallel for reduction(+: volume, integral)
     for (size_t z = 0; z < nz; ++z) {
         for (size_t y = 0; y < ny; ++y) {
             for (size_t x = 0; x < nx; ++x) {
+#else // MSVC 15 does not support OpenMP > 2.0
+    int z;
+    #pragma omp parallel for reduction(+: volume, integral)
+    for (z = 0; z < nz; ++z) {
+        for (size_t y = 0; y < ny; ++y) {
+            for (size_t x = 0; x < nx; ++x) {
+#endif
                 if (image[z*ny*nx + y*nx + x]) {
                     volume += dv;
                     integral += sx * abs(x - xc) +

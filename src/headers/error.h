@@ -100,6 +100,8 @@ static inline FLOATING compute_error(
     FLOATING max_error = 0.0;
 
     // Compute the error on the Jacobian map for all voxels
+#ifdef __GNUC__
+    #define MAX_ERROR_ACC max_error
     #pragma omp parallel for \
             reduction(+: total_error) \
             reduction(max: max_error) \
@@ -108,6 +110,21 @@ static inline FLOATING compute_error(
     for (size_t z = 0; z < z_max; ++z) {
         for (size_t y = 0; y < y_max; ++y) {
             for (size_t x = 0; x < x_max; ++x) {
+
+#else // MSVC 15 does not support OpenMP > 2.0
+    #define MAX_ERROR_ACC local_max_error
+    #pragma omp parallel
+    {
+
+    FLOATING local_max_error = 0.0;
+
+    int z;
+    #pragma omp for nowait \
+            reduction(+: total_error)
+    for (z = 0; z < z_max; ++z) {
+        for (size_t y = 0; y < y_max; ++y) {
+            for (size_t x = 0; x < x_max; ++x) {
+#endif
                 // Compute the error on the voxel
                 FLOATING error = __(J_field, x, y, z) - __(J, x, y, z);
 
@@ -129,12 +146,25 @@ static inline FLOATING compute_error(
                 // The maximum voxel error is checked only within the
                 // body volume marked by the mask 
                 total_error += __(voxel_error, x, y, z) * __(voxel_error, x, y, z);
-                if (__(mask, x, y, z) && fabs(__(voxel_error, x, y, z)) > max_error) {
-                    max_error = fabs(__(voxel_error, x, y, z));
+                if (__(mask, x, y, z) && fabs(__(voxel_error, x, y, z)) > MAX_ERROR_ACC) {
+                    MAX_ERROR_ACC = fabs(__(voxel_error, x, y, z));
                 }
             }
         }
     }
+
+#ifndef __GNUC__
+    // Manual max reduction, MSVC 15 does not provide it
+    #pragma omp critical
+    {
+        if (local_max_error > max_error) {
+            max_error = local_max_error;
+        }
+    }
+
+    } // pragma omp parallel
+#endif
+    #undef MAX_ERROR_ACC
 
     // Return maximum voxel error
     *max_voxel_error = max_error;

@@ -26,19 +26,27 @@ void jacobian_dynamic(
  * fall below `epsilon`.
  */
 void regularise(
-        const size_t nx,        /*!< Width of the image */
-        const size_t ny,        /*!< Length of the image */
-        const size_t nz,        /*!< Depth of the image */
-        FLOATING J[nz][ny][nx], /*!< Jacobian map */
-        FLOATING epsilon        /*!< Minimum value allowed */
+        const size_t nx, /*!< Width of the image */
+        const size_t ny, /*!< Length of the image */
+        const size_t nz, /*!< Depth of the image */
+        FLOATING *J,     /*!< Jacobian map */
+        FLOATING epsilon /*!< Minimum value allowed */
         )
 {
+#ifdef __GNUC__
     #pragma omp parallel for
     for (size_t z = 0; z < nz; ++z) {
         for (size_t y = 0; y < ny; ++y) {
             for (size_t x = 0; x < nx; ++x) {
-                if (J[z][y][x] < epsilon) {
-                    J[z][y][x] = epsilon;
+#else // MSVC 15 does not support OpenMP > 2.0
+    int z;
+    #pragma omp parallel for
+    for (z = 0; z < nz; ++z) {
+        for (size_t y = 0; y < ny; ++y) {
+            for (size_t x = 0; x < nx; ++x) {
+#endif
+                if (J[z*ny*nx + y*nx + x] < epsilon) {
+                    J[z*ny*nx + y*nx + x] = epsilon;
                 }
             }
         }
