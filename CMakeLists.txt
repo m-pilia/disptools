@@ -59,7 +59,7 @@ endif()
 if(MSVC)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W0")
 else()
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -std=c99 -fPIC")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -std=c99 -fPIC")
 endif()
 
 add_subdirectory(src)

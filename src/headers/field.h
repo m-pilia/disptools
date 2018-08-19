@@ -175,9 +175,9 @@ Image new_image(
         const size_t nx,
         const size_t ny,
         const size_t nz,
-        const size_t dx,
-        const size_t dy,
-        const size_t dz
+        const FLOATING dx,
+        const FLOATING dy,
+        const FLOATING dz
         );
 
 Mask new_mask(

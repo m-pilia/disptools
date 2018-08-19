@@ -14,9 +14,9 @@ Image new_image(
         const size_t nx,
         const size_t ny,
         const size_t nz,
-        const size_t dx,
-        const size_t dy,
-        const size_t dz
+        const FLOATING dx,
+        const FLOATING dy,
+        const FLOATING dz
         )
 {
     Image img = {nd, nx, ny, nz, dx, dy, dz, NULL};
