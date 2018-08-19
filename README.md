@@ -48,7 +48,7 @@ This package is available on [PyPI](https://pypi.org/project/disptools) both as 
 
 ### Build from source
 
-#### Linux
+#### Windows (Visual Studio) and Linux
 
 Install the dependencies with your favourite package manager. For example, with `pip`:
 ```bash
@@ -61,11 +61,11 @@ python3 setup.py install
 ```
 which should build the C extension and install the Python package.
 
-#### Windows
+#### Windows (MinGW)
 
-1. First, be sure that CMake is installed and the Python executables [are in your PATH](https://docs.python.org/3/using/windows.html#excursus-setting-environment-variables).
+1. First, be sure that [mingw](https://mingw-w64.org), CMake and Python are installed and their executables [are in your PATH](https://docs.python.org/3/using/windows.html#excursus-setting-environment-variables).
 
-2. Since `msvc` (Visual Studio) does not support the C99 standard, this package should be compiled with [mingw](https://mingw-w64.org). Install `mingw` and add its binary folder to your path. Ensure that `gcc` is working correctly:
+2. Ensure that `gcc` is working correctly:
 ```none
 > gcc --version
 gcc (x86_64-posix-seh-rev1, Built by MinGW-W64 project) 7.2.0
