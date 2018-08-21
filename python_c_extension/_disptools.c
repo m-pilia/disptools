@@ -10,12 +10,26 @@
 #include <Python.h>
 #include <numpy/arrayobject.h>
 
-#include "headers/field.h"
-#include "headers/jacobian.h"
-#include "headers/shape_descriptors.h"
-#include "headers/displacement_field_gradient.h"
-#include "headers/displacement_field_greedy.h"
-#include "headers/VolumeMatching3D.h"
+#include "disptools.h"
+#include "jacobian.h"
+#include "shape_descriptors.h"
+#include "displacement_field_gradient.h"
+#include "displacement_field_greedy.h"
+#include "VolumeMatching3D.h"
+
+#if DISPTOOLS_HAS_CUDA
+    #include "generate_displacement.cuh"
+#endif
+
+#ifndef DISPTOOLS_HAS_CUDA
+    #define DISPTOOLS_HAS_CUDA 0
+#else
+    #if !DISPTOOLS_HAS_CUDA
+        #define DISPTOOLS_HAS_CUDA 0
+    #else
+        #define DISPTOOLS_HAS_CUDA 1
+    #endif
+#endif
 
 // String literals
 #define CUBENESS "cubeness"
@@ -30,14 +44,14 @@
     #define PY_FMT_REGULARISE "Od"
     #define PY_FMT_SHAPE_DESCRIPTOR "OOOs"
     #define PY_FMT_JACOBIAN "OOO"
-    #define PY_FMT_DISPLACEMENT "OOOdddddddddddplOs"
+    #define PY_FMT_DISPLACEMENT "OOOdddddddddddplOsi"
     #define NUMPY_FLOATING_TYPE NPY_DOUBLE
 #else
     #define PY_FMT_FLOATING "f"
     #define PY_FMT_REGULARISE "Of"
     #define PY_FMT_SHAPE_DESCRIPTOR "OOOs"
     #define PY_FMT_JACOBIAN "OOO"
-    #define PY_FMT_DISPLACEMENT "OOOfffffffffffplOs"
+    #define PY_FMT_DISPLACEMENT "OOOfffffffffffplOsi"
     #define NUMPY_FLOATING_TYPE NPY_FLOAT
 #endif
 
@@ -112,8 +126,9 @@ bool read_triplet(PyObject *tuple, FLOATING *result, const int expected_length, 
  * Method that returns the size (in bit) of the underlying C floating
  * point type.
  */
-static PyObject *method_get_float_type_size(PyObject *module) {
-    (void) module;
+static PyObject *method_get_float_type_size(PyObject *self, PyObject *args) {
+    (void) self;
+    (void) args;
     return Py_BuildValue("i", 8 * sizeof (FLOATING));
 }
 
@@ -270,6 +285,7 @@ static PyObject *method_displacement(PyObject *self, PyObject *args)
     bool strict;
     long it_max;
     const char *algorithm;
+    int gpu_id;
 
     (void) self;
 
@@ -293,7 +309,8 @@ static PyObject *method_displacement(PyObject *self, PyObject *args)
                           &strict,
                           &it_max,
                           &field,
-                          &algorithm)) {
+                          &algorithm,
+                          &gpu_id)) {
         return NULL;
     }
 
@@ -328,22 +345,45 @@ static PyObject *method_displacement(PyObject *self, PyObject *args)
 
     /* Select the appropriate function for the algorithm */
     DisplacementFunction displacement_function = NULL;
-    if (!strcmp(algorithm, ALGORITHM_GRADIENT)) {
-        displacement_function = &generate_displacement_gradient;
+    if (DISPTOOLS_HAS_CUDA && gpu_id >= 0) {
+#if DISPTOOLS_HAS_CUDA
+        if(!set_device(gpu_id)) {
+            PyErr_Format(PyExc_ValueError, "Cannot set CUDA device %d", gpu_id);
+            return NULL;
+        }
+
+        if (!strcmp(algorithm, ALGORITHM_GRADIENT)) {
+            displacement_function = &generate_displacement_gradient_cuda;
+        }
+        else if (!strcmp(algorithm, ALGORITHM_GREEDY)) {
+            displacement_function = &generate_displacement_greedy_cuda;
+        }
+        else if (!strcmp(algorithm, ALGORITHM_MATCHING)) {
+            PyErr_Format(PyExc_ValueError,
+                         "Algorithm '%s' not supported on GPU",
+                         algorithm);
+            return NULL;
+        }
+#endif // DISPTOOLS_HAS_CUDA
     }
-    else if (!strcmp(algorithm, ALGORITHM_GREEDY)) {
-        displacement_function = &generate_displacement_greedy;
-    }
-    else if (!strcmp(algorithm, ALGORITHM_MATCHING)) {
-        displacement_function = &volume_matching_3d;
+    else {
+        if (!strcmp(algorithm, ALGORITHM_GRADIENT)) {
+            displacement_function = &generate_displacement_gradient;
+        }
+        else if (!strcmp(algorithm, ALGORITHM_GREEDY)) {
+            displacement_function = &generate_displacement_greedy;
+        }
+        else if (!strcmp(algorithm, ALGORITHM_MATCHING)) {
+            displacement_function = &volume_matching_3d;
+        }
     }
 
     /* Call the library function to compute the displacement */
     displacement_function(
             nx, ny, nz,
             spacing[0], spacing[1], spacing[2],
-            (void*)jacobian_data,
-            (void*)mask_data,
+            (void*) jacobian_data,
+            (void*) mask_data,
             epsilon,
             tolerance,
             eta,
@@ -357,7 +397,18 @@ static PyObject *method_displacement(PyObject *self, PyObject *args)
             iota,
             strict,
             it_max,
-            (void*)field_data);
+            (void*) field_data);
+
+    if (disptools_error.error) {
+        PyErr_Format(PyExc_RuntimeError,
+                     "%s (%s:%d): %s\n%s",
+                     disptools_error.function,
+                     disptools_error.file,
+                     disptools_error.line,
+                     disptools_error.message,
+                     disptools_error.trace);
+        return NULL;
+    }
 
     return Py_None;
 }
@@ -373,8 +424,9 @@ struct module_state {
 #define GETSTATE(m) ((struct module_state*)PyModule_GetState(m))
 
 static PyObject *
-error_out(PyObject *m) {
-    struct module_state *st = GETSTATE(m);
+error_out(PyObject *self, PyObject *args) {
+    (void) args;
+    struct module_state *st = GETSTATE(self);
     PyErr_SetString(st->error, "something bad happened");
     return NULL;
 }
@@ -464,6 +516,7 @@ static char docstring_displacement[] =
     "    it_max parameter (int)\n"
     "    Output displacement field (numpy.ndarray of type float and dimension 4, indices dzyx)\n"
     "    Algorithm parameter (string with value 'gradient', 'greedy', or 'matching')\n"
+    "    Id of the CUDA device, or `-1` to use the CPU (int)\n"
     "\n"
     "Returns\n"
     "    None";
@@ -512,6 +565,8 @@ PyInit__disptools(void)
         Py_DECREF(module);
         return NULL;
     }
+
+    import_array();
 
     return module;
 }

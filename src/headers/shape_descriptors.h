@@ -1,7 +1,7 @@
 #ifndef _SHAPE_DESCRIPTORS_H_DEFINED
 #define _SHAPE_DESCRIPTORS_H_DEFINED
 
-#include "field.h"
+#include "disptools.h"
 
 /*!
  * \brief Compute the cubeness of a binary image.

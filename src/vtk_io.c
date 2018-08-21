@@ -4,7 +4,7 @@
 #include <string.h>
 #include <stdint.h>
 
-#include "headers/vtk_io.h"
+#include "vtk_io.h"
 
 // VTK encodes binary image data as big-endian, so a conversion
 // may be needed according to the architecture.
@@ -68,16 +68,23 @@ static inline FLOATING _swap_nothing(const FLOATING value) {
 
 /*!
  * \brief Write to file a vector field in VTK (STRUCTURED_POINTS) format.
+ * \return 0 on success, negative value on failure.
+ * \note In case of failure, `disptools_error` is set.
  */
-void write_vtk(
-        const char *filename,                /*!< Filename */
-        const Image f
+int write_vtk(
+        const char *filename, /*!< Filename */
+        const Image f         /*!< Resulting image */
         )
 {
     size_t i = 0ul;
 
     // Allocate a buffer and copy the image data in it
     double *buffer = (double*) malloc(f.nd * f.nx * f.ny * f.nz * sizeof (double));
+    if (!buffer) {
+        DISPTOOLS_SET_ERROR(true, strerror(errno));
+        return -1;
+    }
+
     FLOATING (* const swap_bytes)(FLOATING) = swapping_function;
 
     for (size_t z = 0; z < f.nz; ++z) {
@@ -91,7 +98,11 @@ void write_vtk(
     }
 
     FILE *fp = fopen(filename, "wb");
-    GENERIC_ERROR_HANDLER(!fp);
+    if(!fp) {
+        free(buffer);
+        DISPTOOLS_SET_ERROR(true, strerror(errno));
+        return -1;
+    }
 
     fprintf(fp,
             "# vtk DataFile Version 3.0\n"
@@ -115,13 +126,18 @@ void write_vtk(
 
     fclose(fp);
     free(buffer);
+
+    return 0;
 }
 
 /*!
  * \brief Read from file a vector field in VTK (STRUCTURED_POINTS) format.
+ * \return 0 on success, negative value on failure.
+ * \note In case of failure, `disptools_error` is set.
  */
-Image read_vtk(
-        const char *filename /*!< Filename */
+int read_vtk(
+        const char *filename, /*!< Filename */
+        Image *image          /*!< Resulting image */
         )
 {
     size_t nx = 0, ny = 0, nz = 0, nd = 0;
@@ -135,7 +151,10 @@ Image read_vtk(
     char line_buffer[buf_len];
 
     FILE *fp = fopen(filename, "rb");
-    GENERIC_ERROR_HANDLER(!fp);
+    if(!fp) {
+        DISPTOOLS_SET_ERROR(true, strerror(errno));
+        return -1;
+    }
 
     int flt = 0;
     int dbl = 0;
@@ -153,9 +172,8 @@ Image read_vtk(
 
     // TODO add float support
     if (flt) {
-        (void) dbl;
-        printf("%s:%d, function %s: float type not supported\n", __FILE__, __LINE__, __func__);
-        exit(EXIT_FAILURE);
+        DISPTOOLS_SET_ERROR(true, "float type not supported");
+        return -1;
     }
 
     verbose_printf(DISPTOOLS_DEBUG, "%lu %lu %lu %lu %f %f %f\n", nd, nx, ny, nz, dx, dy, dz);
@@ -165,21 +183,29 @@ Image read_vtk(
     const size_t element_count = nd * nx * ny * nz;
 
     double *buffer = (double*) malloc(element_count * sizeof (double));
-    GENERIC_ERROR_HANDLER(!buffer);
+    if(!buffer) {
+        DISPTOOLS_SET_ERROR(true, strerror(errno));
+    }
 
     fread(buffer, sizeof (double), element_count, fp);
 
     fclose(fp);
 
     // Allocate memory for the data structure
-    Image f = new_image(nd, nx, ny, nz, dx, dy, dz);
+    *image = new_image(nd, nx, ny, nz, dx, dy, dz);
+
+    if (disptools_error.error) {
+        free(buffer);
+        return -1;
+    }
 
     // Copy data from the buffer to the data structure
-    for (size_t z = 0; z < f.nz; ++z) {
-        for (size_t y = 0; y < f.ny; ++y) {
-            for (size_t x = 0; x < f.nx; ++x) {
-                for (size_t d = 0; d < f.nd; ++d) {
-                    _(f, x, y, z, d) = swap_bytes(buffer[i++]);
+    Image ptr = *image;
+    for (size_t z = 0; z < image->nz; ++z) {
+        for (size_t y = 0; y < image->ny; ++y) {
+            for (size_t x = 0; x < image->nx; ++x) {
+                for (size_t d = 0; d < image->nd; ++d) {
+                    _(ptr, x, y, z, d) = swap_bytes(buffer[i++]);
                 }
             }
         }
@@ -187,5 +213,5 @@ Image read_vtk(
 
     free(buffer);
 
-    return f;
+    return 0;
 }

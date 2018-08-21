@@ -20,7 +20,7 @@ The complete documentation for this package is available on https://martinopilia
 ### Architecture
 
 The project is structured in three layers:
-+ a pure standard [C99](https://en.wikipedia.org/wiki/C99) library (whose headers are in `src/headers/`), with no external dependencies, implementing the core algorithms for the generation of deformation fields. It is a standalone library that can be directly included in a C or C++ project.
++ a pure standard [C99](https://en.wikipedia.org/wiki/C99) library (whose headers are in `src/headers`), with no external dependencies, implementing the core algorithms for the generation of deformation fields. It is a standalone library that can be directly included in a C or C++ project. It is paired with an optional [CUDA](https://en.wikipedia.org/wiki/CUDA) library, whose headers are in `cuda/headers`, that depends on `src/headers` and provides a GPGPU implementation of the key routines.
 + a [Python C extension](https://docs.python.org/3.6/extending/extending.html) package `_disptools` (whose source is in the file `src/_disptools.c`), providing a bare Python wrapper to the aforementioned library, using the [NumPy C API](https://docs.scipy.org/doc/numpy-1.14.0/reference/c-api.html) to pass arrays. This can be directly included in a Python project with no dependencies other than NumPy.
 + a Python package (`disptools`), that wraps the `_disptools` package providing file IO (through SimpleITK) and implementing high-level features (such as the multi-resolution framework) and auxiliary utilities and functions.
 
@@ -47,6 +47,13 @@ This package is available on [PyPI](https://pypi.org/project/disptools) both as 
 ```
 
 ### Build from source
+
+Build flags accepted by `setup.py`:
++ `--opt`: enable non-portable optimisations.
++ `--debug`: disable optimisations, compile with debug symbols.
++ `--cuda`: enable CUDA support.
+
+Flags starting with `-D` are passed directly to `CMake`.
 
 #### Windows (Visual Studio) and Linux
 

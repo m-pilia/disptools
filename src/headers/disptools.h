@@ -1,7 +1,9 @@
 #ifndef _FIELD_H_DEFINED
 #define _FIELD_H_DEFINED
 
+#include <assert.h>
 #include <errno.h>
+#include <float.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -41,20 +43,15 @@
 
 #if FLOAT_SIZE == 32
     #define FLOATING float
+    #define FLOATING_MAX FLT_MAX
+    #define FLOATING_MIN FLT_MIN
 #elif FLOAT_SIZE == 64
     #define FLOATING double
+    #define FLOATING_MAX DBL_MAX
+    #define FLOATING_MIN DBL_MIN
 #else
     #error "Invalid FLOAT_SIZE '" #FLOAT_SIZE "'. Accepted values are 32 and 64."
 #endif
-
-// Generic error handler that breaks the execution
-#define GENERIC_ERROR_HANDLER(condition) \
-    if (condition) \
-    { \
-        fprintf(stderr, "In %s, line %d, function %s: %s\n", __FILE__, __LINE__, __func__, strerror(errno)); \
-        BACKTRACE \
-        exit(EXIT_FAILURE); \
-    }
 
 // Debug
 #ifndef DISPTOOLS_DEBUG
@@ -103,6 +100,53 @@
 #define hash_print(...)
 #endif // DISPTOOLS_DEBUG
 
+// Parameter assertion and debug print
+#define ASSERT_PARAMETERS \
+    { \
+        assert(alpha > 0.0 && "alpha must be positive"); \
+        assert(beta > 0.0 && "beta must be positive"); \
+        assert(gamma > 0.0 && "gamma must be positive"); \
+        assert(delta > 0.0 && "delta must be positive"); \
+        assert(zeta > 0.0 && "zeta must be positive"); \
+        assert(eta > 0.0 && "eta must be positive"); \
+        assert(eta_max > 0.0 && "eta_max must be positive"); \
+        assert(theta >= 0.0 && "Theta must be positive"); \
+        assert(iota >= 0.0 && "Iota must be positive"); \
+        assert(tolerance >= 0.0 && "Tolerance must be positive"); \
+        assert(epsilon > 0.0 && "Epsilon must be positive"); \
+        \
+        verbose_printf( \
+           DISPTOOLS_DEBUG, \
+           "%s\n" \
+           "nx:        %lu\n" \
+           "ny:        %lu\n" \
+           "nz:        %lu\n" \
+           "dx:        %f\n" \
+           "dy:        %f\n" \
+           "dz:        %f\n" \
+           "alpha:     %e\n" \
+           "beta:      %e\n" \
+           "gamma:     %e\n" \
+           "delta:     %e\n" \
+           "epsilon:   %e\n" \
+           "zeta:      %e\n" \
+           "eta:       %e\n" \
+           "eta_max:   %e\n" \
+           "theta:     %e\n" \
+           "iota:      %e\n" \
+           "tolerance: %e\n" \
+           "strict:    %d\n" \
+           "it_max:    %lu\n", \
+           __func__, \
+           nx, ny, nz, \
+           dx, dy, dz, \
+           alpha, beta, gamma, delta, \
+           epsilon, zeta, eta, eta_max, theta, iota, \
+           tolerance, \
+           strict, \
+           it_max); \
+    }
+
 // XOR swap macro
 #define XOR_SWAP(a, b) ((a) ^= (b), (b) ^= (a), (a) ^= (b))
 
@@ -110,7 +154,7 @@
 #define abs(x) (x > 0 ? (x) : -(x))
 
 // ternary max macro
-#define max(a, b, c) (((a) > (b) ? (a) : (b)) > (c) ? ((a) > (b) ? (a) : (b)) : (c))
+#define max3(a, b, c) (((a) > (b) ? (a) : (b)) > (c) ? ((a) > (b) ? (a) : (b)) : (c))
 
 // Pixel access macros
 //
@@ -150,6 +194,53 @@
              (j21),       (j22) + 1.0, (j23), \
              (j31),       (j32),       (j33) + 1.0) \
 
+
+/*!
+ * \brief Error state.
+ */
+struct disptools_error_state {
+    bool error;
+    int line;
+    char file[512];
+    char function[512];
+    char message[1024];
+    char trace[4096];
+};
+
+extern struct disptools_error_state disptools_error;
+
+#define DISPTOOLS_SET_ERROR(condition_, message_) \
+    if (condition_) \
+    { \
+        disptools_error.error = true; \
+        disptools_error.line = __LINE__; \
+        strcpy(disptools_error.file, __FILE__); \
+        strcpy(disptools_error.function, __func__); \
+        strcpy(disptools_error.message, message_); \
+        SET_TRACE; \
+    }
+
+
+#if defined(__GNUC__) && defined(__linux__)
+#include <execinfo.h>
+#include <unistd.h>
+#define SET_TRACE \
+    { \
+        size_t BT_BUF_SIZE = 100; \
+        void *buffer[BT_BUF_SIZE]; \
+        int traces_no = backtrace(buffer, BT_BUF_SIZE); \
+        char **traces = backtrace_symbols(buffer, traces_no); \
+        for (int i = 0; i < traces_no; ++i) { \
+            strcat(disptools_error.trace, traces[i]); \
+            strcat(disptools_error.trace, "\n"); \
+        } \
+        free(traces); \
+    }
+#else
+#define SET_TRACE 
+#endif // defined(__GNUC__) && defined(__linux__)
+
+
 int get_float_type_size(void);
 
 typedef struct Image {
@@ -160,14 +251,14 @@ typedef struct Image {
     FLOATING dx;
     FLOATING dy;
     FLOATING dz;
-    FLOATING *data;
+    FLOATING * __restrict data;
 } Image;
 
 typedef struct Mask {
     size_t nx;
     size_t ny;
     size_t nz;
-    bool *data;
+    bool * __restrict data;
 } Mask;
 
 Image new_image(

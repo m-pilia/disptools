@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include "headers/shape_descriptors.h"
+#include "shape_descriptors.h"
 
 /*!
  * Here the minimum is not computed, the optimum is assumed to be
@@ -55,9 +55,9 @@ FLOATING cubeness(
 #endif
                 if (image[z*ny*nx + y*nx + x]) {
                     volume += dv;
-                    integral += max(sx * abs(x - xc),
-                                    sy * abs(y - yc),
-                                    sz * abs(z - zc));
+                    integral += max3(sx * abs(x - xc),
+                                     sy * abs(y - yc),
+                                     sz * abs(z - zc));
                 }
             }
         }

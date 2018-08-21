@@ -108,7 +108,8 @@ def _displacement(
         strict        : bool = False,
         eta           : float = 0.1,
         eta_max       : float = 0.4,
-        algorithm     : str = 'gradient'
+        algorithm     : str = 'gradient',
+        gpu_id        : int = -1,
         ):
     r""" Compute a displacement field that realises a prescribed Jacobian.
 
@@ -133,6 +134,8 @@ def _displacement(
     else:
         # Get mask as numpy array of booleans
         mask = sitk.GetArrayViewFromImage(mask).astype(bool, copy=True)
+        if mask.shape != jacobian.shape:
+            raise Exception("The shapes of the Jacobian and the mask must agree")
 
     # Create objects for the result, initialise initial guess
     if initial_guess is not None:
@@ -165,7 +168,8 @@ def _displacement(
         strict,
         it_max,
         field_tmp,
-        algorithm
+        algorithm,
+        gpu_id,
     ]
 
     # Call the function in a separate thread
@@ -250,7 +254,8 @@ def displacement(
         strict        : bool = False,
         eta           : float = 0.1,
         eta_max       : float = 0.4,
-        algorithm     : str = 'gradient'
+        algorithm     : str = 'gradient',
+        gpu_id        : int = -1,
         ) -> sitk.Image:
     r""" Generate a displacement field that realises a given Jacobian.
 
@@ -371,6 +376,10 @@ def displacement(
         Maximum step length allowed.
     algorithm : str
         Algorithm to generate the field, one of `greedy`, `gradient`, or `matching`.
+    gpu_id : int
+        Id of the CUDA device used to run the GPU implementation. If
+        equal to `-1`, the CPU implementation is used instead. Requires
+        a build of disptools with CUDA support enabled.
 
     Returns
     -------

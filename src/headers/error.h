@@ -1,6 +1,6 @@
 #include <math.h>
 
-#include "field.h"
+#include "disptools.h"
 
  
 /*! 
@@ -59,6 +59,11 @@ static inline Image create_tolerance_map(
 {
     size_t nx = mask.nx, ny = mask.ny, nz = mask.nz;
     Image tolerance_map = new_image(1, mask.nx, mask.ny, mask.nz, 1.0, 1.0, 1.0);
+
+    if (!tolerance_map.data) {
+        return tolerance_map;
+    }
+
     for (size_t z = 0; z < nz; ++z) {
         for (size_t y = 0; y < ny; ++y) {
             for (size_t x = 0; x < nx; ++x) {
@@ -91,11 +96,6 @@ static inline FLOATING compute_error(
     // Cumulative error over the entire Jacobian map
     FLOATING total_error = 0.0;
 
-    // Do not iterate over the voxels on the boundary
-    const size_t x_max = J.nx;
-    const size_t y_max = J.ny;
-    const size_t z_max = J.nz;
-
     // Local variable for maximum voxel error
     FLOATING max_error = 0.0;
 
@@ -107,9 +107,9 @@ static inline FLOATING compute_error(
             reduction(max: max_error) \
             collapse(3) \
             schedule(static)
-    for (size_t z = 0; z < z_max; ++z) {
-        for (size_t y = 0; y < y_max; ++y) {
-            for (size_t x = 0; x < x_max; ++x) {
+    for (size_t z = 0; z < J.nz; ++z) {
+        for (size_t y = 0; y < J.ny; ++y) {
+            for (size_t x = 0; x < J.nx; ++x) {
 
 #else // MSVC 15 does not support OpenMP > 2.0
     #define MAX_ERROR_ACC local_max_error
@@ -121,9 +121,9 @@ static inline FLOATING compute_error(
     int z;
     #pragma omp for nowait \
             reduction(+: total_error)
-    for (z = 0; z < z_max; ++z) {
-        for (size_t y = 0; y < y_max; ++y) {
-            for (size_t x = 0; x < x_max; ++x) {
+    for (z = 0; z < J.nz; ++z) {
+        for (size_t y = 0; y < J.ny; ++y) {
+            for (size_t x = 0; x < J.nx; ++x) {
 #endif
                 // Compute the error on the voxel
                 FLOATING error = __(J_field, x, y, z) - __(J, x, y, z);

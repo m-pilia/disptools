@@ -1,7 +1,7 @@
 #ifndef __DISPLACEMENT_FIELD_GREEDY_DEFINED
 #define __DISPLACEMENT_FIELD_GREEDY_DEFINED
 
-#include "field.h"
+#include "disptools.h"
 #include <stdbool.h>
 
 void generate_displacement_greedy(

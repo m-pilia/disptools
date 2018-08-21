@@ -5,10 +5,10 @@
 #include <string.h>
 #include <stdbool.h>
 
-#include "headers/field.h"
-#include "headers/displacement_field_gradient.h"
-#include "headers/jacobian.h"
-#include "headers/error.h"
+#include "disptools.h"
+#include "displacement_field_gradient.h"
+#include "jacobian.h"
+#include "error.h"
 
 #define dfx_dx(f,x,y,z,idx) ((_((f), (x)+1,(y),  (z),   X) - _((f), (x)-1,(y),  (z),   X)) * (idx) * .5 + 1.0)
 #define dfx_dy(f,x,y,z,idy) ((_((f), (x),  (y)+1,(z),   X) - _((f), (x),  (y)-1,(z),   X)) * (idy) * .5)
@@ -213,47 +213,8 @@ void generate_displacement_gradient(
     FLOATING *field           /*!< Resulting displacement field */
 )
 {
-    assert(alpha > 0.0 && "alpha must be positive");
-    assert(beta > 0.0 && "beta must be positive");
-    assert(gamma > 0.0 && "gamma must be positive");
-    assert(delta > 0.0 && "delta must be positive");
-    assert(zeta > 0.0 && "zeta must be positive");
-    assert(eta > 0.0 && "eta must be positive");
-    assert(eta_max > 0.0 && "eta_max must be positive");
-    assert(theta >= 0.0 && "Theta must be positive");
-    assert(iota >= 0.0 && "Iota must be positive");
-    assert(tolerance >= 0.0 && "Tolerance must be positive");
-    assert(epsilon > 0.0 && "Epsilon must be positive");
-
-    verbose_printf(DISPTOOLS_DEBUG,
-                   "%s\n"
-                   "nx:        %lu\n"
-                   "ny:        %lu\n"
-                   "nz:        %lu\n"
-                   "dx:        %f\n"
-                   "dy:        %f\n"
-                   "dz:        %f\n"
-                   "alpha:     %e\n"
-                   "beta:      %e\n"
-                   "gamma:     %e\n"
-                   "delta:     %e\n"
-                   "epsilon:   %e\n"
-                   "zeta:      %e\n"
-                   "eta:       %e\n"
-                   "eta_max:   %e\n"
-                   "theta:     %e\n"
-                   "iota:      %e\n"
-                   "tolerance: %e\n"
-                   "strict:    %d\n"
-                   "it_max:    %lu\n",
-                   __func__,
-                   nx, ny, nz,
-                   dx, dy, dz,
-                   alpha, beta, gamma, delta,
-                   epsilon, zeta, eta, eta_max, theta, iota,
-                   tolerance,
-                   strict,
-                   it_max);
+    ASSERT_PARAMETERS;
+    disptools_error.error = false;
 
     // Image size
     const size_t voxel_number = nx * ny * nz;
@@ -292,6 +253,10 @@ void generate_displacement_gradient(
     FLOATING last_error = DBL_MAX, error = DBL_MAX;
     FLOATING max_voxel_error = DBL_MAX, last_max_voxel_error = DBL_MAX;
     FLOATING g_norm_2 = 0.0;
+
+    if (disptools_error.error) {
+        goto cleanup;
+    }
 
     // Copy initial guess in the buffer
     memcpy(field_[old_buffer].data, field, 3 * image_size);
@@ -458,6 +423,7 @@ void generate_displacement_gradient(
     // Copy result for the caller
     memcpy(field, field_[old_buffer].data, 3 * image_size);
 
+cleanup:
     // Release buffers
     delete_image(&field_[0]);
     delete_image(&field_[1]);

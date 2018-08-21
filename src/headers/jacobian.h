@@ -1,7 +1,7 @@
 #ifndef __JACOBIAN_H_DEFINED
 #define __JACOBIAN_H_DEFINED
 
-#include "field.h"
+#include "disptools.h"
 
 #define TWO_THIRDS  0.666666666666666666666666666
 #define ONE_TWELFTH 0.083333333333333333333333333

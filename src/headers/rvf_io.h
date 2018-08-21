@@ -1,22 +1,23 @@
 #ifndef _RVF_H_DEFINED
 #define _RVF_H_DEFINED
 
-#include "field.h"
+#include "disptools.h"
 
 /*!
  * \brief Write to file a vector field in rvf format.
  */
-void write_rvf(
-        const char *filename,               /*!< Filename */
-        const Image image
+int write_rvf(
+        const char *filename, /*!< Filename */
+        const Image image     /*!< Image */
         );
 
 /*!
  * \brief Read from file a vector field in rvf format.
  *
  */
-Image read_rvf(
-        const char *filename /*!< Filename. */
+int read_rvf(
+        const char *filename, /*!< Filename. */
+        Image *image          /*!< Image */ 
         );
 
 #endif // _RVF_H_DEFINED

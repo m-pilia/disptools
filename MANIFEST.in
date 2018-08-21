@@ -1,4 +1,8 @@
 include src/headers/*.h
 include src/*.c
 include src/CMakeLists.txt
+include cuda/headers/*.cuh
+include cuda/*.cu
+include cuda/CMakeLists.txt
+include python_c_extension/*
 include CMakeLists.txt

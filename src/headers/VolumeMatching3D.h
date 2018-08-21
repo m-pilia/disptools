@@ -1,7 +1,7 @@
 #ifndef __VOLUMEMATCHING3D_DEFINED
 #define __VOLUMEMATCHING3D_DEFINED
 
-#include "field.h"
+#include "disptools.h"
 #include <stdbool.h>
 
 void volume_matching_3d(

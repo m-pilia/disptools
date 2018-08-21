@@ -3,7 +3,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "headers/field.h"
+#include "disptools.h"
+
+struct disptools_error_state disptools_error = {0, 0, "", "", "", ""};
 
 int get_float_type_size(void) {
     return 8 * sizeof (FLOATING);
@@ -21,7 +23,7 @@ Image new_image(
 {
     Image img = {nd, nx, ny, nz, dx, dy, dz, NULL};
     img.data = (FLOATING*) calloc(nd * nx * ny * nz, sizeof (FLOATING));
-    GENERIC_ERROR_HANDLER(!img.data);
+    DISPTOOLS_SET_ERROR(!img.data, strerror(errno));
     return img;
 }
 
@@ -33,7 +35,7 @@ Mask new_mask(
 {
     Mask mask = {nx, ny, nz, NULL};
     mask.data = (bool*) calloc(nx * ny * nz, sizeof (bool));
-    GENERIC_ERROR_HANDLER(!mask.data);
+    DISPTOOLS_SET_ERROR(!mask.data, strerror(errno));
     return mask;
 }
 

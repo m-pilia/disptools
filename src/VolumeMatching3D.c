@@ -34,8 +34,8 @@
 #include <time.h>
 /** #include <dfieldio.h> */
 #include <float.h>
-#include "headers/field.h"
-#include "headers/VolumeMatching3D.h"
+#include "disptools.h"
+#include "VolumeMatching3D.h"
 
 /********************************************************************************************************************************/	
 
@@ -424,6 +424,17 @@ int VolumeMatching3D(float **f, float **g, float **e, float *TV, int r, int c, i
     df=(float *)malloc(sizeof(float)*rcs);
     dg=(float *)malloc(sizeof(float)*rcs);
     de=(float *)malloc(sizeof(float)*rcs);
+
+    if (!H || !nf || !ng || !ne || !df || !dg || ! de) {
+        if (nf) { free(nf); }
+        if (ng) { free(ng); }
+        if (ne) { free(ne); }
+        if (df) { free(df); }
+        if (dg) { free(dg); }
+        if (de) { free(de); }
+        if (H)  { free(H); }
+        return -1;
+    }
     
     H[0]=VolumeMatchingCost3D(*f,*g,*e,TV,r,c,s);
     
@@ -700,50 +711,14 @@ void volume_matching_3d(
         FLOATING *field           /*!< Resulting displacement field */
         )
 {
-    verbose_printf(DISPTOOLS_DEBUG,
-                   "%s\n"
-                   "nx:        %lu\n"
-                   "ny:        %lu\n"
-                   "nz:        %lu\n"
-                   "dx:        %f\n"
-                   "dy:        %f\n"
-                   "dz:        %f\n"
-                   "alpha:     %e\n"
-                   "beta:      %e\n"
-                   "gamma:     %e\n"
-                   "delta:     %e\n"
-                   "epsilon:   %e\n"
-                   "zeta:      %e\n"
-                   "eta:       %e\n"
-                   "eta_max:   %e\n"
-                   "theta:     %e\n"
-                   "iota:      %e\n"
-                   "tolerance: %e\n"
-                   "strict:    %d\n"
-                   "it_max:    %lu\n",
-                   __func__,
-                   nx, ny, nz,
-                   dx, dy, dz,
-                   alpha, beta, gamma, delta,
-                   epsilon, zeta, eta, eta_max, theta, iota,
-                   tolerance,
-                   strict,
-                   it_max);
+    ASSERT_PARAMETERS;
+    disptools_error.error = false;
 
     float *f = NULL, *g = NULL, *e = NULL, *TV = NULL;
     char *RestrictionMap = NULL;
 	int i,j,k,ind,L;
 
     (void) mask;
-    (void) tolerance;
-    (void) eta;
-    (void) eta_max;
-    (void) theta;
-    (void) iota;
-    (void) alpha;
-    (void) beta;
-    (void) gamma;
-    (void) strict;
 
     #define AT3(A, z, y, x) ((A)[(z)*ny*nx + (y)*nx + (x)])
     #define AT4(A, d, z, y, x) ((A)[(d)*nz*ny*nx + (z)*ny*nx + (y)*nx + (x)])
@@ -761,6 +736,13 @@ void volume_matching_3d(
     f=(float *)calloc(r*c*s,sizeof(float));
     g=(float *)calloc(r*c*s,sizeof(float));
     e=(float *)calloc(r*c*s,sizeof(float));
+    TV=(float *)malloc(sizeof(float)*L);
+
+    if (!f || !g || !e || !TV) {
+        DISPTOOLS_SET_ERROR(true, strerror(errno));
+        goto cleanup;
+    }
+
     ind=0;
     for (k=1;k<s+1;k++)
         for (j=1;j<c+1;j++)
@@ -773,13 +755,18 @@ void volume_matching_3d(
                 ind++;
             }
 	
-    TV=(float *)malloc(sizeof(float)*L);
     for (k=0;k<s-1;k++)
         for (j=0;j<c-1;j++)
             for (i=0;i<r-1;i++)
                 TV[k*(c-1)*(r-1) + j*(r-1) + i] = AT3(J, k, j, i);
     
-    VolumeMatching3D(&f,&g,&e,TV,r,c,s,MAXITNUM,NORESTRICTION,RestrictionMap,epsilon);
+    int err;
+    err = VolumeMatching3D(&f,&g,&e,TV,r,c,s,MAXITNUM,NORESTRICTION,RestrictionMap,epsilon);
+
+    if (err < 0) {
+        DISPTOOLS_SET_ERROR(true, strerror(errno));
+        goto cleanup;
+    }
 
     // Convert from the tool's coordinate system to ITK's.
     // Also convert from deformation field to displacement field, i.e.
@@ -795,11 +782,12 @@ void volume_matching_3d(
         }
     }
             
-    free(f);
-    free(g);
-    free(e);
-    free(TV);
-    free(RestrictionMap);
+cleanup:
+    if (f) { free(f); }
+    if (g) { free(g); }
+    if (e) { free(e); }
+    if (TV) { free(TV); }
+    if (RestrictionMap) { free(RestrictionMap); }
 
     #undef AT3
     #undef AT4

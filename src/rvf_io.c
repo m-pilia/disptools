@@ -3,12 +3,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "headers/rvf_io.h"
+#include "rvf_io.h"
 
 /*!
  * \brief Write to file a vector field in rvf format.
  */
-void write_rvf(
+int write_rvf(
         const char *filename,               /*!< Filename */
         const Image f
         )
@@ -17,6 +17,10 @@ void write_rvf(
 
     // Allocate a buffer and copy the image data in it
     double *buffer = (double*) malloc(3 * f.nx * f.ny * f.nz * sizeof (double));
+    if (!buffer) {
+        DISPTOOLS_SET_ERROR(true, strerror(errno));
+        return -1;
+    }
 
     for (size_t z = 0; z < f.nz; ++z) {
         for (size_t y = 0; y < f.ny; ++y) {
@@ -30,8 +34,9 @@ void write_rvf(
 
     FILE *fp = fopen(filename, "wb");
     if (!fp) {
-        perror(strerror(errno));
-        exit(errno);
+        DISPTOOLS_SET_ERROR(true, strerror(errno));
+        free(buffer);
+        return -1;
     }
 
     // Write the header
@@ -42,13 +47,16 @@ void write_rvf(
 
     fclose(fp);
     free(buffer);
+
+    return 0;
 }
 
 /*!
  * \brief Read from file a vector field in rvf format.
  */
-Image read_rvf(
-        const char *filename /*!< Filename. */
+int read_rvf(
+        const char *filename, /*!< Filename. */
+        Image *image          /*!< Image. */
         )
 {
     size_t nx, ny, nz;
@@ -58,15 +66,24 @@ Image read_rvf(
     size_t i = 0ul;
 
     FILE *fp = fopen(filename, "rb");
-    GENERIC_ERROR_HANDLER(!fp);
+    if (!fp) {
+        DISPTOOLS_SET_ERROR(true, strerror(errno));
+        return -1;
+    }
 
     // Parse the header
 
     count = fscanf(fp, "%lu %lu %lu\n", &nx, &ny, &nz);
-    GENERIC_ERROR_HANDLER(3 != count);
+    if (3 != count) {
+        DISPTOOLS_SET_ERROR(true, "read_rvf: expected size (3 integers)");
+        return -1;
+    }
 
     count = fscanf(fp, "%f %f %f\n", &fdx, &fdy, &fdz);
-    GENERIC_ERROR_HANDLER(3 != count);
+    if (3 != count) {
+        DISPTOOLS_SET_ERROR(true, "read_rvf: expected spacing (3 floats)");
+        return -1;
+    }
 
     dx = (FLOATING) fdx;
     dy = (FLOATING) fdy;
@@ -79,27 +96,36 @@ Image read_rvf(
     const size_t element_count = 3 * nx * ny * nz;
 
     double *buffer = (double*) malloc(element_count * sizeof (double));
-    GENERIC_ERROR_HANDLER(!buffer);
+    if (!buffer) {
+        DISPTOOLS_SET_ERROR(true, strerror(errno));
+        return -1;
+    }
 
     fread(buffer, sizeof (double), element_count, fp);
 
     fclose(fp);
 
     // Allocate memory for the data structure
-    Image img = new_image(3, nx, ny, nz, dx, dy, dz);
+    *image = new_image(3, nx, ny, nz, dx, dy, dz);
+
+    if (disptools_error.error) {
+        free(buffer);
+        return -1;
+    }
 
     // Copy data from the buffer to the data structure
+    Image ptr = *image;
     for (size_t z = 0; z < nz; ++z) {
         for (size_t y = 0; y < ny; ++y) {
             for (size_t x = 0; x < nx; ++x) {
-                _(img, x, y, z, X) = buffer[i++];
-                _(img, x, y, z, Y) = buffer[i++];
-                _(img, x, y, z, Z) = buffer[i++];
+                _(ptr, x, y, z, X) = buffer[i++];
+                _(ptr, x, y, z, Y) = buffer[i++];
+                _(ptr, x, y, z, Z) = buffer[i++];
             }
         }
     }
 
     free(buffer);
 
-    return img;
+    return 0;
 }
