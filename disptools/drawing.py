@@ -477,6 +477,7 @@ def extract_slice(
         data = (255.0 * data).astype(np.uint8)
         slice_image = sitk.GetImageFromArray(data, isVector=True)
     elif colormap is not None:
+        slice_image = sitk.RescaleIntensity(slice_image)
         slice_image = sitk.Cast(slice_image, sitk.sitkUInt8)
         slice_image = sitk.ScalarToRGBColormap(slice_image, colormap, useInputImageExtremaForScaling=False)
 
