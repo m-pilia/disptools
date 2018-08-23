@@ -435,7 +435,7 @@ def extract_slice(
         raise Exception('extract_slice: skimage module is required to use hsv interpolation.')
 
     if window is not None:
-        image = sitk.IntensityWindowing(image, *window)
+        image = sitk.IntensityWindowing(image, *window, *window)
 
     if rescale:
         image = sitk.RescaleIntensity(image)
@@ -453,6 +453,8 @@ def extract_slice(
     slice_image = sitk.Extract(image, size=size, index=indices)
 
     new_size = [int(x * dx) for x, dx in zip(slice_image.GetSize(), slice_image.GetSpacing())]
+    slice_image.SetOrigin(tuple([0 for _ in new_size]))
+
     slice_image = sitk.Resample(slice_image, tuple(new_size))
     slice_image.SetSpacing(tuple([1 for _ in new_size]))
 
