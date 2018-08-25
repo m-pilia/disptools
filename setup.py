@@ -105,7 +105,7 @@ setup(name = 'disptools',
       long_description_content_type='text/markdown',
       install_requires=['numpy', 'scipy', 'SimpleITK'],
       extras_require = {
-          'ITK':  ['itk>=4.12'],
+          'ITK': ['itk>=4.12'],
           'VTK': ['vtk>=7.0'],
           'elastix': ['ply'],
           'testing': ['scikit-image'],
