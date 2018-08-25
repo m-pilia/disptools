@@ -20,6 +20,11 @@ if '--debug' in sys.argv:
     _DEBUG = True
     sys.argv.remove('--debug')
 
+_OMP = False
+if '--omp' in sys.argv:
+    _OMP = True
+    sys.argv.remove('--omp')
+
 _CUDA = False
 if '--cuda' in sys.argv:
     _CUDA = True
@@ -58,6 +63,7 @@ class CMakeBuild(build_ext):
                 '-DDISPTOOLS_VERBOSE=ON',
                 '-DDISPTOOLS_LOW_ORDER_PD=OFF',
                 '-DDISPTOOLS_DOUBLE=OFF',
+                '-DDISPTOOLS_OMP_SUPPORT=%s' % ('ON' if _OMP else 'OFF'),
                 '-DDISPTOOLS_CUDA_SUPPORT=%s' % ('ON' if _CUDA else 'OFF'),
                 '-DDISPTOOLS_CUDA_ERROR_CHECK=ON',
                 '-DDISPTOOLS_CUDA_ERROR_CHECK_SYNC=ON',

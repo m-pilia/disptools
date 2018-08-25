@@ -51,6 +51,7 @@ This package is available on [PyPI](https://pypi.org/project/disptools) both as 
 Build flags accepted by `setup.py`:
 + `--opt`: enable non-portable optimisations.
 + `--debug`: disable optimisations, compile with debug symbols.
++ `--omp`: enable OpenMP support.
 + `--cuda`: enable CUDA support.
 
 Flags starting with `-D` are passed directly to `CMake`.
