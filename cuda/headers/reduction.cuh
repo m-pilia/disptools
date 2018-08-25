@@ -56,6 +56,8 @@ __global__ void reduce_kernel(
             __syncthreads(); /* otherwise, the shared data must be volatile */ \
         }
 
+    static_assert(num_threads >= 32 && "Block size < 32 is not supported");
+
     __shared__ T_out s_data[num_threads];
     const int tid = threadIdx.x;
     int i = blockIdx.x * num_threads + tid;
@@ -74,6 +76,8 @@ __global__ void reduce_kernel(
     REDUCE_SYNC(64, op)
     if (tid < 32) {
         REDUCE_SIMD(32, op)
+    }
+    if (tid < 16) {
         REDUCE_SIMD(16, op)
         REDUCE_SIMD(8, op)
         REDUCE_SIMD(4, op)
@@ -119,11 +123,6 @@ static void run_reduce_kernel(
         CASE(128)
         CASE(64)
         CASE(32)
-        CASE(16)
-        CASE(8)
-        CASE(4)
-        CASE(2)
-        CASE(1)
     }
 
     #undef CASE
