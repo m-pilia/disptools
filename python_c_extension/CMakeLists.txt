@@ -28,6 +28,7 @@ target_include_directories(python_c_extension PUBLIC
 
 target_link_libraries(python_c_extension
     disptools
+    ${PYTHON_LIBRARIES}
 )
 
 if(DISPTOOLS_CUDA_SUPPORT)
@@ -39,4 +40,3 @@ if(DISPTOOLS_CUDA_SUPPORT)
         disptools_cuda
         )
 endif()
-

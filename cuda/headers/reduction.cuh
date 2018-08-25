@@ -56,7 +56,7 @@ __global__ void reduce_kernel(
             __syncthreads(); /* otherwise, the shared data must be volatile */ \
         }
 
-    static_assert(num_threads >= 32 && "Block size < 32 is not supported");
+    static_assert(num_threads >= 32, "Block size < 32 is not supported");
 
     __shared__ T_out s_data[num_threads];
     const int tid = threadIdx.x;

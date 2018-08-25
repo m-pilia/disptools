@@ -40,7 +40,7 @@ int write_rvf(
     }
 
     // Write the header
-    fprintf(fp, "%lu %lu %lu\n%f %f %f\n", f.nx, f.ny, f.nz, f.dx, f.dy, f.dz);
+    fprintf(fp, "%zu %zu %zu\n%f %f %f\n", f.nx, f.ny, f.nz, f.dx, f.dy, f.dz);
 
     // Write the image data
     fwrite(buffer, sizeof (double), 3 * f.nx * f.ny * f.nz, fp);
@@ -73,7 +73,7 @@ int read_rvf(
 
     // Parse the header
 
-    count = fscanf(fp, "%lu %lu %lu\n", &nx, &ny, &nz);
+    count = fscanf(fp, "%zu %zu %zu\n", &nx, &ny, &nz);
     if (3 != count) {
         DISPTOOLS_SET_ERROR(true, "read_rvf: expected size (3 integers)");
         return -1;
@@ -89,7 +89,7 @@ int read_rvf(
     dy = (FLOATING) fdy;
     dz = (FLOATING) fdz;
 
-    verbose_printf(DISPTOOLS_DEBUG, "%lu %lu %lu %f %f %f\n", nx, ny, nz, dx, dy, dz);
+    verbose_printf(DISPTOOLS_DEBUG, "%zu %zu %zu %f %f %f\n", nx, ny, nz, dx, dy, dz);
 
     // Allocate memory for a buffer and read binary data
 

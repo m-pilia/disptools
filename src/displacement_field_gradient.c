@@ -214,7 +214,7 @@ void generate_displacement_gradient(
 )
 {
     ASSERT_PARAMETERS;
-    disptools_error.error = false;
+    disptools_clear_error();
 
     // Image size
     const size_t voxel_number = nx * ny * nz;
@@ -251,7 +251,7 @@ void generate_displacement_gradient(
     FLOATING max_voxel_error = DBL_MAX, last_max_voxel_error = DBL_MAX;
     FLOATING g_norm_2 = 0.0;
 
-    if (disptools_error.error) {
+    if (disptools_has_error()) {
         goto cleanup;
     }
 

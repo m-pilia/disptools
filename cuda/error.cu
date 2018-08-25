@@ -125,7 +125,7 @@ FLOATING2 compute_error(
     cuda_safe_call((reduce_array<FLOATING, FLOATING2, ErrorFold, ErrorInit>
                                 (voxel_error.data, &result, voxel_count, block_size, op, init, null)));
 
-    if (disptools_error.error) {
+    if (disptools_has_error()) {
         return {-1.0, -1.0};
     }
 

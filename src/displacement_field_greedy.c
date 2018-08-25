@@ -108,7 +108,7 @@ void generate_displacement_greedy(
         )
 {
     ASSERT_PARAMETERS;
-    disptools_error.error = false;
+    disptools_clear_error();
 
     // Image size
     const size_t voxel_number = nx * ny * nz;
@@ -141,7 +141,7 @@ void generate_displacement_greedy(
     FLOATING last_error = DBL_MAX, error = DBL_MAX;
     FLOATING max_voxel_error = 0.0;
 
-    if (disptools_error.error) {
+    if (disptools_has_error()) {
         goto cleanup;
     }
 

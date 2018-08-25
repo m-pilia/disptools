@@ -712,7 +712,7 @@ void volume_matching_3d(
         )
 {
     ASSERT_PARAMETERS;
-    disptools_error.error = false;
+    disptools_clear_error();
 
     float *f = NULL, *g = NULL, *e = NULL, *TV = NULL;
     char *RestrictionMap = NULL;

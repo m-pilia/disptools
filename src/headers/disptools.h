@@ -1,6 +1,10 @@
 #ifndef _FIELD_H_DEFINED
 #define _FIELD_H_DEFINED
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <assert.h>
 #include <errno.h>
 #include <float.h>
@@ -118,9 +122,9 @@
         verbose_printf( \
            DISPTOOLS_DEBUG, \
            "%s\n" \
-           "nx:        %lu\n" \
-           "ny:        %lu\n" \
-           "nz:        %lu\n" \
+           "nx:        %zu\n" \
+           "ny:        %zu\n" \
+           "nz:        %zu\n" \
            "dx:        %f\n" \
            "dy:        %f\n" \
            "dz:        %f\n" \
@@ -136,7 +140,7 @@
            "iota:      %e\n" \
            "tolerance: %e\n" \
            "strict:    %d\n" \
-           "it_max:    %lu\n", \
+           "it_max:    %zu\n", \
            __func__, \
            nx, ny, nz, \
            dx, dy, dz, \
@@ -198,28 +202,66 @@
 /*!
  * \brief Error state.
  */
-struct disptools_error_state {
-    bool error;
-    int line;
-    char file[512];
-    char function[512];
-    char message[1024];
-    char trace[4096];
-};
+typedef struct disptools_error_state {
+    bool error;         /*!< `true` if an error was detected. */
+    int line;           /*!< Line number where the error happened. */
+    char file[512];     /*!< Source file where the error happened. */
+    char function[512]; /*!< Function where the error happened. */
+    char message[1024]; /*!< Human-readable description of the error. */
+    char trace[4096];   /*!< Optional stack trace when the error was detected. */
+} disptools_error_state;
 
-extern struct disptools_error_state disptools_error;
-
+/*!
+ * \brief Macro to set the error state.
+ *
+ * \param condition_ Set the error only if the condition holds.
+ * \param message_   Human-readable description of the error.
+ */
 #define DISPTOOLS_SET_ERROR(condition_, message_) \
     if (condition_) \
     { \
-        disptools_error.error = true; \
-        disptools_error.line = __LINE__; \
-        strcpy(disptools_error.file, __FILE__); \
-        strcpy(disptools_error.function, __func__); \
-        strcpy(disptools_error.message, message_); \
+        _disptools_set_error(true, __LINE__, __FILE__, __func__, message_, ""); \
         SET_TRACE; \
     }
 
+/*!
+ * \brief Set the error state.
+ *
+ * \param error    Set to `true` if an error was detected.
+ * \param line     Line number where the error happened.
+ * \param file     Source file where the error happened.
+ * \param function Function where the error happened.
+ * \param message  Human-readable description of the error.
+ * \param trace    Optional stack trace when the error was detected.
+ */
+void _disptools_set_error(
+        const bool error,
+        const int line,
+        const char file[512],
+        const char function[512],
+        const char message[1024],
+        const char trace[4096]);
+
+/*!
+ * \brief Get a pointer to the current error state.
+ *
+ * \return A pointer to the error state struct.
+ */
+disptools_error_state* disptools_get_error(void);
+
+/*!
+ * \brief Query the current error state.
+ *
+ * \return `true` if there is an error state, `false` otherwise.
+ */
+bool disptools_has_error(void);
+
+/*!
+ * \brief Clear the error state.
+ *
+ * Set to a state with no error. 
+ */
+void disptools_clear_error(void);
 
 #if defined(__GNUC__) && defined(__linux__)
 #include <execinfo.h>
@@ -231,8 +273,9 @@ extern struct disptools_error_state disptools_error;
         int traces_no = backtrace(buffer, BT_BUF_SIZE); \
         char **traces = backtrace_symbols(buffer, traces_no); \
         for (int i = 0; i < traces_no; ++i) { \
-            strcat(disptools_error.trace, traces[i]); \
-            strcat(disptools_error.trace, "\n"); \
+            char *dsp_trace = disptools_get_error()->trace; \
+            strncat(dsp_trace, traces[i], 4096 - strlen(dsp_trace) - 1); \
+            strncat(dsp_trace, "\n",  4096 - strlen(dsp_trace) - 1); \
         } \
         free(traces); \
     }
@@ -240,49 +283,88 @@ extern struct disptools_error_state disptools_error;
 #define SET_TRACE 
 #endif // defined(__GNUC__) && defined(__linux__)
 
-
+/*!
+ * \brief Return the size (in bit) of the floating point type in use.
+ */
 int get_float_type_size(void);
 
+/*!
+ * \brief Data structure representing an image.
+ */
 typedef struct Image {
-    size_t nd;
-    size_t nx;
-    size_t ny;
-    size_t nz;
-    FLOATING dx;
-    FLOATING dy;
-    FLOATING dz;
-    FLOATING * __restrict data;
+    size_t nd;   /*!< Number of dimensions of the voxel values. */
+    size_t nx;   /*!< Size in voxels along the `x` axis. */
+    size_t ny;   /*!< Size in voxels along the `y` axis. */
+    size_t nz;   /*!< Size in voxels along the `z` axis. */
+    FLOATING dx; /*!< Spacing along the `x` axis. */
+    FLOATING dy; /*!< Spacing along the `y` axis. */
+    FLOATING dz; /*!< Spacing along the `z` axis. */
+    FLOATING * __restrict data; /*!< Image data. */
 } Image;
 
+/*!
+ * \brief Data structure representing a binary mask.
+ */
 typedef struct Mask {
-    size_t nx;
-    size_t ny;
-    size_t nz;
-    bool * __restrict data;
+    size_t nx; /*!< Size in voxels along the `x` axis. */
+    size_t ny; /*!< Size in voxels along the `y` axis. */
+    size_t nz; /*!< Size in voxels along the `z` axis. */
+    bool * __restrict data; /*!< Image data. */
 } Mask;
 
+/*!
+ * \brief Allocate a new image.
+ *
+ * \note The image must be deallocated with `delete_image`.
+ */
 Image new_image(
-        const size_t nd,
-        const size_t nx,
-        const size_t ny,
-        const size_t nz,
-        const FLOATING dx,
-        const FLOATING dy,
-        const FLOATING dz
+        const size_t nd,   /*!< Number of dimensions of the voxel values. */
+        const size_t nx,   /*!< Size in voxels along the `x` axis. */
+        const size_t ny,   /*!< Size in voxels along the `y` axis. */
+        const size_t nz,   /*!< Size in voxels along the `z` axis. */
+        const FLOATING dx, /*!< Spacing along the `x` axis. */
+        const FLOATING dy, /*!< Spacing along the `y` axis. */
+        const FLOATING dz  /*!< Spacing along the `z` axis. */
         );
 
+/*!
+ * \brief Allocate a new mask.
+ *
+ * \note The mask must be deallocated with `delete_mask`.
+ */
 Mask new_mask(
-        const size_t nx,
-        const size_t ny,
-        const size_t nz
+        const size_t nx, /*!< Size in voxels along the `x` axis. */
+        const size_t ny, /*!< Size in voxels along the `y` axis. */
+        const size_t nz  /*!< Size in voxels along the `z` axis. */
         );
 
+/*!
+ * \brief Deallocate an image.
+ */
 void delete_image(Image *img);
 
+/*!
+ * \brief Deallocate a mask.
+ */
 void delete_mask(Mask *img);
 
+/*!
+ * \brief Print the image metadata.
+ */
 void print_image_info(const Image img);
 
+/*!
+ * \brief Obtain a binary mask from an image.
+ *
+ * The value of the mask will be false on voxels with the value of zero,
+ * and true elsewhere.
+ *
+ * \note The mask must be deallocated with `delete_mask`.
+ */
 Mask mask_from_image(const Image img);
+
+#ifdef __cplusplus
+} // extern "C"
+#endif
 
 #endif // _FIELD_H_DEFINED

@@ -87,7 +87,7 @@ void generate_displacement_greedy_cuda(
         )
 {
     ASSERT_PARAMETERS;
-    disptools_error.error = false;
+    disptools_clear_error();
 
     dim3 block_size = {8, 8, 8};
     dim3 grid_size = {
@@ -135,7 +135,7 @@ void generate_displacement_greedy_cuda(
     FLOATING2 last_error = {FLOATING_MIN, 0.0};
     FLOATING2 error = {FLOATING_MAX, 0.0};
 
-    if (disptools_error.error) {
+    if (disptools_has_error()) {
         goto cleanup;
     }
 
@@ -159,7 +159,7 @@ void generate_displacement_greedy_cuda(
                                );
 
     cuda_check_error();
-    if (disptools_error.error) {
+    if (disptools_has_error()) {
         goto cleanup;
     }
 
@@ -188,13 +188,13 @@ void generate_displacement_greedy_cuda(
                               );
 
         cuda_check_error();
-        if (disptools_error.error) {
+        if (disptools_has_error()) {
             goto cleanup;
         }
 
         // Verbose feedback
         verbose_printf(true,
-                       "Iteration %5ld:  "
+                       "Iteration %5zd:  "
                        "total error %6e  "
                        "max voxel error %6e  "
                        "eta %6e\n",

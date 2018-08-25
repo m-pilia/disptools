@@ -19,7 +19,7 @@ Image new_gpu_image(
 {
     Image img = {nd, nx, ny, nz, dx, dy, dz, NULL};
     cuda_safe_call(cudaMalloc((void**) &img.data, nd * nx * ny * nz * sizeof (FLOATING)));
-    if (disptools_error.error) {
+    if (disptools_has_error()) {
         return img;
     }
     cuda_safe_call(cudaMemset(img.data, 0, nd * nx * ny * nz * sizeof (FLOATING)));
@@ -34,7 +34,7 @@ Mask new_gpu_mask(
 {
     Mask mask = {nx, ny, nz, NULL};
     cuda_safe_call(cudaMalloc((void**) &mask.data, nx * ny * nz * sizeof (bool)));
-    if (disptools_error.error) {
+    if (disptools_has_error()) {
         return mask;
     }
     cuda_safe_call(cudaMemset(mask.data, 0, nx * ny * nz * sizeof (bool)));

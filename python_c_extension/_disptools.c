@@ -399,14 +399,15 @@ static PyObject *method_displacement(PyObject *self, PyObject *args)
             it_max,
             (void*) field_data);
 
-    if (disptools_error.error) {
+    if (disptools_has_error()) {
+        disptools_error_state *err = disptools_get_error();
         PyErr_Format(PyExc_RuntimeError,
                      "%s (%s:%d): %s\n%s",
-                     disptools_error.function,
-                     disptools_error.file,
-                     disptools_error.line,
-                     disptools_error.message,
-                     disptools_error.trace);
+                     err->function,
+                     err->file,
+                     err->line,
+                     err->message,
+                     err->trace);
         return NULL;
     }
 

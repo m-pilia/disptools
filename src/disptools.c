@@ -5,9 +5,45 @@
 
 #include "disptools.h"
 
-struct disptools_error_state disptools_error = {0, 0, "", "", "", ""};
+disptools_error_state disptools_error = {0, 0, "", "", "", ""};
 
-int get_float_type_size(void) {
+void _disptools_set_error(
+        const bool error,
+        const int line,
+        const char file[512],
+        const char function[512],
+        const char message[1024],
+        const char trace[4096])
+{
+    disptools_error.error = error;
+    disptools_error.line = line;
+    strncpy(disptools_error.file, file, 512 - 1);
+    strncpy(disptools_error.function, function, 512 - 1);
+    strncpy(disptools_error.message, message, 1024 - 1);
+    strncpy(disptools_error.trace, trace, 4096 - 1);
+}
+
+disptools_error_state* disptools_get_error(void)
+{
+    return &disptools_error;
+}
+
+bool disptools_has_error(void)
+{
+    return disptools_error.error;
+}
+
+void disptools_clear_error(void) {
+    disptools_error.error = false;
+    disptools_error.line = -1;
+    strcpy(disptools_error.file, "");
+    strcpy(disptools_error.function, "");
+    strcpy(disptools_error.message, "");
+    strcpy(disptools_error.trace, "");
+}
+
+int get_float_type_size(void)
+{
     return 8 * sizeof (FLOATING);
 }
 
