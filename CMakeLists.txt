@@ -98,6 +98,10 @@ if(DISPTOOLS_CUDA_SUPPORT)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
     endif()
 
+    if(DISPTOOLS_FAST_MATH AND NOT DISPTOOLS_DEBUG)
+        set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} --use_fast_math")
+    endif()
+
     add_definitions(-DDISPTOOLS_HAS_CUDA=1)
 
     if(DISPTOOLS_CUDA_ERROR_CHECK)
