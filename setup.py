@@ -64,11 +64,13 @@ class CMakeBuild(build_ext):
             ]
 
             if platform.system() == "Windows":
+                cmake_args += [
+                    '-DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=TRUE',
+                    '-DCMAKE_RUNTIME_OUTPUT_DIRECTORY_{}={}'.format(cfg.upper(), extdir),
+                ]
                 if self.compiler.compiler_type == 'msvc':
                     cmake_args += [
-                        '-DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=TRUE',
-                        '-DCMAKE_RUNTIME_OUTPUT_DIRECTORY_{}={}'.format(cfg.upper(), extdir),
-                        '-DCMAKE_GENERATOR_PLATFORM=%s' % plat
+                        '-DCMAKE_GENERATOR_PLATFORM=%s' % plat,
                     ]
                 else:
                     cmake_args += [
