@@ -8,28 +8,17 @@ from pprint import pprint
 from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext
 
+# Filename for the C extension module library
 c_module_name = '_disptools'
 
-_OPT = False
-if '--opt' in sys.argv:
-    _OPT = True
-    sys.argv.remove('--opt')
+# Parse command line flags
+options = {k: 'OFF' for k in ['--opt', '--debug', '--omp', '--cuda']}
+for flag in options.keys():
+    if flag in sys.argv:
+        options[flag] = 'ON'
+        sys.argv.remove(flag)
 
-_DEBUG = False
-if '--debug' in sys.argv:
-    _DEBUG = True
-    sys.argv.remove('--debug')
-
-_OMP = False
-if '--omp' in sys.argv:
-    _OMP = True
-    sys.argv.remove('--omp')
-
-_CUDA = False
-if '--cuda' in sys.argv:
-    _CUDA = True
-    sys.argv.remove('--cuda')
-
+# Command line flags forwarded to CMake
 cmake_cmd_args = []
 for f in sys.argv:
     if f.startswith('-D'):
@@ -55,16 +44,16 @@ class CMakeBuild(build_ext):
 
             extdir = os.path.abspath(os.path.dirname(self.get_ext_fullpath(ext.name)))
             plat = ('x64' if platform.architecture()[0] == '64bit' else 'x32')
-            cfg = 'Debug' if _DEBUG else 'Release'
+            cfg = 'Debug' if options['--debug'] == 'ON' else 'Release'
 
             cmake_args = [
                 '-DDISPTOOLS_DEBUG=%s' % ('ON' if cfg == 'Debug' else 'OFF'),
-                '-DDISPTOOLS_OPT=%s' % ('ON' if _OPT else 'OFF'),
+                '-DDISPTOOLS_OPT=%s' % options['--opt'],
                 '-DDISPTOOLS_VERBOSE=ON',
                 '-DDISPTOOLS_LOW_ORDER_PD=OFF',
                 '-DDISPTOOLS_DOUBLE=OFF',
-                '-DDISPTOOLS_OMP_SUPPORT=%s' % ('ON' if _OMP else 'OFF'),
-                '-DDISPTOOLS_CUDA_SUPPORT=%s' % ('ON' if _CUDA else 'OFF'),
+                '-DDISPTOOLS_OMP_SUPPORT=%s' % options['--omp'],
+                '-DDISPTOOLS_CUDA_SUPPORT=%s' % options['--cuda'],
                 '-DDISPTOOLS_CUDA_ERROR_CHECK=ON',
                 '-DDISPTOOLS_CUDA_ERROR_CHECK_SYNC=ON',
                 '-DDISPTOOLS_PYTHON_SUPPORT=ON',
