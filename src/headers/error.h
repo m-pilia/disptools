@@ -57,8 +57,8 @@ static inline Image create_tolerance_map(
         const FLOATING tolerance
         )
 {
-    size_t nx = mask.nx, ny = mask.ny, nz = mask.nz;
-    Image tolerance_map = new_image(1, mask.nx, mask.ny, mask.nz, 1.0, 1.0, 1.0);
+    const size_t nx = mask.nx, ny = mask.ny, nz = mask.nz;
+    Image tolerance_map = new_image(1, nx, ny, nz, 1.0, 1.0, 1.0);
 
     if (!tolerance_map.data) {
         return tolerance_map;
@@ -85,12 +85,12 @@ static inline Image create_tolerance_map(
  * \brief Compute the error on the Jacobian of the moving field.
  */
 static inline FLOATING compute_error(
-        const Image J,             /*!< Target Jacobian */
-        const Image J_field,       /*!< Current Jacobian */
-        const Mask mask,           /*!< Body mask */
-        const Image tolerance_map, /*!< Jacobian tolerance on background */
-        const Image voxel_error,   /*!< Error on the Jacobian */
-        FLOATING *max_voxel_error  /*!< Maximum voxel error */
+        const Image J,            /*!< Target Jacobian */
+        const Image J_field,      /*!< Current Jacobian */
+        const Mask mask,          /*!< Body mask */
+        const FLOATING tolerance, /*!< Jacobian tolerance on background */
+        const Image voxel_error,  /*!< Error on the Jacobian */
+        FLOATING *max_voxel_error /*!< Maximum voxel error */
         )
 {
     // Cumulative error over the entire Jacobian map
@@ -135,7 +135,6 @@ static inline FLOATING compute_error(
                 // Tolerate some error in the background
                 else {
                     const FLOATING abs_error = fabs(error);
-                    const FLOATING tolerance = __(tolerance_map, x, y, z);
                     __(voxel_error, x, y, z) = 
                         abs_error < tolerance ? 
                         0.0 :

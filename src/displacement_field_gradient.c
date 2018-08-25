@@ -227,9 +227,6 @@ void generate_displacement_gradient(
     Image J_ = {1, nx, ny, nz, dx, dy, dz, (FLOATING*) J};
     Mask mask_ = {nx, ny, nz, (bool*) mask};
 
-    // Create tolerance map
-    Image tolerance_map = create_tolerance_map(mask_, tolerance);
-
     // Allocate memory for the Jacobian map of the moving field
     // Use two buffers
     Image J_field_[2] = {
@@ -266,7 +263,7 @@ void generate_displacement_gradient(
     last_error = compute_error(J_,
                                J_field_[old_buffer],
                                mask_,
-                               tolerance_map,
+                               tolerance,
                                voxel_error,
                                &max_voxel_error
                                );
@@ -307,7 +304,7 @@ void generate_displacement_gradient(
         error = compute_error(J_,
                               J_field_[new_buffer],
                               mask_,
-                              tolerance_map,
+                              tolerance,
                               voxel_error,
                               &max_voxel_error
                               );
@@ -323,7 +320,7 @@ void generate_displacement_gradient(
     last_error = compute_error(J_,
                                J_field_[old_buffer],
                                mask_,
-                               tolerance_map,
+                               tolerance,
                                voxel_error,
                                &max_voxel_error
                                );
@@ -360,7 +357,7 @@ void generate_displacement_gradient(
             error = compute_error(J_,
                                   J_field_[new_buffer],
                                   mask_,
-                                  tolerance_map,
+                                  tolerance,
                                   voxel_error,
                                   &max_voxel_error
                                   );
@@ -431,5 +428,4 @@ cleanup:
     delete_image(&J_field_[1]);
     delete_image(&g);
     delete_image(&voxel_error);
-    delete_image(&tolerance_map);
 }

@@ -1,35 +1,5 @@
 #include "jacobian.cuh"
-
-// Central partial differences with second order accuracy 
-#define dfx_dx_2(f, x, y, z, idx) \
-         ((_((f), (x)+1, (y),  (z),   X) - _((f), (x)-1, (y),  (z),   X)) * (idx) * .5)
-#define dfx_dy_2(f, x, y, z, idy) \
-         ((_((f), (x),  (y)+1, (z),   X) - _((f), (x),  (y)-1, (z),   X)) * (idy) * .5)
-#define dfx_dz_2(f, x, y, z, idz) \
-         ((_((f), (x),  (y),   (z)+1, X) - _((f), (x),  (y),   (z)-1, X)) * (idz) * .5)
-#define dfy_dx_2(f, x, y, z, idx) \
-         ((_((f), (x)+1, (y),  (z),   Y) - _((f), (x)-1, (y),  (z),   Y)) * (idx) * .5)
-#define dfy_dy_2(f, x, y, z, idy) \
-         ((_((f), (x),  (y)+1, (z),   Y) - _((f), (x),  (y)-1, (z),   Y)) * (idy) * .5)
-#define dfy_dz_2(f, x, y, z, idz) \
-         ((_((f), (x),  (y),   (z)+1, Y) - _((f), (x),  (y),   (z)-1, Y)) * (idz) * .5)
-#define dfz_dx_2(f, x, y, z, idx) \
-         ((_((f), (x)+1, (y),  (z),   Z) - _((f), (x)-1, (y),  (z),   Z)) * (idx) * .5)
-#define dfz_dy_2(f, x, y, z, idy) \
-         ((_((f), (x),  (y)+1, (z),   Z) - _((f), (x),  (y)-1, (z),   Z)) * (idy) * .5)
-#define dfz_dz_2(f, x, y, z, idz) \
-         ((_((f), (x),  (y),   (z)+1, Z) - _((f), (x),  (y),   (z)-1, Z)) * (idz) * .5)
-
-// Approximate the Jacobian
-// Add 1.0 along the diagonal to add the identity component 
-// of the transform to the displacement field.
-
-// Second order accuracy
-#define Jacobian_2(f, x, y, z, idx, idy, idz) \
-   det3j(dfx_dx_2((f),(x),(y),(z),(idx)), dfx_dy_2((f),(x),(y),(z),(idy)), dfx_dz_2((f),(x),(y),(z),(idz)),  \
-         dfy_dx_2((f),(x),(y),(z),(idx)), dfy_dy_2((f),(x),(y),(z),(idy)), dfy_dz_2((f),(x),(y),(z),(idz)),  \
-         dfz_dx_2((f),(x),(y),(z),(idx)), dfz_dy_2((f),(x),(y),(z),(idy)), dfz_dz_2((f),(x),(y),(z),(idz)));
-
+#include "jacobian_macros.h"
 
 /*!
  * \brief Compute the Jacobian determinant associated to a 
@@ -59,19 +29,22 @@ __global__ void jacobian(
         return;
     }
 
-    __(J, x, y, z) = Jacobian_2(f, x, y, z, is.x, is.y, is.z);
+    #if ORDER_PD == 2
+        __(J, x, y, z) = Jacobian_2(f, x, y, z, is.x, is.y, is.z);
+    #elif ORDER_PD == 4
+        if (x == 1 || x == f.nx - 2 ||
+            y == 1 || y == f.ny - 2 ||
+            z == 1 || z == f.nz - 2)
+        {
+            __(J, x, y, z) = Jacobian_2(f, x, y, z, is.x, is.y, is.z);
+
+        }
+        else
+        {
+            __(J, x, y, z) = Jacobian_4(f, x, y, z, is.x, is.y, is.z);
+        }
+    #else
+        #error "Unsupported order for partial derivatives"
+    #endif
 }
-
-
-#undef dfx_dx_2
-#undef dfx_dy_2
-#undef dfx_dz_2
-#undef dfy_dx_2
-#undef dfy_dy_2
-#undef dfy_dz_2
-#undef dfz_dx_2
-#undef dfz_dy_2
-#undef dfz_dz_2
-
-#undef Jacobian_2
 
