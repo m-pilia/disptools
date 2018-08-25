@@ -3,7 +3,7 @@ disptools
 Generate displacement fields with known volume changes
 ------------------------------------------------------
 
-This library provides utilities to generate and manipulate displacement fields with known volume changes. It implements three search-based algorithms for the generation of deformation fields, along with a small collection of utility functions.
+This library provides utilities to generate and manipulate displacement fields with known volume changes. It implements three search-based algorithms for the generation of deformation fields, along with a small collection of utility functions, and provides optional GPU acceleration through a CUDA implementation.
 
 The three algorithms implemented are referred as:
 + `gradient`: a gradient descent method (default).
@@ -21,7 +21,7 @@ The complete documentation for this package is available on https://martinopilia
 
 The project is structured in three layers:
 + a pure standard [C99](https://en.wikipedia.org/wiki/C99) library (whose headers are in `src/headers`), with no external dependencies, implementing the core algorithms for the generation of deformation fields. It is a standalone library that can be directly included in a C or C++ project. It is paired with an optional [CUDA](https://en.wikipedia.org/wiki/CUDA) library, whose headers are in `cuda/headers`, that depends on `src/headers` and provides a GPGPU implementation of the key routines.
-+ a [Python C extension](https://docs.python.org/3.6/extending/extending.html) package `_disptools` (whose source is in the file `src/_disptools.c`), providing a bare Python wrapper to the aforementioned library, using the [NumPy C API](https://docs.scipy.org/doc/numpy-1.14.0/reference/c-api.html) to pass arrays. This can be directly included in a Python project with no dependencies other than NumPy.
++ a [Python C extension](https://docs.python.org/3.6/extending/extending.html) package `_disptools` (whose source is in the file `python_c_extension/_disptools.c`), providing a bare Python wrapper to the aforementioned library, using the [NumPy C API](https://docs.scipy.org/doc/numpy-1.14.0/reference/c-api.html) to pass arrays. This can be directly included in a Python project with no dependencies other than NumPy.
 + a Python package (`disptools`), that wraps the `_disptools` package providing file IO (through SimpleITK) and implementing high-level features (such as the multi-resolution framework) and auxiliary utilities and functions.
 
 ### Requirements
@@ -31,7 +31,7 @@ The library is a cross-platform Python 3.5+ package, with a compiled C extension
 + [scipy](https://github.com/scipy/scipy) ([pypi package](https://pypi.org/pypi/scipy))
 + [SimpleITK](https://github.com/SimpleITK/SimpleITK) ([pypi package](https://pypi.org/pypi/SimpleITK))
 
-Build dependencies are a standard C99 compiler (tested with gcc 7.3 on Linux, mingw-w64 7.2 on Windows 10), [CMake](https://cmake.org/), the [numpy](https://pypi.python.org/pypi/numpy) and the [setuptools](https://pypi.python.org/pypi/setuptools) packages. [scikit-build](https://pypi.python.org/pypi/scikit-build) may be required to build the other Python dependencies.
+Build dependencies are a standard C compiler (tested with gcc 8.2 on Linux, mingw-w64 7.2 and MSVC 19 on Windows 10), [CMake](https://cmake.org/), the [numpy](https://pypi.python.org/pypi/numpy) and the [setuptools](https://pypi.python.org/pypi/setuptools) packages. [scikit-build](https://pypi.python.org/pypi/scikit-build) may be required to build the other Python dependencies.
 
 Some optional dependencies are required only for a limited set of features, and the package should build and run without them:
 + [itk](https://github.com/InsightSoftwareConsortium/ITK) ([pypi package](https://pypi.org/project/itk)): for `disptools.drawing.sitk_to_itk`
@@ -54,7 +54,7 @@ Build flags accepted by `setup.py`:
 + `--omp`: enable OpenMP support.
 + `--cuda`: enable CUDA support.
 
-Flags starting with `-D` are passed directly to `CMake`.
+Additional flags starting with `-D` are also accepted and passed directly to `CMake` (e.g. `-DCUDA_NVCC_FLAGS="-ccbin gcc-7"` to specify the version of `gcc` to be used by CUDA).
 
 #### Windows (Visual Studio) and Linux
 
