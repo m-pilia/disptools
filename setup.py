@@ -43,7 +43,7 @@ class CMakeBuild(build_ext):
         for ext in self.extensions:
 
             extdir = os.path.abspath(os.path.dirname(self.get_ext_fullpath(ext.name)))
-            plat = ('x64' if platform.architecture()[0] == '64bit' else 'x32')
+            plat = ('x64' if platform.architecture()[0] == '64bit' else 'Win32')
             cfg = 'Debug' if options['--debug'] == 'ON' else 'Release'
 
             cmake_args = [

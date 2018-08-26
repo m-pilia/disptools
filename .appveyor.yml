@@ -1,0 +1,29 @@
+version: '{branch}-{build}'
+
+environment:
+  PYTHON: "C:\\Python37-x64"
+  VS_CALL: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Community\\VC\\Auxiliary\\Build\\vcvars64.bat"
+  stack: python 3
+
+image:
+  - Ubuntu
+  - Visual Studio 2017
+
+before_build:
+  - cmd: set PATH=%PYTHON%;%PYTHON%\Scripts;%PATH%
+  - cmd: call "%VS_CALL%"
+  - cmd: python --version
+  - cmd: pip install --user numpy
+
+  - sh: sudo apt-get --yes install python3-pip
+  - sh: python3 --version
+  - sh: pip3 install --user numpy
+
+build_script:
+  - cmd: set PATH=%PYTHON%;%PYTHON%\Scripts;%PATH%
+  - cmd: python --version
+  - cmd: python setup.py build --opt --omp
+
+  - sh: python3 --version
+  - sh: python3 setup.py build --opt --omp
+

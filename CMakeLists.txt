@@ -117,13 +117,9 @@ endif()
 
 # Add Python component if requested
 if(DISPTOOLS_PYTHON_SUPPORT)
-    find_package(PythonLibs REQUIRED)
+    find_package(PythonLibs 3.5 REQUIRED)
 
-    if(PYTHONLIBS_VERSION_STRING VERSION_LESS "3.5")
-        message(FATAL_ERROR "Python 3.5 or higher is required")
-    endif()
-
-    find_package(PythonInterp REQUIRED)
+    find_package(PythonInterp 3.5 REQUIRED)
     exec_program(${PYTHON_EXECUTABLE}
                  ARGS "-c \"import numpy; print(numpy.get_include())\""
                  OUTPUT_VARIABLE NUMPY_INCLUDE_DIR
