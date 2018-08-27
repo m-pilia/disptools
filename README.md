@@ -2,6 +2,11 @@ disptools
 =========
 Generate displacement fields with known volume changes
 ------------------------------------------------------
+[![GitHub release](https://img.shields.io/github/release/m-pilia/disptools.svg)](https://github.com/m-pilia/disptools/releases/latest)
+[![PyPI](https://img.shields.io/pypi/v/disptools.svg)](https://pypi.python.org/pypi/disptools)
+[![Wheels](https://img.shields.io/pypi/wheel/disptools.svg)](https://pypi.org/project/disptools)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/m-pilia/disptools/blob/master/LICENSE)
+[![Appveyor](https://ci.appveyor.com/api/projects/status/github/m-pilia/disptools?svg=true)](https://www.appveyor.com/)
 
 This library provides utilities to generate and manipulate displacement fields with known volume changes. It implements three search-based algorithms for the generation of deformation fields, along with a small collection of utility functions, and provides optional GPU acceleration through a CUDA implementation.
 
