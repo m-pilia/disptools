@@ -27,8 +27,8 @@ for f in sys.argv:
 
 
 class CMakeExtension(Extension):
-    def __init__(self, name, cmake_lists_dir='', **kwa):
-        Extension.__init__(self, name, **kwa)
+    def __init__(self, name, cmake_lists_dir='.', sources=[], **kwa):
+        Extension.__init__(self, name, sources=sources, **kwa)
         self.cmake_lists_dir = os.path.abspath(cmake_lists_dir)
 
 
@@ -43,7 +43,6 @@ class CMakeBuild(build_ext):
         for ext in self.extensions:
 
             extdir = os.path.abspath(os.path.dirname(self.get_ext_fullpath(ext.name)))
-            plat = ('x64' if platform.architecture()[0] == '64bit' else 'Win32')
             cfg = 'Debug' if options['--debug'] == 'ON' else 'Release'
 
             cmake_args = [
@@ -63,7 +62,8 @@ class CMakeBuild(build_ext):
                 '-DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_{}={}'.format(cfg.upper(), self.build_temp),
             ]
 
-            if platform.system() == "Windows":
+            if platform.system() == 'Windows':
+                plat = ('x64' if platform.architecture()[0] == '64bit' else 'Win32')
                 cmake_args += [
                     '-DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=TRUE',
                     '-DCMAKE_RUNTIME_OUTPUT_DIRECTORY_{}={}'.format(cfg.upper(), extdir),
@@ -112,7 +112,7 @@ setup(name = 'disptools',
           'elastix': ['ply'],
           'testing': ['scikit-image'],
       },
-      ext_modules = [CMakeExtension(c_module_name, cmake_lists_dir='.', sources=[])],
+      ext_modules = [CMakeExtension(c_module_name)],
       cmdclass = {'build_ext': CMakeBuild},
       zip_safe=False,
       )
