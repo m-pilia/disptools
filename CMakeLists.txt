@@ -117,8 +117,6 @@ endif()
 
 # Add Python component if requested
 if(DISPTOOLS_PYTHON_SUPPORT)
-    find_package(PythonLibs 3.5 REQUIRED)
-
     find_package(PythonInterp 3.5 REQUIRED)
     exec_program(${PYTHON_EXECUTABLE}
                  ARGS "-c \"import numpy; print(numpy.get_include())\""
@@ -128,6 +126,9 @@ if(DISPTOOLS_PYTHON_SUPPORT)
     if(NUMPY_NOT_FOUND)
         message(FATAL_ERROR "NumPy headers not found")
     endif()
+
+    # This goes after, since it uses PythonInterp as hint
+    find_package(PythonLibs 3.5 REQUIRED)
 
     add_subdirectory(python_c_extension)
 endif()
