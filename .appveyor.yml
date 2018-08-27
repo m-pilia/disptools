@@ -1,13 +1,25 @@
 version: '{branch}-{build}'
 
-environment:
-  PYTHON: "C:\\Python37-x64"
-  VS_CALL: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Community\\VC\\Auxiliary\\Build\\vcvars64.bat"
-  stack: python 3
-
 image:
   - Ubuntu
   - Visual Studio 2017
+
+environment:
+  stack: python 3
+
+  matrix:
+    # 64 bit
+    - PYTHON: "C:\\Python37-x64"
+      VS_CALL: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Community\\VC\\Auxiliary\\Build\\vcvars64.bat"
+
+    # 32 bit
+    - PYTHON: "C:\\Python37"
+      VS_CALL: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Community\\VC\\Auxiliary\\Build\\vcvars32.bat"
+
+matrix:
+  exclude:
+    - PYTHON: "C:\\Python37"
+      image: Ubuntu
 
 before_build:
   - cmd: set PATH=%PYTHON%;%PYTHON%\Scripts;%PATH%
