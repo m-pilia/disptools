@@ -23,7 +23,7 @@ def jacobian_to_atrophy_map(image: sitk.Image) -> sitk.Image:
 
 def mask_to_simulatrophy_mask(
         image: sitk.Image,
-        radius: int = 8,
+        radius: int = None,
         kernel: int = sitk.sitkBall,
         ) -> sitk.Image:
     r""" Convert a binary mask to a Simul@trophy mask.
@@ -47,7 +47,8 @@ def mask_to_simulatrophy_mask(
 
     radius : int
         Radius for the dilation, determines the amount of CSF
-        surrounding the ROI.
+        surrounding the ROI. If `None`, all the volume outside the ROI
+        is set to CSF.
 
     kernel : int
         Kernel used for the dilation, among the values in
@@ -60,6 +61,6 @@ def mask_to_simulatrophy_mask(
     """
 
     image = image > 0
-    dilated = sitk.BinaryDilate(image, radius, kernel)
+    dilated = sitk.BinaryDilate(image, radius, kernel) if radius is not None else 1
     return 2 * image + dilated
 
