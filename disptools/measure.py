@@ -6,6 +6,7 @@ import functools
 from typing import *
 from disptools import *
 import disptools.drawing as drawing
+import disptools.displacements as dsp
 
 import _disptools
 
@@ -423,4 +424,67 @@ def mutual_information(
         mi /= np.sqrt(np.sum(fx * np.log(fx)) * np.sum(fy * np.log(fy)))
 
     return float(mi)
+
+
+def volume_change(
+        jacobian : sitk.Image,
+        mask     : sitk.Image = None,
+        average  : bool = False,
+        squared  : bool = False
+        ) -> float:
+    r""" Compute the volume change associated to a Jacobian map.
+
+    The total volume change associated to an invertible transform
+    :math:`f` over a ROI :math:`\Omega` is defined as
+
+    .. math::
+        TVC(J) = \int_{p \in \Omega} |VC[f](x)| d\Omega
+
+    while the average absolute volume change is defined as
+
+    .. math::
+        AVC(J) = \frac{1}{|\Omega|} \int_{p \in \Omega} |VC[f](x)| d\Omega
+
+    where the volume change is defined as
+
+    .. math::
+        VC[f](x) =
+        \begin{cases}
+            1 - \frac{1}{J[f](x)}  \quad &J[f](x) \in (0,1) \\
+            J[f](x) - 1            \quad &J[f](x) \ge 1
+        \end{cases}
+
+    with :math:`J[f]` representing the Jacobian of :math:`f`.
+
+    Parameters
+    ----------
+    jacobian : sitk.Image
+        Jacobian map of the transform.
+
+    mask : sitk.Image
+        Binary image masking a region of interest.
+
+    average : bool
+        If ``true`` return the average, otherwise return the total.
+
+    squared : bool
+        If ``true`` return the total or average of the squared volume
+        change.
+
+    Returns
+    -------
+    float
+        The total volume change.
+    """
+
+    vc = sitk.GetArrayFromImage(dsp.jacobian_to_volume_change(jacobian))
+    if mask:
+        idx = sitk.GetArrayViewFromImage(mask) > 0
+        vc = vc[idx]
+    if squared:
+        vc = vc ** 2
+    if average:
+        return np.mean(np.abs(vc))
+    else:
+        return np.sum(np.abs(vc))
 
