@@ -351,8 +351,8 @@ def mutual_information(
         ) -> np.ndarray:
     r""" Compute the mutual information of two images.
 
-    The mutual information of two random variables :math:`X \approx p_X(x)` and
-    :math:`Y \approx p_Y(y)` with joint probability distribution
+    The mutual information of two random variables :math:`X \sim p_X(x)` and
+    :math:`Y \sim p_Y(y)` with joint probability distribution
     :math:`p_{XY}(x, y)` is defined as
 
     .. math::

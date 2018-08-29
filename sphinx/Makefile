@@ -21,9 +21,9 @@ help:
 	sphinx-apidoc -f -o source ../disptools
 	python3 -m m2r ../README.md # convert GitHub README to rst
 	mv ../README.rst readme.rst
-	sed -i 's,https://.*sphinx/\([^?]\+\)?raw=true,\1,g' readme.rst # convert image paths
+	sed -i 's,https://.*sphinx/\([^?]\+\)?raw=true,sphinx/\1,g' readme.rst # convert image paths
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 	for f in `ls _build/html | grep html`; do sed -i 's/_images/images/g;s/_modules/modules/g;s/_sources/sources/g;s/_static/static/g' _build/html/$$f; done
 	for d in images modules sources static; do mv _build/html/_$$d _build/html/$$d; done
-	rm -rf ../docs/*
-	cp -R _build/html/* ../docs/.
+	rm -rf ../{images,modules,sources,static}/* || :
+	cp -R _build/html/* ../.

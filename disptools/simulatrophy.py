@@ -26,9 +26,9 @@ def mask_to_simulatrophy_mask(
         radius: int = None,
         kernel: int = sitk.sitkBall,
         ) -> sitk.Image:
-    r""" Convert a binary mask to a Simul@trophy mask.
+    r""" Convert a binary mask to a Simul\@atrophy mask.
 
-    The mask used by Simul@trophy has five labels:
+    The mask used by Simul\@atrophy has five labels:
       - 0: skull
       - 1: cerebro-spinal fluid (CSF)
       - 2: gray matter
@@ -36,7 +36,7 @@ def mask_to_simulatrophy_mask(
       - 4: falx cerebri
 
     This function takes as input a binary mask, and returns another mask
-    in the Simul@atrophy format, where the ROI of the original mask is
+    in the Simul\@atrophy format, where the ROI of the original mask is
     mapped to white matter, a surrounding region of CSF is created
     around it, and the remaining is set to skull.
 
@@ -52,12 +52,14 @@ def mask_to_simulatrophy_mask(
 
     kernel : int
         Kernel used for the dilation, among the values in
-        `itk::simple::KernelEnum`.
+        `itk::simple::KernelEnum`_.
+
+        .. _itk::simple::KernelEnum: https://itk.org/SimpleITKDoxygen/html/namespaceitk_1_1simple.html#a38998f2c7b469b1ad8e337a0c6c0697b
 
     Returns
     -------
     sitk.Image
-        A Simul@atrophy mask constructed from the input mask.
+        A Simul\@atrophy mask constructed from the input mask.
     """
 
     image = image > 0
