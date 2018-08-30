@@ -71,7 +71,7 @@ class Test_Drawing(unittest.TestCase):
 
                 self.assertTrue(np.allclose(result, oracle))
 
-    @unittest.skipIf('skimage.draw' is sys.modules, "skimage.draw required for this feature")
+    @unittest.skipIf('skimage.draw' not in sys.modules, "skimage.draw required for this feature")
     def test_create_sphere(self):
 
         r = 20

@@ -42,7 +42,7 @@ class Test_Measure(unittest.TestCase):
         self.assertTrue(np.array_equal(np.sort(data[ind]),
                                        np.sort(result)))
 
-    @unittest.skipIf('skimage.draw' is sys.modules, "skimage.draw required for this feature")
+    @unittest.skipIf('skimage.draw' not in sys.modules, "skimage.draw required for this feature")
     def test_cubicity(self):
 
         n = 100
@@ -75,7 +75,7 @@ class Test_Measure(unittest.TestCase):
 
         self.assertTrue(result < 0.51)
 
-    @unittest.skipIf('skimage.draw' is sys.modules, "skimage.draw required for this feature")
+    @unittest.skipIf('skimage.draw' not in sys.modules, "skimage.draw required for this feature")
     def test_sphericity(self):
 
         n = 100
@@ -96,7 +96,7 @@ class Test_Measure(unittest.TestCase):
 
         self.assertTrue(result > 0.99)
 
-    @unittest.skipIf('skimage.draw' is sys.modules, "skimage.draw required for this feature")
+    @unittest.skipIf('skimage.draw' not in sys.modules, "skimage.draw required for this feature")
     def test_average_jacobian_error(self):
 
         n = 100
@@ -134,7 +134,7 @@ class Test_Measure(unittest.TestCase):
 
                 self.assertEqual(oracle, result)
 
-    @unittest.skipIf('skimage.draw' is sys.modules, "skimage.draw required for this feature")
+    @unittest.skipIf('skimage.draw' not in sys.modules, "skimage.draw required for this feature")
     def test_minkowski_compactness(self):
 
         a = np.zeros((300, 300, 300), dtype=np.uint8)
