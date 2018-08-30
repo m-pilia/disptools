@@ -28,14 +28,14 @@ class Test_Drawing(unittest.TestCase):
             # ITK messes with the warnings...
             importlib.reload(warnings)
 
-    def test_resize_image(self):
+    def test_scale_image(self):
 
         size_1 = (100, 100, 100)
         size_2 = (125, 125, 125)
 
         img = sitk.Image(size_1, drawing.sitk_float_type)
 
-        res = drawing.resize_image(img, size_2)
+        res = drawing.scale_image(img, size_2)
 
         self.assertTrue(res.GetSize() == size_2)
 
