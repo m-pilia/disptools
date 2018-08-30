@@ -38,11 +38,11 @@ mask = drw.create_sphere(10, 40) > 0
 displacement = dsp.displacement(jacobian, mask=mask)
 
 # Check the correctness of the result within the ROI
-error = jacobian - sitk.DisplacementFieldJacobianDeterminant(displacement)
+error = jacobian - dsp.jacobian(displacement)
 error = sitk.Mask(error, mask)
 ```
 
-A 3D rendering of the resulting displacement field and a visualisation of the the error on the Jacobian:
+A 3D rendering of the resulting displacement field with [ParaView](https://www.paraview.org/), and a visualisation of the the error on the Jacobian within the ROI:
 
 <img src="https://github.com/m-pilia/disptools/blob/master/sphinx/img/example_2.png?raw=true" alt="displacement" width=45% /> <img src="https://github.com/m-pilia/disptools/blob/master/sphinx/img/example_1.png?raw=true" alt="error" width=45% />
 
