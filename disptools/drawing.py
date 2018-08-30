@@ -20,12 +20,12 @@ except ImportError as e:
           "Some functionalities depending upon it may be unavailable.")
 
 
-def resize_image(
+def scale_image(
         image        : sitk.Image,
         new_size     : Tuple[int, ...],
         interpolator : int = sitk.sitkLinear
         ) -> sitk.Image:
-    """ Resample an image in a grid of given size.
+    r""" Scale an image in a grid of given size.
 
     Parameters
     ----------
@@ -59,7 +59,12 @@ def resize_image(
     resampler = sitk.ResampleImageFilter()
     resampler.SetSize(new_size)
     resampler.SetOutputSpacing(tuple(spacing))
+    resampler.SetOutputOrigin(image.GetOrigin())
+    resampler.SetOutputDirection(image.GetDirection())
     resampler.SetInterpolator(interpolator)
+
+    # Anti-aliasing
+    image = sitk.SmoothingRecursiveGaussian(image, 2.0)
 
     return resampler.Execute(image)
 
@@ -72,7 +77,7 @@ def polar_conversion(
         y      : float,
         z      : float
         ) -> Tuple[int, int, int]:
-    """ Convert Cartesian to normalised spherical coordinates.
+    r""" Convert Cartesian to normalised spherical coordinates.
 
     Parameters
     ----------
@@ -127,7 +132,7 @@ def create_sphere(
         value_function : Callable[[float, float, float], float] = None,
         points_file    : str = ''
         ) -> sitk.Image:
-    """ Create a volume image containing a spherical object.
+    r""" Create a volume image containing a spherical object.
 
     Parameters
     ----------
@@ -194,7 +199,7 @@ def create_sphere(
     if points_file != '':
 
         def within(point: Tuple[int, int, int]) -> bool:
-            """ Check whether a point is within the volume.
+            r""" Check whether a point is within the volume.
             """
 
             point_x = point[0] >= 0.0 and point[0] < shape[2]
@@ -242,7 +247,7 @@ def mask(
         mask     : sitk.Image,
         jacobian : bool = False
         ) -> sitk.Image:
-    """ Mask an image (special meaning for Jacobian maps).
+    r""" Mask an image (special meaning for Jacobian maps).
 
     Parameters
     ----------
@@ -281,7 +286,7 @@ def mask(
 
 
 def float_dilate(image: sitk.Image, dilate: int) -> sitk.Image:
-    """ Dilate a float valued image.
+    r""" Dilate a float valued image.
 
     Parameters
     ----------
@@ -308,7 +313,7 @@ def float_dilate(image: sitk.Image, dilate: int) -> sitk.Image:
 
 
 def sitk_to_itk(image: sitk.Image) -> Any:
-    """ Function to convert an image object from SimpleITK to ITK.
+    r""" Function to convert an image object from SimpleITK to ITK.
 
     .. note::
         Data is copied to the new object (deep copy).
@@ -361,7 +366,7 @@ def sitk_to_itk(image: sitk.Image) -> Any:
 
 
 def sin_vector_field(n: int) -> sitk.Image:
-    """ Generate an example of continuous vector field.
+    r""" Generate an example of continuous vector field.
 
     Parameters
     ----------
@@ -394,7 +399,7 @@ def extract_slice(
         hsv_interpolation : bool = False,
         window            : Tuple[float, float] = None
         ) -> sitk.Image:
-    """ Extract a slice.
+    r""" Extract a slice.
 
     This function takes care of resampling the image on a uniform grid with
     unit spacing, that can be exported to format that do not support

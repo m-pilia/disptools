@@ -1,14 +1,16 @@
-from functools import reduce
-from glob import glob
-import threading
+import math
+import os
 import re
 import sys
-import os
-import SimpleITK as sitk
+import threading
+import warnings
+from functools import reduce
+from glob import glob
+from typing import *
+
 import numpy as np
 import scipy.interpolate
-import math
-from typing import *
+import SimpleITK as sitk
 
 from disptools import *
 import disptools.drawing as drawing
@@ -397,12 +399,44 @@ def displacement(
     jacobian = sitk.Cast(jacobian, sitk_float_type)
 
     if mask is None:
-        mask = np.ones(tuple(jacobian.GetSize()), dtype=np_float_type)
+        mask = np.ones(tuple(reversed(jacobian.GetSize())), dtype=np_float_type)
         mask = sitk.GetImageFromArray(mask)
+        mask.CopyInformation(jacobian)
     else:
         mask = sitk.Cast(mask, sitk_float_type)
 
+    size = jacobian.GetSize()
     origin = jacobian.GetOrigin()
+    spacing = jacobian.GetSpacing()
+    direction = jacobian.GetDirection()
+
+    # Ensure consistency of the coordinate system
+    def make_consistent(img, name, interpolator):
+        if img is None:
+            return img
+
+        inconsitent = []
+        if img.GetSize() != size:
+            inconsitent.append('size')
+        if img.GetOrigin() != origin:
+            inconsitent.append('origin')
+        if img.GetSpacing() != spacing:
+            inconsitent.append('spacing')
+        if img.GetDirection() != direction:
+            inconsitent.append('direction')
+
+        if inconsitent != []:
+            inconsitent = ' and '.join(inconsitent)
+            warnings.warn("%s of '%s' " % (inconsitent, name) +
+                          "inconsistent with the Jacobian, " +
+                          "resampling to a common coordinate space")
+            if interpolator != sitk.sitkNearestNeighbor:
+                image = sitk.SmoothingRecursiveGaussian(image, 2.0)
+            return sitk.Resample(img, jacobian, sitk.Transform(), interpolator)
+        else:
+            return img
+    mask = make_consistent(mask, 'mask', sitk.sitkNearestNeighbor)
+    initial_guess = make_consistent(initial_guess, 'initial_guess', sitk.sitkLinear)
 
     # Add a voxel of zero-flux padding anyway since the algorithm
     # will not compute the displacement field on boundary voxels
@@ -423,8 +457,8 @@ def displacement(
     mask_pyramid = [mask]
     for i in range(1, levels):
         new_size = tuple(map(lambda x: x // 2, jacobian_pyramid[i-1].GetSize()))
-        jacobian_pyramid.append(drawing.resize_image(jacobian, new_size))
-        mask_pyramid.append(drawing.resize_image(mask, new_size, sitk.sitkNearestNeighbor))
+        jacobian_pyramid.append(drawing.scale_image(jacobian, new_size))
+        mask_pyramid.append(drawing.scale_image(mask, new_size, sitk.sitkNearestNeighbor))
 
     # Set maximum number of iterations for each pyramid level
     if not isinstance(it_max, list):
@@ -439,12 +473,14 @@ def displacement(
     for jacobian, mask, it in zip(jacobian_pyramid[::-1], mask_pyramid[::-1], it_max):
         size = jacobian.GetSize()
         logging.info('Size %s' % str(size))
-        field = drawing.resize_image(field, size) if field is not None else None
+        field = drawing.scale_image(field, size) if field is not None else None
         field = _displacement(jacobian, mask, initial_guess=field, it_max=it, **parameters)
 
     # Remove padding from the result
     field = sitk.Crop(field, *pad)
     field.SetOrigin(origin)
+    field.SetSpacing(spacing)
+    field.SetDirection(direction)
 
     return field
 
