@@ -431,7 +431,7 @@ def displacement(
                           "inconsistent with the Jacobian, " +
                           "resampling to a common coordinate space")
             if interpolator != sitk.sitkNearestNeighbor:
-                image = sitk.SmoothingRecursiveGaussian(image, 2.0)
+                img = sitk.SmoothingRecursiveGaussian(img, 2.0)
             return sitk.Resample(img, jacobian, sitk.Transform(), interpolator)
         else:
             return img
