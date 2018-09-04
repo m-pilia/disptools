@@ -426,6 +426,65 @@ def mutual_information(
     return float(mi)
 
 
+def entropy(
+        image      : sitk.Image,
+        mask       : sitk.Image = None,
+        bins       : int = 256,
+        sigma      : float = 0.0,
+        window     : Tuple[float, float] = None,
+        ) -> float:
+    r""" Compute the entropy of an image.
+
+    The information entropy of a random variables :math:`X \sim p_X(x)`
+    is defined as
+
+    .. math::
+        H(X) = \int p_{X}(x) \log p_X(x) dx
+
+    Entropy is estimated by approximating the probability density with
+    an intensity histogram.
+
+    Parameters
+    ----------
+    image : sitk.Image
+        Input image.
+
+    mask : sitk.Image
+        Binary image masking a region of interest.
+
+    bins : int
+        Number of bins for the intensity histogram.
+
+    sigma : float
+        Standard deviation for Gaussian smoothing of the histogram
+        histogram. If zero, no smoothing is used.
+
+    window : Tuple[float, float]
+        Intensity window. If not `None`, then values outside the
+        provided window are considered outliers and excluded from the
+        computation.
+
+    Returns
+    -------
+    float
+        An estimation of the information entropy of the image.
+    """
+
+    data = sitk.GetArrayViewFromImage(image).flatten()
+
+    if mask is not None:
+        idx = sitk.GetArrayViewFromImage(mask).flatten() > 0.0
+        data = data[idx]
+
+    hist, _ = np.histogram(data, bins=bins, range=window)
+    hist = ndimage.gaussian_filter(hist, sigma, mode='constant')
+    hist = hist / float(np.sum(hist))
+
+    idx = hist > 0
+
+    return -float(np.sum(hist[idx] * np.log(hist[idx])))
+
+
 def volume_change(
         jacobian : sitk.Image,
         mask     : sitk.Image = None,
