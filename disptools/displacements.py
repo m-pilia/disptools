@@ -19,7 +19,7 @@ import disptools.io as io
 import _disptools
 
 
-def regularise(jacobian: sitk.Image, epsilon: float = 0.05) -> sitk.Image:
+def regularise(jacobian: sitk.Image, epsilon: float = 1e-5) -> sitk.Image:
     r""" Regularise the Jacobian, removing singularities.
 
     Given a 3D scalar image, replace all the entries that are smaller
@@ -485,7 +485,7 @@ def displacement(
     return field
 
 
-def average_jacobian_from_displacements(input_filenames_pattern: str, epsilon: float = 0.05) -> sitk.Image:
+def average_jacobian_from_displacements(input_filenames_pattern: str, epsilon: float = 1e-5) -> sitk.Image:
     r""" Compute the average Jacobian of a set of displacement fields.
 
     This function reads a collection of displacement fields from files
@@ -561,7 +561,7 @@ def average_jacobian_from_displacements(input_filenames_pattern: str, epsilon: f
     return output_jacobian
 
 
-def average_jacobian(input_filenames_pattern: str, epsilon: float = 0.05) -> sitk.Image:
+def average_jacobian(input_filenames_pattern: str, epsilon: float = 1e-5) -> sitk.Image:
     r""" Compute the average of a set of Jacobians.
 
     This function reads a collection of Jacobian maps from files (any format
@@ -625,7 +625,7 @@ def average_jacobian(input_filenames_pattern: str, epsilon: float = 0.05) -> sit
     return output_jacobian
 
 
-def jacobian_to_volume_change(jacobian: sitk.Image, epsilon: float = 0.05) -> sitk.Image:
+def jacobian_to_volume_change(jacobian: sitk.Image, epsilon: float = 1e-5) -> sitk.Image:
     r""" Convert a Jacobian map to a volume change map.
 
     A volume change map is defined as
