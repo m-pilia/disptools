@@ -173,7 +173,8 @@ def run(
             img_size = [x // s for x, s in zip(jacobian.GetSize(), scale)]
             img_spacing = [x * s for x, s in zip(jacobian.GetSpacing(), scale)]
             mask_s = sitk.Resample(mask_s, img_size, sitk.Transform(), sitk.sitkNearestNeighbor, img_origin, img_spacing)
-            atrophy = sitk.Resample(atrophy, img_size, sitk.Transform(), sitk.sitkLinear, img_origin, img_spacing)
+            atrophy = sitk.SmoothingRecursiveGaussian(atrophy, sigma)
+            atrophy = sitk.Resample(atrophy, img_size, sitk.Transform(), sitk.sitkBSpline, img_origin, img_spacing)
         sitk.WriteImage(mask_s, mask_file)
         sitk.WriteImage(atrophy, atrophy_file)
         del mask_s
@@ -187,7 +188,7 @@ def run(
         displacement = sitk.ReadImage(os.path.join(tmpdir, 'out_T1vel.nii.gz'))
         if scale is not None:
             displacement = sitk.SmoothingRecursiveGaussian(displacement, sigma)
-            displacement = sitk.Resample(displacement, jacobian)
+            displacement = sitk.Resample(displacement, jacobian, sitk.Transform(), sitk.sitkBSpline)
 
         return displacement
 
