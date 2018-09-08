@@ -14,6 +14,7 @@ option(DISPTOOLS_CUDA_ERROR_CHECK "Error check for CUDA calls" ON)
 option(DISPTOOLS_CUDA_ERROR_CHECK_SYNC "Sync device when checking errors" ON)
 option(DISPTOOLS_PYTHON_SUPPORT "Build Python C extension module" OFF)
 
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(DISPTOOLS_PYTHON_C_MODULE_NAME "_disptools" CACHE STRING "Name of the C extension module file")
 
 # Find OpenMP if required
@@ -84,22 +85,17 @@ endif()
 if(MSVC)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W0")
 else()
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -std=c99 -fPIC")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -std=c99")
 endif()
 
 add_subdirectory(src)
 
 # Add CUDA component if requested
 if(DISPTOOLS_CUDA_SUPPORT)
-    find_package(CUDA REQUIRED)
-
-    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -arch=sm_30")
-    if(NOT MSVC)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
-    endif()
+    enable_language(CUDA)
 
     if(DISPTOOLS_FAST_MATH AND NOT DISPTOOLS_DEBUG)
-        set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} --use_fast_math")
+        set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --use_fast_math")
     endif()
 
     add_definitions(-DDISPTOOLS_HAS_CUDA=1)
