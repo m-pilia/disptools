@@ -91,7 +91,7 @@ The following build flags are recognised by <tt>setup.py</tt>:
 + <tt>--omp</tt>: enable OpenMP support.
 + <tt>--cuda</tt>: enable CUDA support.
 
-Additional flags starting with <tt>-D</tt> are also accepted and passed directly to <tt>CMake</tt> (e.g. <tt>-DCUDA_NVCC_FLAGS="-ccbin gcc-7"</tt> to specify the version of <tt>gcc</tt> to be used by CUDA).
+Additional flags starting with <tt>-D</tt> are also accepted and passed directly to <tt>CMake</tt>.
 
 #### Windows (Visual Studio) and Linux
 
