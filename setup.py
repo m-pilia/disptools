@@ -12,7 +12,7 @@ from setuptools.command.build_ext import build_ext
 c_module_name = '_disptools'
 
 # Parse command line flags
-options = {k: 'OFF' for k in ['--opt', '--debug', '--omp', '--cuda']}
+options = {k: 'OFF' for k in ['--opt', '--debug', '--cuda']}
 for flag in options.keys():
     if flag in sys.argv:
         options[flag] = 'ON'
@@ -51,7 +51,6 @@ class CMakeBuild(build_ext):
                 '-DDISPTOOLS_VERBOSE=ON',
                 '-DDISPTOOLS_LOW_ORDER_PD=OFF',
                 '-DDISPTOOLS_DOUBLE=OFF',
-                '-DDISPTOOLS_OMP_SUPPORT=%s' % options['--omp'],
                 '-DDISPTOOLS_CUDA_SUPPORT=%s' % options['--cuda'],
                 '-DDISPTOOLS_CUDA_ERROR_CHECK=ON',
                 '-DDISPTOOLS_CUDA_ERROR_CHECK_SYNC=ON',

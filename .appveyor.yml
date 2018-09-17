@@ -34,8 +34,8 @@ before_build:
 build_script:
   - cmd: set PATH=%PYTHON%;%PYTHON%\Scripts;%PATH%
   - cmd: python --version
-  - cmd: python setup.py build --opt --omp
+  - cmd: python setup.py build --opt
 
   - sh: python3 --version
-  - sh: python3 setup.py build --opt --omp
+  - sh: python3 setup.py build --opt
 

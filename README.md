@@ -88,7 +88,6 @@ Some optional dependencies are required only for a limited set of features, and 
 The following build flags are recognised by <tt>setup.py</tt>:
 + <tt>--opt</tt>: enable non-portable optimisations.
 + <tt>--debug</tt>: disable optimisations, compile with debug symbols.
-+ <tt>--omp</tt>: enable OpenMP support.
 + <tt>--cuda</tt>: enable CUDA support.
 
 Additional flags starting with <tt>-D</tt> are also accepted and passed directly to <tt>CMake</tt>.
