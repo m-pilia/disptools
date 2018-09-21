@@ -306,13 +306,7 @@ def fitting_index(
 
     sphere = drawing.create_sphere(radius, size=size, centre=centre, norm=norm) > 0
 
-    data = sitk.GetArrayViewFromImage(image) == 1.0
-    reference = sitk.GetArrayViewFromImage(sphere) == 1.0
-
-    union = np.logical_or(data, reference)
-    intersection = np.logical_and(data, reference)
-
-    return np.sum(intersection) / np.sum(union)
+    return jaccard(image, sphere)
 
 
 def centre_of_mass(image: sitk.Image) -> np.ndarray:
@@ -546,4 +540,80 @@ def volume_change(
         return np.mean(np.abs(vc))
     else:
         return np.sum(np.abs(vc))
+
+
+def jaccard(
+        image1 : sitk.Image,
+        image2 : sitk.Image,
+        ) -> float:
+    r""" Compute the fitting index of an input object.
+
+    The Jaccard coefficient is defined as the measure of the
+    intersection over the measure of the union:
+
+    .. math::
+        J(I_1, I_2) = \frac{|I_1 \bigcap I_2|}{|I_1 \bigcup I_2|}
+
+    Parameters
+    ----------
+    image1 : sitk.Image
+        First input binary image.
+
+    image2 : sitk.Image
+        First input binary image.
+
+    Returns
+    -------
+    float
+        Value of the Jaccard coefficient.
+    """
+
+    data1 = sitk.GetArrayViewFromImage(image1) > 0
+    data2 = sitk.GetArrayViewFromImage(image2) > 0
+
+    union = np.logical_or(data1, data2)
+    intersection = np.logical_and(data1, data2)
+
+    return np.sum(intersection) / np.sum(union)
+
+
+def f(
+        image1 : sitk.Image,
+        image2 : sitk.Image,
+        ) -> float:
+    r""" Compute the fitting index of an input object.
+
+    The F measure is defined as the harmonic mean of precision and
+    recall:
+
+    .. math::
+        F(I_1, I_2) = \frac{2 \text{tp}}{2\text{tp} + \text{fp} + \text{fn}}
+
+    It is equivalent to the Sørensen-Dice coefficient, defined as two
+    times the measure of the intersection over the sum of the measures
+    of the two inputs:
+
+    .. math::
+        J(I_1, I_2) = \frac{2 |I_1 \bigcap I_2|}{|I_1| + |I_2|}
+
+    Parameters
+    ----------
+    image1 : sitk.Image
+        First input binary image.
+
+    image2 : sitk.Image
+        First input binary image.
+
+    Returns
+    -------
+    float
+        Value of the F measure.
+    """
+
+    data1 = sitk.GetArrayViewFromImage(image1) > 0
+    data2 = sitk.GetArrayViewFromImage(image2) > 0
+
+    intersection = np.logical_and(data1, data2)
+
+    return 2 * np.sum(intersection) / (np.sum(data1) + np.sum(data2))
 
