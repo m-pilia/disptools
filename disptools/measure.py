@@ -17,7 +17,7 @@ except ImportError as e:
           "Some functionalities depending upon it may be unavailable.")
 
 
-def reject_outliers(data: np.ndarray, k: float = 2.0, absolute=True) -> np.ndarray:
+def reject_outliers(data: np.ndarray, k: float = 2.5, absolute=True) -> np.ndarray:
     r""" Reject outliers from an array, based on the median deviation (MD).
 
     Reject as outliers all values whose deviation from the median is higher
@@ -518,7 +518,8 @@ def volume_change(
         Binary image masking a region of interest.
 
     average : bool
-        If ``true`` return the average, otherwise return the total.
+        If ``true`` return the average and standard deviation, otherwise
+        return the total.
 
     squared : bool
         If ``true`` return the total or average of the squared volume
@@ -537,7 +538,8 @@ def volume_change(
     if squared:
         vc = vc ** 2
     if average:
-        return np.mean(np.abs(vc))
+        avc = reject_outliers(np.abs(vc))
+        return np.mean(avc), np.std(avc)
     else:
         return np.sum(np.abs(vc))
 
