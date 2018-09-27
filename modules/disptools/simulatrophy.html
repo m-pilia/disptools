@@ -1,0 +1,411 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>disptools.simulatrophy &mdash; disptools 0.4.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> disptools
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.4.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">disptools</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>disptools.simulatrophy</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for disptools.simulatrophy</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">subprocess</span>
+<span class="kn">import</span> <span class="nn">tempfile</span>
+
+<span class="kn">import</span> <span class="nn">SimpleITK</span> <span class="k">as</span> <span class="nn">sitk</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">disptools</span> <span class="k">import</span> <span class="o">*</span>
+
+
+<div class="viewcode-block" id="jacobian_to_atrophy_map"><a class="viewcode-back" href="../../index.html#disptools.simulatrophy.jacobian_to_atrophy_map">[docs]</a><span class="k">def</span> <span class="nf">jacobian_to_atrophy_map</span><span class="p">(</span><span class="n">image</span><span class="p">:</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">:</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Convert a Jacobian map to a atrophy map.</span>
+
+<span class="sd">    The atrophy rate :math:`a` is defined as the pointwise percentage of</span>
+<span class="sd">    volume loss, so :math:`a = -(J-1)` (where :math:`J` is the Jacobian).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    image : sitk.Image</span>
+<span class="sd">        Input image.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    sitk.Image</span>
+<span class="sd">        Corresponding atrophy map.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">return</span> <span class="o">-</span><span class="p">(</span><span class="n">image</span> <span class="o">-</span> <span class="mf">1.0</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="mask_to_simulatrophy_mask"><a class="viewcode-back" href="../../index.html#disptools.simulatrophy.mask_to_simulatrophy_mask">[docs]</a><span class="k">def</span> <span class="nf">mask_to_simulatrophy_mask</span><span class="p">(</span>
+        <span class="n">image</span><span class="p">:</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">,</span>
+        <span class="n">radius</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">kernel</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">sitkBall</span><span class="p">,</span>
+        <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">:</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Convert a binary mask to a Simul\@atrophy mask.</span>
+
+<span class="sd">    The mask used by Simul\@atrophy has five labels:</span>
+<span class="sd">      - 0: skull</span>
+<span class="sd">      - 1: cerebro-spinal fluid (CSF)</span>
+<span class="sd">      - 2: gray matter</span>
+<span class="sd">      - 3: white matter</span>
+<span class="sd">      - 4: falx cerebri</span>
+
+<span class="sd">    This function takes as input a binary mask, and returns another mask</span>
+<span class="sd">    in the Simul\@atrophy format, where the ROI of the original mask is</span>
+<span class="sd">    mapped to white matter, a surrounding region of CSF is created</span>
+<span class="sd">    around it, and the remaining is set to skull.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    image : sitk.Image</span>
+<span class="sd">        Input binary mask.</span>
+
+<span class="sd">    radius : int</span>
+<span class="sd">        Radius for the dilation, determines the amount of CSF</span>
+<span class="sd">        surrounding the ROI. If `None`, all the volume outside the ROI</span>
+<span class="sd">        is set to CSF.</span>
+
+<span class="sd">    kernel : int</span>
+<span class="sd">        Kernel used for the dilation, among the values in</span>
+<span class="sd">        `itk::simple::KernelEnum`_.</span>
+
+<span class="sd">        .. _itk::simple::KernelEnum: https://itk.org/SimpleITKDoxygen/html/namespaceitk_1_1simple.html#a38998f2c7b469b1ad8e337a0c6c0697b</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    sitk.Image</span>
+<span class="sd">        A Simul\@atrophy mask constructed from the input mask.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">image</span> <span class="o">=</span> <span class="n">image</span> <span class="o">&gt;</span> <span class="mi">0</span>
+    <span class="n">dilated</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">BinaryDilate</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">radius</span><span class="p">,</span> <span class="n">kernel</span><span class="p">)</span> <span class="k">if</span> <span class="n">radius</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">image</span> <span class="o">+</span> <span class="n">dilated</span></div>
+
+
+<div class="viewcode-block" id="run"><a class="viewcode-back" href="../../index.html#disptools.simulatrophy.run">[docs]</a><span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
+        <span class="n">jacobian</span>   <span class="p">:</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">,</span>
+        <span class="n">mask</span>       <span class="p">:</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">,</span>
+        <span class="n">scale</span>      <span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">sigma</span>      <span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.0</span><span class="p">,</span>
+        <span class="n">lame</span>       <span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span>
+        <span class="n">origin</span>     <span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">size</span>       <span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">executable</span> <span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">:</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Wrapper around Simul\@atrophy.</span>
+
+<span class="sd">    Use Simul\@atrophy [7]_ to generate a displacement that realises the</span>
+<span class="sd">    volume changes prescribed by the input Jacobian map. Optionally, the</span>
+<span class="sd">    function can operate on a downsampled version of the image.</span>
+
+<span class="sd">    .. note::</span>
+<span class="sd">        Requires a working installation of Simul\@atrophy.</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    .. [7] Khanal, Bishesh, Nicholas Ayache, and Xavier Pennec.</span>
+<span class="sd">           &quot;Simulating Longitudinal Brain MRIs with Known Volume Changes</span>
+<span class="sd">           and Realistic Variations in Image Intensity.&quot; Frontiers in</span>
+<span class="sd">           neuroscience 11 (2017): 132.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    jacobian : sitk.Image</span>
+<span class="sd">        Jacobian map.</span>
+
+<span class="sd">    mask : sitk.Image</span>
+<span class="sd">        Binary mask marking the ROI whose Jacobian shall be matched.</span>
+
+<span class="sd">    scale : Tuple[float, float, float]</span>
+<span class="sd">        If not ``None``, operate on an image downsampled by dividing</span>
+<span class="sd">        each size component by the given factors.</span>
+
+<span class="sd">    sigma : float</span>
+<span class="sd">        Amount of smoothing prior to resampling. Only relevant when</span>
+<span class="sd">        ``scale`` is not ``None``.</span>
+
+<span class="sd">    lame : Tuple[float, float, float, float]</span>
+<span class="sd">        Lamé parameters, in the following order:</span>
+<span class="sd">          * :math:`\mu` within the ROI</span>
+<span class="sd">          * :math:`\mu` outside the ROI</span>
+<span class="sd">          * :math:`\lambda` within the ROI</span>
+<span class="sd">          * :math:`\lambda` outside the ROI</span>
+
+<span class="sd">    origin : Tuple[int, int, int]</span>
+<span class="sd">        If not `None` then only a region of the image is processed,</span>
+<span class="sd">        defined by origin and size. Requires to specify ``size``.</span>
+
+<span class="sd">    size : Tuple[int, int, int]</span>
+<span class="sd">        If not `None` then only a region of the image is processed,</span>
+<span class="sd">        defined by origin and size. Requires to specify ``origin``.</span>
+
+<span class="sd">    executable : str</span>
+<span class="sd">        Path to the Simul\@atrophy executable. If `None`, the executable</span>
+<span class="sd">        is searched within the system path.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    sitk.Image</span>
+<span class="sd">        A displacement field realising the volume changes of the given</span>
+<span class="sd">        Jacobian map.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">executable</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">executable</span> <span class="o">=</span> <span class="s1">&#39;simul_atrophy&#39;</span>
+
+    <span class="k">with</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryDirectory</span><span class="p">()</span> <span class="k">as</span> <span class="n">tmpdir</span><span class="p">:</span>
+
+        <span class="n">atrophy_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmpdir</span><span class="p">,</span> <span class="s1">&#39;atrophy_map.mha&#39;</span><span class="p">)</span>
+        <span class="n">mask_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmpdir</span><span class="p">,</span> <span class="s1">&#39;mask.mha&#39;</span><span class="p">)</span>
+
+        <span class="n">args</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">executable</span><span class="p">,</span>
+            <span class="s1">&#39;-parameters&#39;</span><span class="p">,</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">lame</span><span class="p">]),</span>
+            <span class="s1">&#39;-boundary_condition&#39;</span><span class="p">,</span> <span class="s1">&#39;dirichlet_at_walls&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;--relax_ic_in_csf&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;-atrophyFile&#39;</span><span class="p">,</span> <span class="n">atrophy_file</span><span class="p">,</span>
+            <span class="s1">&#39;-maskFile&#39;</span><span class="p">,</span> <span class="n">mask_file</span><span class="p">,</span>
+            <span class="s1">&#39;-imageFile&#39;</span><span class="p">,</span> <span class="n">mask_file</span><span class="p">,</span> <span class="c1"># dummy parameter</span>
+            <span class="s1">&#39;--invert_field_to_warp&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;-numOfTimeSteps&#39;</span><span class="p">,</span> <span class="s1">&#39;1&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;-resPath&#39;</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmpdir</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span>
+            <span class="s1">&#39;-resultsFilenamesPrefix&#39;</span><span class="p">,</span> <span class="s1">&#39;out_&#39;</span><span class="p">,</span>
+        <span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">origin</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">args</span> <span class="o">+=</span> <span class="p">[</span>
+                <span class="s1">&#39;-domainRegion&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">origin</span><span class="p">)</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">size</span><span class="p">)]),</span>
+            <span class="p">]</span>
+
+        <span class="n">mask_s</span> <span class="o">=</span> <span class="n">mask_to_simulatrophy_mask</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+        <span class="n">atrophy</span> <span class="o">=</span> <span class="n">jacobian_to_atrophy_map</span><span class="p">(</span><span class="n">jacobian</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">scale</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">img_origin</span> <span class="o">=</span> <span class="n">jacobian</span><span class="o">.</span><span class="n">GetOrigin</span><span class="p">()</span>
+            <span class="n">img_size</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="o">//</span> <span class="n">s</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">jacobian</span><span class="o">.</span><span class="n">GetSize</span><span class="p">(),</span> <span class="n">scale</span><span class="p">)]</span>
+            <span class="n">img_spacing</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="o">*</span> <span class="n">s</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">jacobian</span><span class="o">.</span><span class="n">GetSpacing</span><span class="p">(),</span> <span class="n">scale</span><span class="p">)]</span>
+            <span class="n">mask_s</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Resample</span><span class="p">(</span><span class="n">mask_s</span><span class="p">,</span> <span class="n">img_size</span><span class="p">,</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Transform</span><span class="p">(),</span> <span class="n">sitk</span><span class="o">.</span><span class="n">sitkNearestNeighbor</span><span class="p">,</span> <span class="n">img_origin</span><span class="p">,</span> <span class="n">img_spacing</span><span class="p">)</span>
+            <span class="n">atrophy</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">SmoothingRecursiveGaussian</span><span class="p">(</span><span class="n">atrophy</span><span class="p">,</span> <span class="n">sigma</span><span class="p">)</span>
+            <span class="n">atrophy</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Resample</span><span class="p">(</span><span class="n">atrophy</span><span class="p">,</span> <span class="n">img_size</span><span class="p">,</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Transform</span><span class="p">(),</span> <span class="n">sitk</span><span class="o">.</span><span class="n">sitkBSpline</span><span class="p">,</span> <span class="n">img_origin</span><span class="p">,</span> <span class="n">img_spacing</span><span class="p">)</span>
+        <span class="n">sitk</span><span class="o">.</span><span class="n">WriteImage</span><span class="p">(</span><span class="n">mask_s</span><span class="p">,</span> <span class="n">mask_file</span><span class="p">)</span>
+        <span class="n">sitk</span><span class="o">.</span><span class="n">WriteImage</span><span class="p">(</span><span class="n">atrophy</span><span class="p">,</span> <span class="n">atrophy_file</span><span class="p">)</span>
+        <span class="k">del</span> <span class="n">mask_s</span>
+        <span class="k">del</span> <span class="n">atrophy</span>
+
+        <span class="n">proc</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">cwd</span><span class="o">=</span><span class="n">tmpdir</span><span class="p">)</span>
+        <span class="n">proc</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">proc</span><span class="o">.</span><span class="n">returncode</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Execution failed with status </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">proc</span><span class="o">.</span><span class="n">returncode</span><span class="p">))</span>
+
+        <span class="n">displacement</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">ReadImage</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmpdir</span><span class="p">,</span> <span class="s1">&#39;out_T1vel.nii.gz&#39;</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">scale</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">displacement</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">SmoothingRecursiveGaussian</span><span class="p">(</span><span class="n">displacement</span><span class="p">,</span> <span class="n">sigma</span><span class="p">)</span>
+            <span class="n">displacement</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Resample</span><span class="p">(</span><span class="n">displacement</span><span class="p">,</span> <span class="n">jacobian</span><span class="p">,</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Transform</span><span class="p">(),</span> <span class="n">sitk</span><span class="o">.</span><span class="n">sitkBSpline</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">displacement</span></div>
+
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Martino Pilia.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+    <div style="padding-top: 1em;">
+        <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">
+            <img alt="Creative Commons License" 
+                 style="border-width:0"
+                 src="https://i.creativecommons.org/l/by-sa/4.0/80x15.png" />
+        </a>
+        <br/>
+        This documentation is freely available under the
+        <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">
+            Creative Commons Attribution-ShareAlike 4.0 International License
+        </a>.
+    </div>
+
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'0.4.0',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

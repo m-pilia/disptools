@@ -1,0 +1,246 @@
+.. role:: raw-html-m2r(raw)
+   :format: html
+
+
+disptools
+=========
+
+Generate displacement fields with known volume changes
+------------------------------------------------------
+
+
+.. image:: https://img.shields.io/github/release/m-pilia/disptools.svg
+   :target: https://github.com/m-pilia/disptools/releases/latest
+   :alt: GitHub release
+
+
+.. image:: https://img.shields.io/pypi/v/disptools.svg
+   :target: https://pypi.python.org/pypi/disptools
+   :alt: PyPI
+
+
+.. image:: https://img.shields.io/pypi/wheel/disptools.svg
+   :target: https://pypi.org/project/disptools
+   :alt: Wheels
+
+
+.. image:: https://img.shields.io/badge/License-MIT-blue.svg
+   :target: https://github.com/m-pilia/disptools/blob/master/LICENSE
+   :alt: License
+
+
+.. image:: https://ci.appveyor.com/api/projects/status/github/m-pilia/disptools?svg=true
+   :target: https://www.appveyor.com/
+   :alt: Appveyor
+
+
+This library provides utilities to generate and manipulate displacement fields with known volume changes. It implements three search-based algorithms for the generation of deformation fields, along with a small collection of utility functions, and provides optional GPU acceleration through a CUDA implementation.
+
+The three algorithms implemented are referred as:
+
+
+* :raw-html-m2r:`<tt>gradient</tt>`\ : a gradient descent method (default).
+* :raw-html-m2r:`<tt>greedy</tt>`\ : a greedy search method proposed in `[1] <#1>`_.
+* :raw-html-m2r:`<tt>matching</tt>`\ : a volume matching method proposed in `[2] <#2>`_ and `[3] <#3>`_. The implementation comes from the `PREDICT atrophysim tool <https://www.nitrc.org/projects/atrophysim>`_.
+
+The library is built on top of SimpleITK, in order to provide a simple yet powerful set of functionalities for image analysis. Images stored as numpy arrays can be easily converted from and to `SimpleITK <http://simpleitk.github.io/SimpleITK-Notebooks/01_Image_Basics.html>`_ and `ITK <https://blog.kitware.com/convert-itk-data-structures-to-numpy-arrays/>`_ image objects.
+
+Documentation
+^^^^^^^^^^^^^
+
+The complete documentation for this package is available on https://martinopilia.com/disptools.
+
+Quick example
+^^^^^^^^^^^^^
+
+.. code-block:: python
+
+   import SimpleITK as sitk
+   import disptools.displacements as dsp
+   import disptools.drawing as drw
+
+   # Create an example Jacobian map
+   # A spherical ROI with a Jacobian of 1.1 (expansion)
+   jacobian = drw.create_sphere(10, 40, fg_val=1.1, bg_val=1.0)
+
+   # Create a binary mask for the ROI
+   mask = drw.create_sphere(10, 40) > 0
+
+   # Generate the displacement
+   displacement = dsp.displacement(jacobian, mask=mask)
+
+   # Check the correctness of the result within the ROI
+   error = jacobian - dsp.jacobian(displacement)
+   error = sitk.Mask(error, mask)
+
+A 3D rendering of the resulting displacement field with `ParaView <https://www.paraview.org/>`_\ , and a visualisation of the the error on the Jacobian within the ROI:
+
+:raw-html-m2r:`<img src="sphinx/img/example_2.png" alt="displacement" width=45% />` :raw-html-m2r:`<img src="sphinx/img/example_1.png" alt="error" width=45% />`
+
+Architecture
+^^^^^^^^^^^^
+
+The project is structured in three layers:
+
+
+* a pure standard `C99 <https://en.wikipedia.org/wiki/C99>`_ library (whose headers are in :raw-html-m2r:`<tt>src/headers</tt>`\ ), with no external dependencies, implementing the core algorithms for the generation of deformation fields. It is a standalone library that can be directly included in a C or C++ project. It is paired with an optional `CUDA <https://en.wikipedia.org/wiki/CUDA>`_ library, whose headers are in :raw-html-m2r:`<tt>cuda/headers</tt>`\ , that depends on :raw-html-m2r:`<tt>src/headers</tt>` and provides a GPGPU implementation of the key routines.
+* a `Python C extension <https://docs.python.org/3.6/extending/extending.html>`_ package :raw-html-m2r:`<tt>_disptools</tt>` (whose source is in the file :raw-html-m2r:`<tt>python_c_extension/_disptools.c</tt>`\ ), providing a bare Python wrapper to the aforementioned library, using the `NumPy C API <https://docs.scipy.org/doc/numpy-1.14.0/reference/c-api.html>`_ to pass arrays. This can be directly included in a Python project with no dependencies other than NumPy.
+* a Python package (\ :raw-html-m2r:`<tt>disptools</tt>`\ ), that wraps the :raw-html-m2r:`<tt>_disptools</tt>` package providing file IO (through SimpleITK) and implementing high-level features (such as the multi-resolution framework) and auxiliary utilities and functions.
+
+  * :raw-html-m2r:`<tt>disptools.displacements</tt>`\ : module providing the main functions for the generation and manipulation of displacement fields.
+  * :raw-html-m2r:`<tt>disptools.drawing</tt>`\ : collection of utilities to create test images.
+  * :raw-html-m2r:`<tt>disptools.io</tt>`\ : collection of utilities to read and write to file.
+  * :raw-html-m2r:`<tt>disptools.measure</tt>`\ : collection of utilities to measure some image features.
+  * :raw-html-m2r:`<tt>disptools.simulatrophy</tt>`\ : routines to interface with the `Simul@atrophy <https://github.com/Inria-Asclepios/simul-atrophy>`_ tool.
+  * :raw-html-m2r:`<tt>disptools.predict</tt>`\ : routines to interface with the `PREDICT <https://www.nitrc.org/projects/atrophysim>`_ tool.
+
+Install
+^^^^^^^
+
+This package is available on `PyPI <https://pypi.org/project/disptools>`_ both as source distribution and as a Windows pre-compiled binary wheel. You can install it with :raw-html-m2r:`<tt>pip</tt>`\ :
+
+.. code-block:: bash
+
+    python3 -m pip install disptools
+
+Build from source
+^^^^^^^^^^^^^^^^^
+
+Requirements
+~~~~~~~~~~~~
+
+The library is a cross-platform Python 3.5+ package, with a compiled C extension. The Python dependencies are:
+
+
+* `numpy <https://github.com/numpy/numpy>`_ (\ `pypi package <https://pypi.python.org/pypi/numpy>`_\ )
+* `scipy <https://github.com/scipy/scipy>`_ (\ `pypi package <https://pypi.org/pypi/scipy>`_\ )
+* `SimpleITK <https://github.com/SimpleITK/SimpleITK>`_ (\ `pypi package <https://pypi.org/pypi/SimpleITK>`_\ )
+
+Build dependencies are a standard C compiler (tested with gcc 8.2 on Linux, mingw-w64 7.2 and MSVC 19 on Windows 10), `CMake <https://cmake.org/>`_\ , the `numpy <https://pypi.python.org/pypi/numpy>`_ and the `setuptools <https://pypi.python.org/pypi/setuptools>`_ packages. `scikit-build <https://pypi.python.org/pypi/scikit-build>`_ may be required to build the other Python dependencies.
+
+Some optional dependencies are required only for a limited set of features, and the package should build and run without them:
+
+
+* `itk <https://github.com/InsightSoftwareConsortium/ITK>`_ (\ `pypi package <https://pypi.org/project/itk>`_\ ): for :raw-html-m2r:`<tt>disptools.drawing.sitk_to_itk</tt>`
+* `vtk <https://github.com/Kitware/VTK>`_ (\ `pypi package <https://pypi.org/project/vtk>`_\ ): for :raw-html-m2r:`<tt>disptools.io.write_vtk_points</tt>`
+* `ply <https://github.com/dabeaz/ply>`_ (\ `pypi package <https://pypi.org/project/ply>`_\ ): for :raw-html-m2r:`<tt>disptools.io.read_elastix_parameters</tt>`
+* `scikit-image <https://github.com/scikit-image/scikit-image>`_ (\ `pypi package <https://pypi.org/project/scikit-image>`_\ ): for :raw-html-m2r:`<tt>disptools.drawing.extract_slice</tt>`\ , and to run the unit tests
+
+Build options
+~~~~~~~~~~~~~
+
+The following build flags are recognised by :raw-html-m2r:`<tt>setup.py</tt>`\ :
+
+
+* :raw-html-m2r:`<tt>--opt</tt>`\ : enable non-portable optimisations.
+* :raw-html-m2r:`<tt>--debug</tt>`\ : disable optimisations, compile with debug symbols.
+* :raw-html-m2r:`<tt>--cuda</tt>`\ : enable CUDA support.
+
+Additional flags starting with :raw-html-m2r:`<tt>-D</tt>` are also accepted and passed directly to :raw-html-m2r:`<tt>CMake</tt>`.
+
+Windows (Visual Studio) and Linux
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Install the dependencies with your favourite package manager. For example, with :raw-html-m2r:`<tt>pip</tt>`\ :
+
+.. code-block:: bash
+
+   python3 -m pip install scikit-build numpy scipy SimpleITK
+
+The package provides a :raw-html-m2r:`<tt>setuptools</tt>` based install script. To install the library, run from the project root folder
+
+.. code-block:: bash
+
+   python3 setup.py install
+
+which should build the C extension and install the Python package.
+
+Windows (MinGW)
+~~~~~~~~~~~~~~~
+
+
+#. 
+   First, be sure that `mingw <https://mingw-w64.org>`_\ , CMake and Python are installed and their executables `are in your PATH <https://docs.python.org/3/using/windows.html#excursus-setting-environment-variables>`_.
+
+#. 
+   Ensure that :raw-html-m2r:`<tt>gcc</tt>` is working correctly:
+
+   .. code-block:: none
+
+      > gcc --version
+      gcc (x86_64-posix-seh-rev1, Built by MinGW-W64 project) 7.2.0
+      Copyright (C) 2017 Free Software Foundation, Inc.
+      This is free software; see the source for copying conditions.  There is NO
+      warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+#. 
+   Ensure that :raw-html-m2r:`<tt>distutils</tt>` correctly recognises your version of Visual Studio (even when using :raw-html-m2r:`<tt>mingw</tt>`\ ). Open the file :raw-html-m2r:`<tt>C:\Users\yourname\AppData\Local\Programs\Python\Python3x\Lib\distutils\cygwinccompiler.py</tt>` (the exact location may vary according to your setup) and check that your version of Visual Studio is present in the function :raw-html-m2r:`<tt>get_msvcr()</tt>`\ ; if not, adjust it according to the following:
+
+   .. code-block:: python
+
+      def get_msvcr():
+       """Include the appropriate MSVC runtime library if Python was built
+       with MSVC 7.0 or later.
+       """
+       msc_pos = sys.version.find('MSC v.')
+       if msc_pos != -1:
+           msc_ver = sys.version[msc_pos+6:msc_pos+10]
+           if msc_ver == '1300':
+               # MSVC 7.0
+               return ['msvcr70']
+           elif msc_ver == '1310':
+               # MSVC 7.1
+               return ['msvcr71']
+           elif msc_ver == '1400':
+               # VS2005 / MSVC 8.0
+               return ['msvcr80']
+           elif msc_ver == '1500':
+               # VS2008 / MSVC 9.0
+               return ['msvcr90']
+           elif msc_ver == '1600':
+               # VS2010 / MSVC 10.0
+               return ['msvcr100']
+           elif msc_ver == '1700':
+               # Visual Studio 2012 / Visual C++ 11.0
+               return ['msvcr110']
+           elif msc_ver == '1800':
+               # Visual Studio 2013 / Visual C++ 12.0
+               return ['msvcr120']
+           elif msc_ver == '1900':
+               # Visual Studio 2015 / Visual C++ 14.0
+               # "msvcr140.dll no longer exists" http://blogs.msdn.com/b/vcblog/archive/2014/06/03/visual-studio-14-ctp.aspx
+               return ['vcruntime140']
+           else:
+               raise ValueError("Unknown MS Compiler version %s " % msc_ver)
+
+#. 
+   Ensure that the library :raw-html-m2r:`<tt>vcruntime140.dll</tt>` is present in your library path. Otherwise, download it and place it in :raw-html-m2r:`<tt>C:\Users\yourname\AppData\Local\Programs\Python\Python3x\libs</tt>` (the exact path may vary according to your setup).
+
+#. 
+   Install the dependencies:
+
+   .. code-block:: cmd
+
+      > python -m pip install scikit-build numpy scipy SimpleITK
+
+#. 
+   Clone the sources of this package with :raw-html-m2r:`<tt>git</tt>`\ , or download and extract them as a :raw-html-m2r:`<tt>zip</tt>` archive. Move to the root folder of the sources (\ :raw-html-m2r:`<tt>C:\Users\yourname\disptools</tt>` in this example), specify the right compiler, and launch the setup script to build and install the package.
+
+   .. code-block:: cmd
+
+      > cd C:\Users\yourname\disptools
+      > python setup.py setopt --command=build --option=compiler --set-value=mingw32
+      > python setup.py install
+
+References
+^^^^^^^^^^
+
+
+* :raw-html-m2r:`<a id="1"></a>`\ [1] van Eede, M. C., Scholz, J., Chakravarty, M. M., Henkelman, R. M., and Lerch, J. P. *Mapping registration sensitivity in MR mouse brain images.* Neuroimage 82 (2013), 226–236.
+* :raw-html-m2r:`<a id="2"></a>`\ [2] Karaçali, B., and Davatzikos, C. *Estimating topology preserving and smooth displacement fields.* IEEE Transactions on Medical Imaging 23, 7 (2004), 868–880.
+* :raw-html-m2r:`<a id="3"></a>`\ [3] Karaçali, B., and Davatzikos, C. *Simulation of tissue atrophy using a topology preserving transformation model.* IEEE transactions on medical imaging 25, 5 (2006), 649–652.
+
+License
+^^^^^^^
+
+The software is distributed under the MIT license.

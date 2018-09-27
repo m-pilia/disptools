@@ -1,0 +1,838 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>disptools.measure &mdash; disptools 0.4.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> disptools
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.4.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">disptools</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>disptools.measure</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for disptools.measure</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">SimpleITK</span> <span class="k">as</span> <span class="nn">sitk</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">scipy.ndimage</span> <span class="k">as</span> <span class="nn">ndimage</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">functools</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">disptools</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">import</span> <span class="nn">disptools.drawing</span> <span class="k">as</span> <span class="nn">drawing</span>
+<span class="kn">import</span> <span class="nn">disptools.displacements</span> <span class="k">as</span> <span class="nn">dsp</span>
+
+<span class="kn">import</span> <span class="nn">_disptools</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">itk</span>
+<span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Warning: cannot import &#39;itk&#39; module. &quot;</span> <span class="o">+</span>
+          <span class="s2">&quot;Some functionalities depending upon it may be unavailable.&quot;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="reject_outliers"><a class="viewcode-back" href="../../index.html#disptools.measure.reject_outliers">[docs]</a><span class="k">def</span> <span class="nf">reject_outliers</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.5</span><span class="p">,</span> <span class="n">absolute</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Reject outliers from an array, based on the median deviation (MD).</span>
+
+<span class="sd">    Reject as outliers all values whose deviation from the median is higher</span>
+<span class="sd">    than :math:`k \cdot MD`.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : np.ndarray</span>
+<span class="sd">        Array of values.</span>
+<span class="sd">    k : float</span>
+<span class="sd">        Number of MDs for outlier rejection.</span>
+<span class="sd">    absolute : bool</span>
+<span class="sd">        If True, use absolute deviations.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    np.ndarray</span>
+<span class="sd">        An array with the outliers removed.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">dev</span> <span class="o">=</span> <span class="n">data</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">absolute</span><span class="p">:</span>
+        <span class="n">dev</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">dev</span><span class="p">)</span>
+    <span class="n">md</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">dev</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">data</span><span class="p">[(</span><span class="n">dev</span> <span class="o">/</span> <span class="n">md</span> <span class="k">if</span> <span class="n">md</span> <span class="k">else</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">k</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="cubicity"><a class="viewcode-back" href="../../index.html#disptools.measure.cubicity">[docs]</a><span class="k">def</span> <span class="nf">cubicity</span><span class="p">(</span><span class="n">image</span><span class="p">:</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Measure the cubicity of an object.</span>
+
+<span class="sd">    The cubicity is defined [4]_ as the ratio between the volume of the</span>
+<span class="sd">    object and the volume of its bounding cube.</span>
+<span class="sd">    A cube has cubicity equal to 1, a sphere has cubicity pi/6, and in</span>
+<span class="sd">    general non-cubic objects have cubicity strictly lesser than 1.</span>
+
+<span class="sd">    Here the bounding cube is estimated as the cube whose side is</span>
+<span class="sd">    equal to the longest side of the oriented bounding box of the</span>
+<span class="sd">    object.</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    .. [4] O&#39;Flannery, LJ and O&#39;Mahony, MM, &quot;Precise shape grading of</span>
+<span class="sd">           coarse aggregate&quot;. Magazine of Concrete Research 51.5 (1999),</span>
+<span class="sd">           pp. 319-324.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    image : sitk.Image</span>
+<span class="sd">        Input binary (sitkUInt8) image.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    float</span>
+<span class="sd">        A floating point value of cubicity in the interval [0, 1].</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">image</span><span class="o">.</span><span class="n">GetPixelID</span><span class="p">()</span> <span class="o">!=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">sitkUInt8</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;Unsupported </span><span class="si">%s</span><span class="s1"> pixel type&#39;</span> <span class="o">%</span> <span class="n">image</span><span class="o">.</span><span class="n">GetPixelIDTypeAsString</span><span class="p">())</span>
+
+    <span class="c1"># NOTE: the size of the bounding box is already in image space</span>
+    <span class="c1"># units, while the volume (number of voxels) needs to be multiplied</span>
+    <span class="c1"># by the voxel size</span>
+    <span class="n">dv</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">reduce</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">x</span> <span class="o">*</span> <span class="n">y</span><span class="p">,</span> <span class="n">image</span><span class="o">.</span><span class="n">GetSpacing</span><span class="p">(),</span> <span class="mf">1.0</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">lssif</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">LabelShapeStatisticsImageFilter</span><span class="p">()</span>
+        <span class="n">lssif</span><span class="o">.</span><span class="n">ComputeOrientedBoundingBoxOn</span><span class="p">()</span>
+        <span class="n">lssif</span><span class="o">.</span><span class="n">Execute</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+
+        <span class="p">(</span><span class="n">s1</span><span class="p">,</span> <span class="n">s2</span><span class="p">,</span> <span class="n">s3</span><span class="p">)</span> <span class="o">=</span> <span class="n">lssif</span><span class="o">.</span><span class="n">GetOrientedBoundingBoxSize</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">volume</span> <span class="o">=</span> <span class="n">lssif</span><span class="o">.</span><span class="n">GetNumberOfPixels</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">dv</span>
+
+    <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+        <span class="c1"># Use ITK as a fallback if the method is not available in</span>
+        <span class="c1"># SimpleITK</span>
+
+        <span class="k">if</span> <span class="s1">&#39;itk&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;sitk_to_itk: itk module is required to use this feature.&#39;</span><span class="p">)</span>
+
+        <span class="n">itk_image</span> <span class="o">=</span> <span class="n">drawing</span><span class="o">.</span><span class="n">sitk_to_itk</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+        <span class="n">li2slmf</span> <span class="o">=</span> <span class="n">itk</span><span class="o">.</span><span class="n">LabelImageToShapeLabelMapFilter</span><span class="o">.</span><span class="n">IUC3LM3</span><span class="o">.</span><span class="n">New</span><span class="p">(</span><span class="n">itk_image</span><span class="p">)</span>
+        <span class="n">li2slmf</span><span class="o">.</span><span class="n">ComputeOrientedBoundingBoxOn</span><span class="p">()</span>
+
+        <span class="n">statistics</span> <span class="o">=</span> <span class="n">li2slmf</span><span class="p">()[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="c1">#  FIXME GetOrientedBoundingBoxSize() seems to be broken</span>
+        <span class="c1">#  (s1, s2, s3) = statistics.GetOrientedBoundingBoxSize() #</span>
+        <span class="p">(</span><span class="n">s1</span><span class="p">,</span> <span class="n">s2</span><span class="p">,</span> <span class="n">s3</span><span class="p">)</span> <span class="o">=</span> <span class="n">statistics</span><span class="o">.</span><span class="n">GetBoundingBox</span><span class="p">()</span><span class="o">.</span><span class="n">GetSize</span><span class="p">()</span>
+
+        <span class="c1"># FIXME GetBoundingBox is in voxels, GetOrientedBoundingBox is</span>
+        <span class="c1"># in image size instead, so multiply by the spacing when using</span>
+        <span class="c1"># GetBoundingBox</span>
+        <span class="p">(</span><span class="n">s1</span><span class="p">,</span> <span class="n">s2</span><span class="p">,</span> <span class="n">s3</span><span class="p">)</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="o">*</span> <span class="n">s</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">([</span><span class="n">s1</span><span class="p">,</span> <span class="n">s2</span><span class="p">,</span> <span class="n">s3</span><span class="p">],</span> <span class="n">image</span><span class="o">.</span><span class="n">GetSpacing</span><span class="p">())]</span>
+
+        <span class="n">volume</span> <span class="o">=</span> <span class="n">statistics</span><span class="o">.</span><span class="n">GetNumberOfPixels</span><span class="p">()</span> <span class="o">*</span> <span class="n">dv</span>
+
+    <span class="k">return</span> <span class="n">volume</span> <span class="o">/</span> <span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">s1</span><span class="p">,</span> <span class="n">s2</span><span class="p">,</span> <span class="n">s3</span><span class="p">)</span> <span class="o">**</span> <span class="mi">3</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="sphericity"><a class="viewcode-back" href="../../index.html#disptools.measure.sphericity">[docs]</a><span class="k">def</span> <span class="nf">sphericity</span><span class="p">(</span><span class="n">image</span><span class="p">:</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Measure the sphericity of a object.</span>
+
+<span class="sd">    The sphericity is defined [5]_ [6]_ as the ratio between the surface of a sphere</span>
+<span class="sd">    with the same volume of the object and the surface of the object itself.</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        \frac{\pi^{\frac{1}{3}}(6V)^{\frac{2}{3}}}{A}</span>
+
+<span class="sd">    A sphere has sphericity equal to 1, non-spherical objects have sphericity</span>
+<span class="sd">    strictly lesser than 1.</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    .. [5] Wadell, Hakon. &quot;Volume, shape, and roundness of quartz particles.&quot;</span>
+<span class="sd">           The Journal of Geology 43.3 (1935): 250-280.</span>
+<span class="sd">    .. [6] Lehmann, Gaëthan. &quot;Label object representation and manipulation with ITK&quot;</span>
+<span class="sd">           Insight Journal, July-December 2007</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    image : sitk.Image</span>
+<span class="sd">        Input binary (sitkUInt8) image.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    float</span>
+<span class="sd">        A floating point value of sphericity in the interval [0, 1].</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">image</span><span class="o">.</span><span class="n">GetPixelID</span><span class="p">()</span> <span class="o">!=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">sitkUInt8</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;Unsupported </span><span class="si">%s</span><span class="s1"> pixel type&#39;</span> <span class="o">%</span> <span class="n">image</span><span class="o">.</span><span class="n">GetPixelIDTypeAsString</span><span class="p">())</span>
+
+    <span class="n">lssif</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">LabelShapeStatisticsImageFilter</span><span class="p">()</span>
+    <span class="n">lssif</span><span class="o">.</span><span class="n">Execute</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">lssif</span><span class="o">.</span><span class="n">GetRoundness</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="average_jacobian_error"><a class="viewcode-back" href="../../index.html#disptools.measure.average_jacobian_error">[docs]</a><span class="k">def</span> <span class="nf">average_jacobian_error</span><span class="p">(</span><span class="n">jacobian</span><span class="p">:</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">,</span> <span class="n">mask</span><span class="p">:</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Compute the average error between the input Jacobian and</span>
+<span class="sd">    a constant unit Jacobian map.</span>
+
+<span class="sd">    The average Jacobian error is defined as</span>
+<span class="sd">    :math:`\frac{1}{|mask|} \sum_{x \in mask} (J(x) - 1)`</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    jacobian : sitk.Image</span>
+<span class="sd">        Input Jacobian map.</span>
+<span class="sd">    mask : sitk.Image</span>
+<span class="sd">        Optional binary mask, to compute the error only on a ROI.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    float</span>
+<span class="sd">        The average Jacobian error.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">jac</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">GetArrayViewFromImage</span><span class="p">(</span><span class="n">jacobian</span><span class="p">)</span>
+    <span class="n">msc</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">GetArrayViewFromImage</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span> <span class="k">if</span> <span class="n">mask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">jac</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+    <span class="n">idx</span> <span class="o">=</span> <span class="n">msc</span> <span class="o">&gt;</span> <span class="mf">0.5</span>
+
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">jac</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">-</span> <span class="mf">1.0</span><span class="p">))</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="minkowski_compactness"><a class="viewcode-back" href="../../index.html#disptools.measure.minkowski_compactness">[docs]</a><span class="k">def</span> <span class="nf">minkowski_compactness</span><span class="p">(</span><span class="n">image</span><span class="p">:</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">,</span> <span class="n">norm</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Compute the Minkovski compactness of a binary image.</span>
+
+<span class="sd">    Minkowski compactness of an object is defined as the ratio between the volume</span>
+<span class="sd">    of the object and the volume of a p-ball centred on the object&#39;s centre of</span>
+<span class="sd">    mass, maximised agaist spatial rotations of the ball.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    image : sitk.Image</span>
+<span class="sd">        Input binary image.</span>
+<span class="sd">    norm : Union[int,str]</span>
+<span class="sd">        Order of the Minkowski norm (&#39;inf&#39; or &#39;max&#39; to use the Chebyshev norm).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    float</span>
+<span class="sd">        Value of the Minkowski norm.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">image</span><span class="o">.</span><span class="n">GetPixelID</span><span class="p">()</span> <span class="o">!=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">sitkUInt8</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;Unsupported </span><span class="si">%s</span><span class="s1"> pixel type&#39;</span> <span class="o">%</span> <span class="n">image</span><span class="o">.</span><span class="n">GetPixelIDTypeAsString</span><span class="p">())</span>
+
+    <span class="k">if</span> <span class="n">norm</span> <span class="o">==</span> <span class="s1">&#39;inf&#39;</span> <span class="ow">or</span> <span class="n">norm</span> <span class="o">==</span> <span class="s1">&#39;max&#39;</span><span class="p">:</span>
+        <span class="n">descriptor</span> <span class="o">=</span> <span class="s1">&#39;cubeness&#39;</span>
+    <span class="k">elif</span> <span class="n">norm</span> <span class="o">==</span> <span class="mf">1.0</span><span class="p">:</span>
+        <span class="n">descriptor</span> <span class="o">=</span> <span class="s1">&#39;octahedroness&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;Unsupported value </span><span class="si">%s</span><span class="s1"> for the norm parameter&#39;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">norm</span><span class="p">))</span>
+
+    <span class="n">lssif</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">LabelShapeStatisticsImageFilter</span><span class="p">()</span>
+    <span class="n">lssif</span><span class="o">.</span><span class="n">Execute</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+
+    <span class="n">a</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">GetArrayViewFromImage</span><span class="p">(</span><span class="n">image</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+
+    <span class="k">return</span> <span class="n">_disptools</span><span class="o">.</span><span class="n">shape_descriptor</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">lssif</span><span class="o">.</span><span class="n">GetCentroid</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">image</span><span class="o">.</span><span class="n">GetSpacing</span><span class="p">(),</span> <span class="n">descriptor</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="isovolumteric_radius"><a class="viewcode-back" href="../../index.html#disptools.measure.isovolumteric_radius">[docs]</a><span class="k">def</span> <span class="nf">isovolumteric_radius</span><span class="p">(</span><span class="n">image</span><span class="p">:</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">,</span> <span class="n">norm</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Compute the radius of a ball isovolumetric to the input object</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    image : sitk.Image</span>
+<span class="sd">        Input binary image.</span>
+<span class="sd">    norm : Union[int,str]</span>
+<span class="sd">        Order of the Minkowski norm (&#39;inf&#39; or &#39;max&#39; to use the Chebyshev norm).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    float</span>
+<span class="sd">        Value of the isovolumetric radius.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">volume</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">sitk</span><span class="o">.</span><span class="n">GetArrayViewFromImage</span><span class="p">(</span><span class="n">image</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">norm</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">math</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="mf">3.0</span> <span class="o">/</span> <span class="p">(</span><span class="mf">4.0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span> <span class="o">*</span> <span class="n">volume</span><span class="p">,</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="mf">3.0</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">norm</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">math</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="mf">3.0</span> <span class="o">/</span> <span class="mf">4.0</span> <span class="o">*</span> <span class="n">volume</span><span class="p">,</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="mf">3.0</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">norm</span> <span class="o">==</span> <span class="s1">&#39;inf&#39;</span> <span class="ow">or</span> <span class="n">norm</span> <span class="o">==</span> <span class="s1">&#39;max&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">math</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="mf">1.0</span> <span class="o">/</span> <span class="mf">8.0</span> <span class="o">*</span> <span class="n">volume</span><span class="p">,</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="mf">3.0</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;Unsupported norm </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">norm</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="fitting_index"><a class="viewcode-back" href="../../index.html#disptools.measure.fitting_index">[docs]</a><span class="k">def</span> <span class="nf">fitting_index</span><span class="p">(</span>
+        <span class="n">image</span>   <span class="p">:</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">,</span>
+        <span class="n">norm</span>    <span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="mf">2.0</span><span class="p">,</span>
+        <span class="n">centre</span>  <span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">radius</span>  <span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">padding</span> <span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Compute the fitting index of an input object.</span>
+
+<span class="sd">    The fitting index of order `p` is defined as the Jaccard coefficient</span>
+<span class="sd">    computed between the input object and a p-ball centred in the object&#39;s</span>
+<span class="sd">    centre of mass.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    image : sitk.Image</span>
+<span class="sd">        Input binary image of the object.</span>
+<span class="sd">    norm : Union[int,str]</span>
+<span class="sd">        Order of the Minkowski norm (&#39;inf&#39; or &#39;max&#39; to use the Chebyshev norm).</span>
+<span class="sd">    centre : Tuple[float, float, float]</span>
+<span class="sd">        Forces the p-ball to be centred in a specific point.</span>
+<span class="sd">    radius : float</span>
+<span class="sd">        Force the radius of the p-ball.</span>
+<span class="sd">    padding : bool</span>
+<span class="sd">        If `True`, add enough padding to be sure that the ball will entirely</span>
+<span class="sd">        fit within the volume.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    float</span>
+<span class="sd">        Value of the fitting index.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">image</span><span class="o">.</span><span class="n">GetPixelID</span><span class="p">()</span> <span class="o">!=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">sitkUInt8</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;Unsupported </span><span class="si">%s</span><span class="s1"> pixel type&#39;</span> <span class="o">%</span> <span class="n">image</span><span class="o">.</span><span class="n">GetPixelIDTypeAsString</span><span class="p">())</span>
+
+    <span class="k">if</span> <span class="n">centre</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Use the centroid as centre</span>
+        <span class="n">lssif</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">LabelShapeStatisticsImageFilter</span><span class="p">()</span>
+        <span class="n">lssif</span><span class="o">.</span><span class="n">Execute</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+        <span class="n">centre</span> <span class="o">=</span> <span class="n">lssif</span><span class="o">.</span><span class="n">GetCentroid</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">padding</span><span class="p">:</span>
+        <span class="c1"># Add some padding to be sure that an isovolumetric 1-ball can fit</span>
+        <span class="c1"># within the same volume of a sphere touching the boundary</span>
+        <span class="n">pad</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">([</span><span class="n">x</span> <span class="o">//</span> <span class="mi">4</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">image</span><span class="o">.</span><span class="n">GetSize</span><span class="p">()])</span>
+        <span class="n">image</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">ConstantPad</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">pad</span><span class="p">,</span> <span class="n">pad</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">image</span><span class="o">.</span><span class="n">SetOrigin</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">))</span>
+        <span class="n">centre</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">([</span><span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">centre</span><span class="p">,</span> <span class="n">pad</span><span class="p">)])</span>
+
+    <span class="k">if</span> <span class="n">radius</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">radius</span> <span class="o">=</span> <span class="n">isovolumteric_radius</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">norm</span><span class="p">)</span>
+
+    <span class="n">size</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">GetSize</span><span class="p">()</span>
+
+    <span class="n">sphere</span> <span class="o">=</span> <span class="n">drawing</span><span class="o">.</span><span class="n">create_sphere</span><span class="p">(</span><span class="n">radius</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">,</span> <span class="n">centre</span><span class="o">=</span><span class="n">centre</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="n">norm</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+
+    <span class="k">return</span> <span class="n">jaccard</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">sphere</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="centre_of_mass"><a class="viewcode-back" href="../../index.html#disptools.measure.centre_of_mass">[docs]</a><span class="k">def</span> <span class="nf">centre_of_mass</span><span class="p">(</span><span class="n">image</span><span class="p">:</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Compute the centre of mass of the image.</span>
+
+<span class="sd">    A real-valued image represents the distribution of mass, and its</span>
+<span class="sd">    centre of mass is defined as :math:`\frac{1}{\sum_p I(p)} \sum_p p I(p)`.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    image : sitk.Image</span>
+<span class="sd">        Input image.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    np.ndarray</span>
+<span class="sd">        World coordinates (x, y, z) of the centre of mass.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">GetArrayViewFromImage</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+
+    <span class="n">grid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="nb">range</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">],</span> <span class="n">indexing</span><span class="o">=</span><span class="s1">&#39;ij&#39;</span><span class="p">)</span>
+    <span class="n">grid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">a</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">grid</span><span class="p">])</span><span class="o">.</span><span class="n">T</span>
+
+    <span class="n">cm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
+
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">flip</span><span class="p">(</span><span class="n">cm</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="n">image</span><span class="o">.</span><span class="n">GetSpacing</span><span class="p">())</span> <span class="o">-</span> <span class="n">image</span><span class="o">.</span><span class="n">GetOrigin</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="mutual_information"><a class="viewcode-back" href="../../index.html#disptools.measure.mutual_information">[docs]</a><span class="k">def</span> <span class="nf">mutual_information</span><span class="p">(</span>
+        <span class="n">image1</span>     <span class="p">:</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">,</span>
+        <span class="n">image2</span>     <span class="p">:</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">,</span>
+        <span class="n">mask</span>       <span class="p">:</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">,</span>
+        <span class="n">bins</span>       <span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">256</span><span class="p">,</span>
+        <span class="n">sigma</span>      <span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+        <span class="n">window</span>     <span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">normalised</span> <span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Compute the mutual information of two images.</span>
+
+<span class="sd">    The mutual information of two random variables :math:`X \sim p_X(x)` and</span>
+<span class="sd">    :math:`Y \sim p_Y(y)` with joint probability distribution</span>
+<span class="sd">    :math:`p_{XY}(x, y)` is defined as</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        MI(X, Y) = \iint p_{XY}(x, y) \log \frac{p_{XY}(x, y)}{p_X(x) p_Y(y)} dx dy</span>
+
+<span class="sd">    Mutual information is estimated by approximating the joint</span>
+<span class="sd">    probability density with a joint histogram for the intensity of the</span>
+<span class="sd">    two images.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    image1 : sitk.Image</span>
+<span class="sd">        Input image. Must have the same size of `image2`.</span>
+
+<span class="sd">    image2 : sitk.Image</span>
+<span class="sd">        Input image. Must have the same size of `image1`.</span>
+
+<span class="sd">    mask : sitk.Image</span>
+<span class="sd">        Binary image masking a region of interest.</span>
+
+<span class="sd">    bins : Union[int, List[int, int], np.ndarray, List[np.ndarray, np.ndarray]]</span>
+<span class="sd">        Number of bins for the marginal intensity histograms:</span>
+<span class="sd">          + If `int`, use the same number of bins for both images.</span>
+<span class="sd">          + If `List[int, int]`, use two different bis sizes for the two images.</span>
+<span class="sd">          + If `np.ndarray`, specity the same bin edges for the two images.</span>
+<span class="sd">          + If `List[np.ndarray, np.ndarray]`, specity different bin edges</span>
+<span class="sd">            for the two images.</span>
+
+<span class="sd">    sigma : float</span>
+<span class="sd">        Standard deviation for Gaussian smoothing of the joint</span>
+<span class="sd">        histogram. If zero, no smoothing is used.</span>
+
+<span class="sd">    window : Tuple[Tuple[float, float], Tuple[float, float]]</span>
+<span class="sd">        Intensity window for the two images, in the form</span>
+<span class="sd">        `[[min1, max1], [min2, max2]]`. If not `None`, then values</span>
+<span class="sd">        outside the provided window are considered outliers and excluded</span>
+<span class="sd">        from the computation.</span>
+
+<span class="sd">    normalised : bool</span>
+<span class="sd">        If `True`, compute the normalised mutual information as</span>
+<span class="sd">        :math:`NMI(X, Y) = \frac{MI(X, Y)}{\sqrt{H(X) H(Y)}}`.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    float</span>
+<span class="sd">        An estimation of the mutual information for the two images.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">data1</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">GetArrayViewFromImage</span><span class="p">(</span><span class="n">image1</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+    <span class="n">data2</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">GetArrayViewFromImage</span><span class="p">(</span><span class="n">image2</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">mask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">GetArrayViewFromImage</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mf">0.0</span>
+        <span class="n">data1</span> <span class="o">=</span> <span class="n">data1</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+        <span class="n">data2</span> <span class="o">=</span> <span class="n">data2</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+
+    <span class="n">joint</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">histogram2d</span><span class="p">(</span><span class="n">data1</span><span class="p">,</span> <span class="n">data2</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="n">bins</span><span class="p">,</span> <span class="nb">range</span><span class="o">=</span><span class="n">window</span><span class="p">)</span>
+    <span class="n">joint</span> <span class="o">=</span> <span class="n">ndimage</span><span class="o">.</span><span class="n">gaussian_filter</span><span class="p">(</span><span class="n">joint</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;constant&#39;</span><span class="p">)</span>
+    <span class="n">joint</span> <span class="o">=</span> <span class="n">joint</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">joint</span><span class="p">))</span>
+
+    <span class="n">fx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">joint</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">fy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">joint</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">fxfy</span> <span class="o">=</span> <span class="n">fx</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">fy</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>
+
+    <span class="n">idx</span> <span class="o">=</span> <span class="n">joint</span> <span class="o">&gt;</span> <span class="mi">0</span>
+    <span class="n">mi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">joint</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">joint</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">/</span> <span class="n">fxfy</span><span class="p">[</span><span class="n">idx</span><span class="p">]))</span>
+
+    <span class="k">if</span> <span class="n">normalised</span><span class="p">:</span>
+        <span class="n">mi</span> <span class="o">/=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">fx</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">fx</span><span class="p">))</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">fy</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">fy</span><span class="p">)))</span>
+
+    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">mi</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="entropy"><a class="viewcode-back" href="../../index.html#disptools.measure.entropy">[docs]</a><span class="k">def</span> <span class="nf">entropy</span><span class="p">(</span>
+        <span class="n">image</span>      <span class="p">:</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">,</span>
+        <span class="n">mask</span>       <span class="p">:</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">bins</span>       <span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">256</span><span class="p">,</span>
+        <span class="n">sigma</span>      <span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+        <span class="n">window</span>     <span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Compute the entropy of an image.</span>
+
+<span class="sd">    The information entropy of a random variables :math:`X \sim p_X(x)`</span>
+<span class="sd">    is defined as</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        H(X) = \int p_{X}(x) \log p_X(x) dx</span>
+
+<span class="sd">    Entropy is estimated by approximating the probability density with</span>
+<span class="sd">    an intensity histogram.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    image : sitk.Image</span>
+<span class="sd">        Input image.</span>
+
+<span class="sd">    mask : sitk.Image</span>
+<span class="sd">        Binary image masking a region of interest.</span>
+
+<span class="sd">    bins : int</span>
+<span class="sd">        Number of bins for the intensity histogram.</span>
+
+<span class="sd">    sigma : float</span>
+<span class="sd">        Standard deviation for Gaussian smoothing of the histogram</span>
+<span class="sd">        histogram. If zero, no smoothing is used.</span>
+
+<span class="sd">    window : Tuple[float, float]</span>
+<span class="sd">        Intensity window. If not `None`, then values outside the</span>
+<span class="sd">        provided window are considered outliers and excluded from the</span>
+<span class="sd">        computation.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    float</span>
+<span class="sd">        An estimation of the information entropy of the image.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">data</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">GetArrayViewFromImage</span><span class="p">(</span><span class="n">image</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">mask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">GetArrayViewFromImage</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mf">0.0</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+
+    <span class="n">hist</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">histogram</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="n">bins</span><span class="p">,</span> <span class="nb">range</span><span class="o">=</span><span class="n">window</span><span class="p">)</span>
+    <span class="n">hist</span> <span class="o">=</span> <span class="n">ndimage</span><span class="o">.</span><span class="n">gaussian_filter</span><span class="p">(</span><span class="n">hist</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;constant&#39;</span><span class="p">)</span>
+    <span class="n">hist</span> <span class="o">=</span> <span class="n">hist</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">hist</span><span class="p">))</span>
+
+    <span class="n">idx</span> <span class="o">=</span> <span class="n">hist</span> <span class="o">&gt;</span> <span class="mi">0</span>
+
+    <span class="k">return</span> <span class="o">-</span><span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">hist</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">hist</span><span class="p">[</span><span class="n">idx</span><span class="p">])))</span></div>
+
+
+<div class="viewcode-block" id="volume_change"><a class="viewcode-back" href="../../index.html#disptools.measure.volume_change">[docs]</a><span class="k">def</span> <span class="nf">volume_change</span><span class="p">(</span>
+        <span class="n">jacobian</span> <span class="p">:</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">,</span>
+        <span class="n">mask</span>     <span class="p">:</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">average</span>  <span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">squared</span>  <span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Compute the volume change associated to a Jacobian map.</span>
+
+<span class="sd">    The total volume change associated to an invertible transform</span>
+<span class="sd">    :math:`f` over a ROI :math:`\Omega` is defined as</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        TVC(J) = \int_{p \in \Omega} |VC[f](x)| d\Omega</span>
+
+<span class="sd">    while the average absolute volume change is defined as</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        AVC(J) = \frac{1}{|\Omega|} \int_{p \in \Omega} |VC[f](x)| d\Omega</span>
+
+<span class="sd">    where the volume change is defined as</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        VC[f](x) =</span>
+<span class="sd">        \begin{cases}</span>
+<span class="sd">            1 - \frac{1}{J[f](x)}  \quad &amp;J[f](x) \in (0,1) \\</span>
+<span class="sd">            J[f](x) - 1            \quad &amp;J[f](x) \ge 1</span>
+<span class="sd">        \end{cases}</span>
+
+<span class="sd">    with :math:`J[f]` representing the Jacobian of :math:`f`.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    jacobian : sitk.Image</span>
+<span class="sd">        Jacobian map of the transform.</span>
+
+<span class="sd">    mask : sitk.Image</span>
+<span class="sd">        Binary image masking a region of interest.</span>
+
+<span class="sd">    average : bool</span>
+<span class="sd">        If ``true`` return the average and standard deviation, otherwise</span>
+<span class="sd">        return the total.</span>
+
+<span class="sd">    squared : bool</span>
+<span class="sd">        If ``true`` return the total or average of the squared volume</span>
+<span class="sd">        change.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    float</span>
+<span class="sd">        The total volume change.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">vc</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">GetArrayFromImage</span><span class="p">(</span><span class="n">dsp</span><span class="o">.</span><span class="n">jacobian_to_volume_change</span><span class="p">(</span><span class="n">jacobian</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">mask</span><span class="p">:</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">GetArrayViewFromImage</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+        <span class="n">vc</span> <span class="o">=</span> <span class="n">vc</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">squared</span><span class="p">:</span>
+        <span class="n">vc</span> <span class="o">=</span> <span class="n">vc</span> <span class="o">**</span> <span class="mi">2</span>
+    <span class="k">if</span> <span class="n">average</span><span class="p">:</span>
+        <span class="n">avc</span> <span class="o">=</span> <span class="n">reject_outliers</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">vc</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">avc</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">avc</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">vc</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="jaccard"><a class="viewcode-back" href="../../index.html#disptools.measure.jaccard">[docs]</a><span class="k">def</span> <span class="nf">jaccard</span><span class="p">(</span>
+        <span class="n">image1</span> <span class="p">:</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">,</span>
+        <span class="n">image2</span> <span class="p">:</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">,</span>
+        <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Compute the fitting index of an input object.</span>
+
+<span class="sd">    The Jaccard coefficient is defined as the measure of the</span>
+<span class="sd">    intersection over the measure of the union:</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        J(I_1, I_2) = \frac{|I_1 \bigcap I_2|}{|I_1 \bigcup I_2|}</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    image1 : sitk.Image</span>
+<span class="sd">        First input binary image.</span>
+
+<span class="sd">    image2 : sitk.Image</span>
+<span class="sd">        First input binary image.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    float</span>
+<span class="sd">        Value of the Jaccard coefficient.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">data1</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">GetArrayViewFromImage</span><span class="p">(</span><span class="n">image1</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+    <span class="n">data2</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">GetArrayViewFromImage</span><span class="p">(</span><span class="n">image2</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+
+    <span class="n">union</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="n">data1</span><span class="p">,</span> <span class="n">data2</span><span class="p">)</span>
+    <span class="n">intersection</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">data1</span><span class="p">,</span> <span class="n">data2</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">intersection</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">union</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="f"><a class="viewcode-back" href="../../index.html#disptools.measure.f">[docs]</a><span class="k">def</span> <span class="nf">f</span><span class="p">(</span>
+        <span class="n">image1</span> <span class="p">:</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">,</span>
+        <span class="n">image2</span> <span class="p">:</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Image</span><span class="p">,</span>
+        <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Compute the fitting index of an input object.</span>
+
+<span class="sd">    The F measure is defined as the harmonic mean of precision and</span>
+<span class="sd">    recall:</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        F(I_1, I_2) = \frac{2 \text{tp}}{2\text{tp} + \text{fp} + \text{fn}}</span>
+
+<span class="sd">    It is equivalent to the Sørensen-Dice coefficient, defined as two</span>
+<span class="sd">    times the measure of the intersection over the sum of the measures</span>
+<span class="sd">    of the two inputs:</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        J(I_1, I_2) = \frac{2 |I_1 \bigcap I_2|}{|I_1| + |I_2|}</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    image1 : sitk.Image</span>
+<span class="sd">        First input binary image.</span>
+
+<span class="sd">    image2 : sitk.Image</span>
+<span class="sd">        First input binary image.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    float</span>
+<span class="sd">        Value of the F measure.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">data1</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">GetArrayViewFromImage</span><span class="p">(</span><span class="n">image1</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+    <span class="n">data2</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">GetArrayViewFromImage</span><span class="p">(</span><span class="n">image2</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+
+    <span class="n">intersection</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">data1</span><span class="p">,</span> <span class="n">data2</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">intersection</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">data1</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">data2</span><span class="p">))</span></div>
+
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Martino Pilia.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+    <div style="padding-top: 1em;">
+        <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">
+            <img alt="Creative Commons License" 
+                 style="border-width:0"
+                 src="https://i.creativecommons.org/l/by-sa/4.0/80x15.png" />
+        </a>
+        <br/>
+        This documentation is freely available under the
+        <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">
+            Creative Commons Attribution-ShareAlike 4.0 International License
+        </a>.
+    </div>
+
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'0.4.0',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

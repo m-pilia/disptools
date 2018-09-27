@@ -1,0 +1,432 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>disptools &mdash; disptools 0.4.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+
+  
+  <script src="static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> disptools
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.4.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">disptools</a><ul>
+<li><a class="reference internal" href="#generate-displacement-fields-with-known-volume-changes">Generate displacement fields with known volume changes</a><ul>
+<li><a class="reference internal" href="#documentation">Documentation</a></li>
+<li><a class="reference internal" href="#quick-example">Quick example</a></li>
+<li><a class="reference internal" href="#architecture">Architecture</a></li>
+<li><a class="reference internal" href="#install">Install</a></li>
+<li><a class="reference internal" href="#build-from-source">Build from source</a><ul>
+<li><a class="reference internal" href="#requirements">Requirements</a></li>
+<li><a class="reference internal" href="#build-options">Build options</a></li>
+<li><a class="reference internal" href="#windows-visual-studio-and-linux">Windows (Visual Studio) and Linux</a></li>
+<li><a class="reference internal" href="#windows-mingw">Windows (MinGW)</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#references">References</a></li>
+<li><a class="reference internal" href="#license">License</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">disptools</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>disptools</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="sources/readme.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="disptools">
+<h1>disptools<a class="headerlink" href="#disptools" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="generate-displacement-fields-with-known-volume-changes">
+<h2>Generate displacement fields with known volume changes<a class="headerlink" href="#generate-displacement-fields-with-known-volume-changes" title="Permalink to this headline">¶</a></h2>
+<a class="reference external image-reference" href="https://github.com/m-pilia/disptools/releases/latest"><img alt="GitHub release" src="https://img.shields.io/github/release/m-pilia/disptools.svg" /></a>
+<a class="reference external image-reference" href="https://pypi.python.org/pypi/disptools"><img alt="PyPI" src="https://img.shields.io/pypi/v/disptools.svg" /></a>
+<a class="reference external image-reference" href="https://pypi.org/project/disptools"><img alt="Wheels" src="https://img.shields.io/pypi/wheel/disptools.svg" /></a>
+<a class="reference external image-reference" href="https://github.com/m-pilia/disptools/blob/master/LICENSE"><img alt="License" src="https://img.shields.io/badge/License-MIT-blue.svg" /></a>
+<a class="reference external image-reference" href="https://www.appveyor.com/"><img alt="Appveyor" src="https://ci.appveyor.com/api/projects/status/github/m-pilia/disptools?svg=true" /></a>
+<p>This library provides utilities to generate and manipulate displacement fields with known volume changes. It implements three search-based algorithms for the generation of deformation fields, along with a small collection of utility functions, and provides optional GPU acceleration through a CUDA implementation.</p>
+<p>The three algorithms implemented are referred as:</p>
+<ul class="simple">
+<li><span class="raw-html-m2r"><tt>gradient</tt></span>: a gradient descent method (default).</li>
+<li><span class="raw-html-m2r"><tt>greedy</tt></span>: a greedy search method proposed in <a class="reference external" href="#1">[1]</a>.</li>
+<li><span class="raw-html-m2r"><tt>matching</tt></span>: a volume matching method proposed in <a class="reference external" href="#2">[2]</a> and <a class="reference external" href="#3">[3]</a>. The implementation comes from the <a class="reference external" href="https://www.nitrc.org/projects/atrophysim">PREDICT atrophysim tool</a>.</li>
+</ul>
+<p>The library is built on top of SimpleITK, in order to provide a simple yet powerful set of functionalities for image analysis. Images stored as numpy arrays can be easily converted from and to <a class="reference external" href="http://simpleitk.github.io/SimpleITK-Notebooks/01_Image_Basics.html">SimpleITK</a> and <a class="reference external" href="https://blog.kitware.com/convert-itk-data-structures-to-numpy-arrays/">ITK</a> image objects.</p>
+<div class="section" id="documentation">
+<h3>Documentation<a class="headerlink" href="#documentation" title="Permalink to this headline">¶</a></h3>
+<p>The complete documentation for this package is available on <a class="reference external" href="https://martinopilia.com/disptools">https://martinopilia.com/disptools</a>.</p>
+</div>
+<div class="section" id="quick-example">
+<h3>Quick example<a class="headerlink" href="#quick-example" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">SimpleITK</span> <span class="kn">as</span> <span class="nn">sitk</span>
+<span class="kn">import</span> <span class="nn">disptools.displacements</span> <span class="kn">as</span> <span class="nn">dsp</span>
+<span class="kn">import</span> <span class="nn">disptools.drawing</span> <span class="kn">as</span> <span class="nn">drw</span>
+
+<span class="c1"># Create an example Jacobian map</span>
+<span class="c1"># A spherical ROI with a Jacobian of 1.1 (expansion)</span>
+<span class="n">jacobian</span> <span class="o">=</span> <span class="n">drw</span><span class="o">.</span><span class="n">create_sphere</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="n">fg_val</span><span class="o">=</span><span class="mf">1.1</span><span class="p">,</span> <span class="n">bg_val</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+
+<span class="c1"># Create a binary mask for the ROI</span>
+<span class="n">mask</span> <span class="o">=</span> <span class="n">drw</span><span class="o">.</span><span class="n">create_sphere</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">40</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+
+<span class="c1"># Generate the displacement</span>
+<span class="n">displacement</span> <span class="o">=</span> <span class="n">dsp</span><span class="o">.</span><span class="n">displacement</span><span class="p">(</span><span class="n">jacobian</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">)</span>
+
+<span class="c1"># Check the correctness of the result within the ROI</span>
+<span class="n">error</span> <span class="o">=</span> <span class="n">jacobian</span> <span class="o">-</span> <span class="n">dsp</span><span class="o">.</span><span class="n">jacobian</span><span class="p">(</span><span class="n">displacement</span><span class="p">)</span>
+<span class="n">error</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">Mask</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="n">mask</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>A 3D rendering of the resulting displacement field with <a class="reference external" href="https://www.paraview.org/">ParaView</a>, and a visualisation of the the error on the Jacobian within the ROI:</p>
+<p><span class="raw-html-m2r"><img src="sphinx/img/example_2.png" alt="displacement" width=45% /></span> <span class="raw-html-m2r"><img src="sphinx/img/example_1.png" alt="error" width=45% /></span></p>
+</div>
+<div class="section" id="architecture">
+<h3>Architecture<a class="headerlink" href="#architecture" title="Permalink to this headline">¶</a></h3>
+<p>The project is structured in three layers:</p>
+<ul class="simple">
+<li>a pure standard <a class="reference external" href="https://en.wikipedia.org/wiki/C99">C99</a> library (whose headers are in <span class="raw-html-m2r"><tt>src/headers</tt></span>), with no external dependencies, implementing the core algorithms for the generation of deformation fields. It is a standalone library that can be directly included in a C or C++ project. It is paired with an optional <a class="reference external" href="https://en.wikipedia.org/wiki/CUDA">CUDA</a> library, whose headers are in <span class="raw-html-m2r"><tt>cuda/headers</tt></span>, that depends on <span class="raw-html-m2r"><tt>src/headers</tt></span> and provides a GPGPU implementation of the key routines.</li>
+<li>a <a class="reference external" href="https://docs.python.org/3.6/extending/extending.html">Python C extension</a> package <span class="raw-html-m2r"><tt>_disptools</tt></span> (whose source is in the file <span class="raw-html-m2r"><tt>python_c_extension/_disptools.c</tt></span>), providing a bare Python wrapper to the aforementioned library, using the <a class="reference external" href="https://docs.scipy.org/doc/numpy-1.14.0/reference/c-api.html">NumPy C API</a> to pass arrays. This can be directly included in a Python project with no dependencies other than NumPy.</li>
+<li>a Python package (<span class="raw-html-m2r"><tt>disptools</tt></span>), that wraps the <span class="raw-html-m2r"><tt>_disptools</tt></span> package providing file IO (through SimpleITK) and implementing high-level features (such as the multi-resolution framework) and auxiliary utilities and functions.<ul>
+<li><span class="raw-html-m2r"><tt>disptools.displacements</tt></span>: module providing the main functions for the generation and manipulation of displacement fields.</li>
+<li><span class="raw-html-m2r"><tt>disptools.drawing</tt></span>: collection of utilities to create test images.</li>
+<li><span class="raw-html-m2r"><tt>disptools.io</tt></span>: collection of utilities to read and write to file.</li>
+<li><span class="raw-html-m2r"><tt>disptools.measure</tt></span>: collection of utilities to measure some image features.</li>
+<li><span class="raw-html-m2r"><tt>disptools.simulatrophy</tt></span>: routines to interface with the <a class="reference external" href="https://github.com/Inria-Asclepios/simul-atrophy">Simul&#64;atrophy</a> tool.</li>
+<li><span class="raw-html-m2r"><tt>disptools.predict</tt></span>: routines to interface with the <a class="reference external" href="https://www.nitrc.org/projects/atrophysim">PREDICT</a> tool.</li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="install">
+<h3>Install<a class="headerlink" href="#install" title="Permalink to this headline">¶</a></h3>
+<p>This package is available on <a class="reference external" href="https://pypi.org/project/disptools">PyPI</a> both as source distribution and as a Windows pre-compiled binary wheel. You can install it with <span class="raw-html-m2r"><tt>pip</tt></span>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3 -m pip install disptools
+</pre></div>
+</div>
+</div>
+<div class="section" id="build-from-source">
+<h3>Build from source<a class="headerlink" href="#build-from-source" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="requirements">
+<h4>Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h4>
+<p>The library is a cross-platform Python 3.5+ package, with a compiled C extension. The Python dependencies are:</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/numpy/numpy">numpy</a> (<a class="reference external" href="https://pypi.python.org/pypi/numpy">pypi package</a>)</li>
+<li><a class="reference external" href="https://github.com/scipy/scipy">scipy</a> (<a class="reference external" href="https://pypi.org/pypi/scipy">pypi package</a>)</li>
+<li><a class="reference external" href="https://github.com/SimpleITK/SimpleITK">SimpleITK</a> (<a class="reference external" href="https://pypi.org/pypi/SimpleITK">pypi package</a>)</li>
+</ul>
+<p>Build dependencies are a standard C compiler (tested with gcc 8.2 on Linux, mingw-w64 7.2 and MSVC 19 on Windows 10), <a class="reference external" href="https://cmake.org/">CMake</a>, the <a class="reference external" href="https://pypi.python.org/pypi/numpy">numpy</a> and the <a class="reference external" href="https://pypi.python.org/pypi/setuptools">setuptools</a> packages. <a class="reference external" href="https://pypi.python.org/pypi/scikit-build">scikit-build</a> may be required to build the other Python dependencies.</p>
+<p>Some optional dependencies are required only for a limited set of features, and the package should build and run without them:</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/InsightSoftwareConsortium/ITK">itk</a> (<a class="reference external" href="https://pypi.org/project/itk">pypi package</a>): for <span class="raw-html-m2r"><tt>disptools.drawing.sitk_to_itk</tt></span></li>
+<li><a class="reference external" href="https://github.com/Kitware/VTK">vtk</a> (<a class="reference external" href="https://pypi.org/project/vtk">pypi package</a>): for <span class="raw-html-m2r"><tt>disptools.io.write_vtk_points</tt></span></li>
+<li><a class="reference external" href="https://github.com/dabeaz/ply">ply</a> (<a class="reference external" href="https://pypi.org/project/ply">pypi package</a>): for <span class="raw-html-m2r"><tt>disptools.io.read_elastix_parameters</tt></span></li>
+<li><a class="reference external" href="https://github.com/scikit-image/scikit-image">scikit-image</a> (<a class="reference external" href="https://pypi.org/project/scikit-image">pypi package</a>): for <span class="raw-html-m2r"><tt>disptools.drawing.extract_slice</tt></span>, and to run the unit tests</li>
+</ul>
+</div>
+<div class="section" id="build-options">
+<h4>Build options<a class="headerlink" href="#build-options" title="Permalink to this headline">¶</a></h4>
+<p>The following build flags are recognised by <span class="raw-html-m2r"><tt>setup.py</tt></span>:</p>
+<ul class="simple">
+<li><span class="raw-html-m2r"><tt>--opt</tt></span>: enable non-portable optimisations.</li>
+<li><span class="raw-html-m2r"><tt>--debug</tt></span>: disable optimisations, compile with debug symbols.</li>
+<li><span class="raw-html-m2r"><tt>--cuda</tt></span>: enable CUDA support.</li>
+</ul>
+<p>Additional flags starting with <span class="raw-html-m2r"><tt>-D</tt></span> are also accepted and passed directly to <span class="raw-html-m2r"><tt>CMake</tt></span>.</p>
+</div>
+<div class="section" id="windows-visual-studio-and-linux">
+<h4>Windows (Visual Studio) and Linux<a class="headerlink" href="#windows-visual-studio-and-linux" title="Permalink to this headline">¶</a></h4>
+<p>Install the dependencies with your favourite package manager. For example, with <span class="raw-html-m2r"><tt>pip</tt></span>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3 -m pip install scikit-build numpy scipy SimpleITK
+</pre></div>
+</div>
+<p>The package provides a <span class="raw-html-m2r"><tt>setuptools</tt></span> based install script. To install the library, run from the project root folder</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3 setup.py install
+</pre></div>
+</div>
+<p>which should build the C extension and install the Python package.</p>
+</div>
+<div class="section" id="windows-mingw">
+<h4>Windows (MinGW)<a class="headerlink" href="#windows-mingw" title="Permalink to this headline">¶</a></h4>
+<ol class="arabic">
+<li><p class="first">First, be sure that <a class="reference external" href="https://mingw-w64.org">mingw</a>, CMake and Python are installed and their executables <a class="reference external" href="https://docs.python.org/3/using/windows.html#excursus-setting-environment-variables">are in your PATH</a>.</p>
+</li>
+<li><p class="first">Ensure that <span class="raw-html-m2r"><tt>gcc</tt></span> is working correctly:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>&gt; gcc --version
+gcc (x86_64-posix-seh-rev1, Built by MinGW-W64 project) 7.2.0
+Copyright (C) 2017 Free Software Foundation, Inc.
+This is free software; see the source for copying conditions.  There is NO
+warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+</pre></div>
+</div>
+</li>
+<li><p class="first">Ensure that <span class="raw-html-m2r"><tt>distutils</tt></span> correctly recognises your version of Visual Studio (even when using <span class="raw-html-m2r"><tt>mingw</tt></span>). Open the file <span class="raw-html-m2r"><tt>C:\Users\yourname\AppData\Local\Programs\Python\Python3x\Lib\distutils\cygwinccompiler.py</tt></span> (the exact location may vary according to your setup) and check that your version of Visual Studio is present in the function <span class="raw-html-m2r"><tt>get_msvcr()</tt></span>; if not, adjust it according to the following:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">get_msvcr</span><span class="p">():</span>
+ <span class="sd">&quot;&quot;&quot;Include the appropriate MSVC runtime library if Python was built</span>
+<span class="sd"> with MSVC 7.0 or later.</span>
+<span class="sd"> &quot;&quot;&quot;</span>
+ <span class="n">msc_pos</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">version</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;MSC v.&#39;</span><span class="p">)</span>
+ <span class="k">if</span> <span class="n">msc_pos</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+     <span class="n">msc_ver</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">version</span><span class="p">[</span><span class="n">msc_pos</span><span class="o">+</span><span class="mi">6</span><span class="p">:</span><span class="n">msc_pos</span><span class="o">+</span><span class="mi">10</span><span class="p">]</span>
+     <span class="k">if</span> <span class="n">msc_ver</span> <span class="o">==</span> <span class="s1">&#39;1300&#39;</span><span class="p">:</span>
+         <span class="c1"># MSVC 7.0</span>
+         <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;msvcr70&#39;</span><span class="p">]</span>
+     <span class="k">elif</span> <span class="n">msc_ver</span> <span class="o">==</span> <span class="s1">&#39;1310&#39;</span><span class="p">:</span>
+         <span class="c1"># MSVC 7.1</span>
+         <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;msvcr71&#39;</span><span class="p">]</span>
+     <span class="k">elif</span> <span class="n">msc_ver</span> <span class="o">==</span> <span class="s1">&#39;1400&#39;</span><span class="p">:</span>
+         <span class="c1"># VS2005 / MSVC 8.0</span>
+         <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;msvcr80&#39;</span><span class="p">]</span>
+     <span class="k">elif</span> <span class="n">msc_ver</span> <span class="o">==</span> <span class="s1">&#39;1500&#39;</span><span class="p">:</span>
+         <span class="c1"># VS2008 / MSVC 9.0</span>
+         <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;msvcr90&#39;</span><span class="p">]</span>
+     <span class="k">elif</span> <span class="n">msc_ver</span> <span class="o">==</span> <span class="s1">&#39;1600&#39;</span><span class="p">:</span>
+         <span class="c1"># VS2010 / MSVC 10.0</span>
+         <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;msvcr100&#39;</span><span class="p">]</span>
+     <span class="k">elif</span> <span class="n">msc_ver</span> <span class="o">==</span> <span class="s1">&#39;1700&#39;</span><span class="p">:</span>
+         <span class="c1"># Visual Studio 2012 / Visual C++ 11.0</span>
+         <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;msvcr110&#39;</span><span class="p">]</span>
+     <span class="k">elif</span> <span class="n">msc_ver</span> <span class="o">==</span> <span class="s1">&#39;1800&#39;</span><span class="p">:</span>
+         <span class="c1"># Visual Studio 2013 / Visual C++ 12.0</span>
+         <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;msvcr120&#39;</span><span class="p">]</span>
+     <span class="k">elif</span> <span class="n">msc_ver</span> <span class="o">==</span> <span class="s1">&#39;1900&#39;</span><span class="p">:</span>
+         <span class="c1"># Visual Studio 2015 / Visual C++ 14.0</span>
+         <span class="c1"># &quot;msvcr140.dll no longer exists&quot; http://blogs.msdn.com/b/vcblog/archive/2014/06/03/visual-studio-14-ctp.aspx</span>
+         <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;vcruntime140&#39;</span><span class="p">]</span>
+     <span class="k">else</span><span class="p">:</span>
+         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unknown MS Compiler version </span><span class="si">%s</span><span class="s2"> &quot;</span> <span class="o">%</span> <span class="n">msc_ver</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Ensure that the library <span class="raw-html-m2r"><tt>vcruntime140.dll</tt></span> is present in your library path. Otherwise, download it and place it in <span class="raw-html-m2r"><tt>C:\Users\yourname\AppData\Local\Programs\Python\Python3x\libs</tt></span> (the exact path may vary according to your setup).</p>
+</li>
+<li><p class="first">Install the dependencies:</p>
+<div class="highlight-cmd notranslate"><div class="highlight"><pre><span></span>&gt; python -m pip install scikit-build numpy scipy SimpleITK
+</pre></div>
+</div>
+</li>
+<li><p class="first">Clone the sources of this package with <span class="raw-html-m2r"><tt>git</tt></span>, or download and extract them as a <span class="raw-html-m2r"><tt>zip</tt></span> archive. Move to the root folder of the sources (<span class="raw-html-m2r"><tt>C:\Users\yourname\disptools</tt></span> in this example), specify the right compiler, and launch the setup script to build and install the package.</p>
+<div class="highlight-cmd notranslate"><div class="highlight"><pre><span></span>&gt; cd C:\Users\yourname\disptools
+&gt; python setup.py setopt --command=build --option=compiler --set-value=mingw32
+&gt; python setup.py install
+</pre></div>
+</div>
+</li>
+</ol>
+</div>
+</div>
+<div class="section" id="references">
+<h3>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><span class="raw-html-m2r"><a id="1"></a></span>[1] van Eede, M. C., Scholz, J., Chakravarty, M. M., Henkelman, R. M., and Lerch, J. P. <em>Mapping registration sensitivity in MR mouse brain images.</em> Neuroimage 82 (2013), 226–236.</li>
+<li><span class="raw-html-m2r"><a id="2"></a></span>[2] Karaçali, B., and Davatzikos, C. <em>Estimating topology preserving and smooth displacement fields.</em> IEEE Transactions on Medical Imaging 23, 7 (2004), 868–880.</li>
+<li><span class="raw-html-m2r"><a id="3"></a></span>[3] Karaçali, B., and Davatzikos, C. <em>Simulation of tissue atrophy using a topology preserving transformation model.</em> IEEE transactions on medical imaging 25, 5 (2006), 649–652.</li>
+</ul>
+</div>
+<div class="section" id="license">
+<h3>License<a class="headerlink" href="#license" title="Permalink to this headline">¶</a></h3>
+<p>The software is distributed under the MIT license.</p>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Martino Pilia.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+    <div style="padding-top: 1em;">
+        <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">
+            <img alt="Creative Commons License" 
+                 style="border-width:0"
+                 src="https://i.creativecommons.org/l/by-sa/4.0/80x15.png" />
+        </a>
+        <br/>
+        This documentation is freely available under the
+        <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">
+            Creative Commons Attribution-ShareAlike 4.0 International License
+        </a>.
+    </div>
+
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.4.0',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="static/jquery.js"></script>
+      <script type="text/javascript" src="static/underscore.js"></script>
+      <script type="text/javascript" src="static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  <script type="text/javascript" src="static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
