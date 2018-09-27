@@ -791,8 +791,8 @@ def decompose_displacements(
     transform :math:`f_3`, such that
 
     .. math::
-        f_1 = f_3 \circ f_2
-        d_1(x) = d_2(x) + d_3(d_2(x))
+        f_1 &= f_3 \circ f_2 \\
+        d_1(x) &= d_2(x) + d_3(d_2(x))
 
     Parameters
     ----------

@@ -84,7 +84,7 @@ def run(
         ) -> sitk.Image:
     r""" Wrapper around Simul\@atrophy.
 
-    Use Simul\@atrophy [1]_ to generate a displacement that realises the
+    Use Simul\@atrophy [7]_ to generate a displacement that realises the
     volume changes prescribed by the input Jacobian map. Optionally, the
     function can operate on a downsampled version of the image.
 
@@ -93,7 +93,7 @@ def run(
 
     References
     ----------
-    .. [1] Khanal, Bishesh, Nicholas Ayache, and Xavier Pennec.
+    .. [7] Khanal, Bishesh, Nicholas Ayache, and Xavier Pennec.
            "Simulating Longitudinal Brain MRIs with Known Volume Changes
            and Realistic Variations in Image Intensity." Frontiers in
            neuroscience 11 (2017): 132.
