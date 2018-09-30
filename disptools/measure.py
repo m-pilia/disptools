@@ -548,7 +548,7 @@ def jaccard(
         image1 : sitk.Image,
         image2 : sitk.Image,
         ) -> float:
-    r""" Compute the fitting index of an input object.
+    r""" Compute the Jaccard coefficient of two binary images.
 
     The Jaccard coefficient is defined as the measure of the
     intersection over the measure of the union:
@@ -583,7 +583,7 @@ def f(
         image1 : sitk.Image,
         image2 : sitk.Image,
         ) -> float:
-    r""" Compute the fitting index of an input object.
+    r""" Compute the F measure of two binary images.
 
     The F measure is defined as the harmonic mean of precision and
     recall:
