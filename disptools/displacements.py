@@ -257,7 +257,7 @@ def displacement(
         eta           : float = 0.1,
         eta_max       : float = 0.4,
         algorithm     : str = 'gradient',
-        gpu_id        : int = -1,
+        gpu_id        : int = -1
         ) -> sitk.Image:
     r""" Generate a displacement field that realises a given Jacobian.
 
