@@ -59,6 +59,7 @@ class CMakeBuild(build_ext):
                 '-DCMAKE_BUILD_TYPE=%s' % cfg,
                 '-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{}={}'.format(cfg.upper(), extdir),
                 '-DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_{}={}'.format(cfg.upper(), self.build_temp),
+                '-DPYTHON_EXECUTABLE={}'.format(sys.executable),
             ]
 
             if platform.system() == 'Windows':
