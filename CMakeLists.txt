@@ -40,14 +40,17 @@ if(DISPTOOLS_DEBUG)
     endif()
 else()
     add_definitions(-DDISPTOOLS_DEBUG=0)
-endif()
-
-# Enable optimisations if required
-if(DISPTOOLS_OPT AND NOT DISPTOOLS_DEBUG)
     if(MSVC)
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /Ox")
     else()
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -march=native")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3")
+    endif()
+endif()
+
+# Enable non-portable optimisations if required
+if(DISPTOOLS_OPT AND NOT DISPTOOLS_DEBUG)
+    if(NOT MSVC)
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=native")
     endif()
 endif()
 
