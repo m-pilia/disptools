@@ -440,7 +440,8 @@ def extract_slice(
         raise Exception('extract_slice: skimage module is required to use hsv interpolation.')
 
     if window is not None:
-        image = sitk.IntensityWindowing(image, *window, *window)
+        dest_window = window if isinstance(colormap, np.ndarray) else (0, 255)
+        image = sitk.IntensityWindowing(image, *window, *dest_window)
 
     if rescale:
         image = sitk.RescaleIntensity(image)
@@ -482,7 +483,7 @@ def extract_slice(
         data = (255.0 * data).astype(np.uint8)
         slice_image = sitk.GetImageFromArray(data, isVector=True)
     elif colormap is not None:
-        slice_image = sitk.Cast(sitk.RescaleIntensity(slice_image), sitk.sitkUInt8)
+        slice_image = sitk.Cast(slice_image, sitk.sitkUInt8)
         slice_image = sitk.ScalarToRGBColormap(slice_image, colormap, useInputImageExtremaForScaling=False)
 
     return slice_image
