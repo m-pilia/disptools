@@ -425,7 +425,7 @@ def extract_slice(
         colours through the selected colormap.
     hsv_interpolation : bool
         If `True`, perform colour interpolation in HSV space when using
-        a custom colour map.
+        a custom colour map (requires `scikit-image`).
     window : (float, float)
         Tuple composed by a couple of minimum and maximum values for
         intensity windowing.

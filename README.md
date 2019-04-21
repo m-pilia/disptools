@@ -7,6 +7,7 @@ Generate displacement fields with known volume changes
 [![Wheels](https://img.shields.io/pypi/wheel/disptools.svg)](https://pypi.org/project/disptools)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/m-pilia/disptools/blob/master/LICENSE)
 [![Appveyor](https://ci.appveyor.com/api/projects/status/github/m-pilia/disptools?svg=true)](https://www.appveyor.com/)
+[![Downloads](https://pepy.tech/badge/disptools)](https://pepy.tech/project/disptools)
 
 This library provides utilities to generate and manipulate displacement fields with known volume changes. It implements three search-based algorithms for the generation of deformation fields, along with a small collection of utility functions, and provides optional GPU acceleration through a CUDA implementation.
 
@@ -66,9 +67,16 @@ This package is available on [PyPI](https://pypi.org/project/disptools) both as 
  python3 -m pip install disptools
 ```
 
+As always, it is recommended to use the package inside a [virtual environment](https://docs.python.org/3/tutorial/venv.html).
+
 ### Build from source
 
 #### Requirements
+
+Requirements are specified by the <tt>requirements.txt</tt> file and can be installed with <tt>pip</tt>.
+```bash
+python3 -m pip install -r requirements.txt
+```
 
 The library is a cross-platform Python 3.5+ package, with a compiled C extension. The Python dependencies are:
 + [numpy](https://github.com/numpy/numpy) ([pypi package](https://pypi.python.org/pypi/numpy))
@@ -81,7 +89,7 @@ Some optional dependencies are required only for a limited set of features, and 
 + [itk](https://github.com/InsightSoftwareConsortium/ITK) ([pypi package](https://pypi.org/project/itk)): for <tt>disptools.drawing.sitk_to_itk</tt>
 + [vtk](https://github.com/Kitware/VTK) ([pypi package](https://pypi.org/project/vtk)): for <tt>disptools.io.write_vtk_points</tt>
 + [ply](https://github.com/dabeaz/ply) ([pypi package](https://pypi.org/project/ply)): for <tt>disptools.io.read_elastix_parameters</tt>
-+ [scikit-image](https://github.com/scikit-image/scikit-image) ([pypi package](https://pypi.org/project/scikit-image)): for <tt>disptools.drawing.extract_slice</tt>, and to run the unit tests
++ [scikit-image](https://github.com/scikit-image/scikit-image) ([pypi package](https://pypi.org/project/scikit-image)): for some features of <tt>disptools.drawing.extract_slice</tt>, and to run the unit tests
 
 #### Build options
 
@@ -96,7 +104,7 @@ Additional flags starting with <tt>-D</tt> are also accepted and passed directly
 
 Install the dependencies with your favourite package manager. For example, with <tt>pip</tt>:
 ```bash
-python3 -m pip install scikit-build numpy scipy SimpleITK
+python3 -m pip install -r requirements.txt
 ```
 
 The package provides a <tt>setuptools</tt> based install script. To install the library, run from the project root folder
@@ -158,15 +166,11 @@ def get_msvcr():
 
 4. Ensure that the library <tt>vcruntime140.dll</tt> is present in your library path. Otherwise, download it and place it in <tt>C:\Users\yourname\AppData\Local\Programs\Python\Python3x\libs</tt> (the exact path may vary according to your setup).
 
-5. Install the dependencies:
-```cmd
-> python -m pip install scikit-build numpy scipy SimpleITK
-```
-
-6. Clone the sources of this package with <tt>git</tt>, or download and extract them as a <tt>zip</tt> archive. Move to the root folder of the sources (<tt>C:\Users\yourname\disptools</tt> in this example), specify the right compiler, and launch the setup script to build and install the package.
+5. Clone the sources of this package with <tt>git</tt>, or download and extract them as a <tt>zip</tt> archive. Move to the root folder of the sources (<tt>C:\Users\yourname\disptools</tt> in this example), specify the right compiler, and launch the setup script to build and install the package.
 ```cmd
 > cd C:\Users\yourname\disptools
 > python setup.py setopt --command=build --option=compiler --set-value=mingw32
+> python -m pip install -r requirements.txt
 > python setup.py install
 ```
 
