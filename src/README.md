@@ -17,6 +17,6 @@ This folder contains the sources for the C library and its Python wrapper:
 
 + The C library can be compiled either in single or double precision, controlled through the macro `FLOAT_SIZE`. The NumPy type in the wrapper and in the higher level `disptools` package will be automatically selected accordingly to it.
 
-+ The `headers/field.h` header provides types for image objects and macros to access the voxels: the `__(img, x, y, z)` macro for scalar images, and the `_(img, x, y, z, d)` macro for vector images. The names may look meaningless, but they are as short and unintrusive as possible, in order to keep the code compact but readable.
++ The `headers/disptools.h` header provides types for image objects and macros to access the voxels: the `__(img, x, y, z)` macro for scalar images, and the `_(img, x, y, z, d)` macro for vector images. The names may look meaningless, but they are as short and unintrusive as possible, in order to keep the code compact but readable.
 
 + Vector images are represented in memory as arrays with indices `[d,z,y,x]` where `d` is the component of the field and `x`,`y`,`z` are the coordinates of the voxel. This differs from the ITK memory layout `[z,y,x,d]`, and the choice is motivated to allow better vectorisation of the code when SIMD instructions are enabled. 
