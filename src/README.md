@@ -3,15 +3,14 @@
 # Organisation
 
 This folder contains the sources for the C library and its Python wrapper:
-+ `headers/`: contains the header files for the C library. The main header is `headers/field.h`, which provides the fundamental types and macros. `headers/jacobian.h` implements an inline function to compute the Jacobian of a displacement field.
++ `headers/`: contains the header files for the C library. The main header is `headers/disptools.h`, which provides the fundamental types and macros. `headers/jacobian.h` implements an inline function to compute the Jacobian of a displacement field.
 + `displacement_field_gradient.c`: implements the `gradient` algorithm.
 + `displacement_field_greedy.c`: implements the `greedy` algorithm.
 + `VolumeMatching3D.c`: file from the PREDICT tool, which implements the `matching` algorithm.
 + `rvf_io.c`: provides input and output for displacement field files in RVF format.
 + `vtk_io.c`: provides basic input and output for scalar and vector images in VTK format.
 + `shape_descriptors.c`: implements some shape descriptors.
-+ `field.c` and `jacobian.c`: implement dynamic utility functions.
-+ `_disptools.c`: implements a [Python C extension](https://docs.python.org/3.6/extending/extending.html) that wraps this library and makes it callable from Python 3, using the [NumPy C API](https://docs.scipy.org/doc/numpy-1.14.0/reference/c-api.html) to pass vectors.
++ `disptools.c` and `jacobian.c`: implement dynamic utility functions.
 
 # Useful remarks
 
