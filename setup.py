@@ -1,9 +1,7 @@
 import os
 import platform
-import re
 import subprocess
 import sys
-import sysconfig
 from pprint import pprint
 from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext
@@ -11,14 +9,7 @@ from setuptools.command.build_ext import build_ext
 # Filename for the C extension module library
 c_module_name = '_disptools'
 
-# Parse command line flags
-options = {k: 'OFF' for k in ['--opt', '--debug', '--cuda']}
-for flag in options.keys():
-    if flag in sys.argv:
-        options[flag] = 'ON'
-        sys.argv.remove(flag)
-
-# Command line flags forwarded to CMake
+# Command line flags forwarded to CMake (for debug purpose)
 cmake_cmd_args = []
 for f in sys.argv:
     if f.startswith('-D'):
@@ -26,6 +17,12 @@ for f in sys.argv:
 
 for f in cmake_cmd_args:
     sys.argv.remove(f)
+
+
+def _get_env_variable(name, default='OFF'):
+    if name not in os.environ.keys():
+        return default
+    return os.environ[name]
 
 
 class CMakeExtension(Extension):
@@ -45,15 +42,15 @@ class CMakeBuild(build_ext):
         for ext in self.extensions:
 
             extdir = os.path.abspath(os.path.dirname(self.get_ext_fullpath(ext.name)))
-            cfg = 'Debug' if options['--debug'] == 'ON' else 'Release'
+            cfg = 'Debug' if _get_env_variable('DISPTOOLS_DEBUG') == 'ON' else 'Release'
 
             cmake_args = [
                 '-DDISPTOOLS_DEBUG=%s' % ('ON' if cfg == 'Debug' else 'OFF'),
-                '-DDISPTOOLS_OPT=%s' % options['--opt'],
+                '-DDISPTOOLS_OPT=%s' % _get_env_variable('DISPTOOLS_OPT'),
                 '-DDISPTOOLS_VERBOSE=ON',
-                '-DDISPTOOLS_LOW_ORDER_PD=OFF',
-                '-DDISPTOOLS_DOUBLE=OFF',
-                '-DDISPTOOLS_CUDA_SUPPORT=%s' % options['--cuda'],
+                '-DDISPTOOLS_LOW_ORDER_PD=%s' % _get_env_variable('DISPTOOLS_LOW_ORDER_PD'),
+                '-DDISPTOOLS_DOUBLE=%s' % _get_env_variable('DISPTOOLS_DOUBLE'),
+                '-DDISPTOOLS_CUDA_SUPPORT=%s' % _get_env_variable('DISPTOOLS_CUDA_SUPPORT'),
                 '-DDISPTOOLS_CUDA_ERROR_CHECK=ON',
                 '-DDISPTOOLS_CUDA_ERROR_CHECK_SYNC=ON',
                 '-DDISPTOOLS_PYTHON_SUPPORT=ON',

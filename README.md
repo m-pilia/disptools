@@ -6,7 +6,8 @@ Generate displacement fields with known volume changes
 [![PyPI](https://img.shields.io/pypi/v/disptools.svg)](https://pypi.python.org/pypi/disptools)
 [![Wheels](https://img.shields.io/pypi/wheel/disptools.svg)](https://pypi.org/project/disptools)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/m-pilia/disptools/blob/master/LICENSE)
-[![Appveyor](https://ci.appveyor.com/api/projects/status/github/m-pilia/disptools?svg=true)](https://www.appveyor.com/)
+[![Appveyor](https://ci.appveyor.com/api/projects/status/github/m-pilia/disptools?svg=true)](https://ci.appveyor.com/project/m-pilia/disptools)
+[![Travis CI Build Status](https://travis-ci.org/m-pilia/disptools.svg?branch=master)](https://travis-ci.org/m-pilia/disptools)
 [![Downloads](https://pepy.tech/badge/disptools)](https://pepy.tech/project/disptools)
 
 This library provides utilities to generate and manipulate displacement fields with known volume changes. It implements three search-based algorithms for the generation of deformation fields, along with a small collection of utility functions, and provides optional GPU acceleration through a CUDA implementation.
@@ -93,12 +94,10 @@ Some optional dependencies are required only for a limited set of features, and 
 
 #### Build options
 
-The following build flags are recognised by <tt>setup.py</tt>:
-+ <tt>--opt</tt>: enable non-portable optimisations.
-+ <tt>--debug</tt>: disable optimisations, compile with debug symbols.
-+ <tt>--cuda</tt>: enable CUDA support.
-
-Additional flags starting with <tt>-D</tt> are also accepted and passed directly to <tt>CMake</tt>.
+The following environment variables affect the <tt>setup.py</tt>:
++ <tt>DISPTOOLS_OPT=ON</tt>: enable non-portable optimisations.
++ <tt>DISPTOOLS_DEBUG=ON</tt>: disable optimisations, compile with debug symbols.
++ <tt>DISPTOOLS_CUDA_SUPPORT=ON</tt>: enable CUDA support.
 
 #### Windows (Visual Studio) and Linux
 

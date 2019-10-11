@@ -17,7 +17,7 @@ if(WIN32)
         python_c_extension
         PROPERTIES
         SUFFIX ".pyd"
-    )   
+    )
 endif()
 
 target_include_directories(python_c_extension PUBLIC
@@ -26,17 +26,18 @@ target_include_directories(python_c_extension PUBLIC
     ${PROJECT_SOURCE_DIR}/src/headers
     )
 
-target_link_libraries(python_c_extension
-    disptools
-    ${PYTHON_LIBRARIES}
-)
+target_link_libraries(python_c_extension disptools)
 
 if(DISPTOOLS_CUDA_SUPPORT)
     target_include_directories(python_c_extension PUBLIC
         ${PROJECT_SOURCE_DIR}/cuda/headers
         )
 
-    target_link_libraries(python_c_extension
-        disptools_cuda
-        )
+    target_link_libraries(python_c_extension disptools_cuda)
 endif()
+
+# On Windows, it is required to link to the Python libraries
+if(WIN32)
+    target_link_libraries(python_c_extension ${PYTHON_LIBRARIES})
+endif()
+
