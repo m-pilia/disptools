@@ -8,6 +8,7 @@ Generate displacement fields with known volume changes
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/m-pilia/disptools/blob/master/LICENSE)
 [![Appveyor](https://ci.appveyor.com/api/projects/status/github/m-pilia/disptools?svg=true)](https://ci.appveyor.com/project/m-pilia/disptools)
 [![Travis CI Build Status](https://travis-ci.org/m-pilia/disptools.svg?branch=master)](https://travis-ci.org/m-pilia/disptools)
+[![codecov](https://codecov.io/gh/m-pilia/disptools/branch/master/graph/badge.svg)](https://codecov.io/gh/m-pilia/disptools/branch/master)
 [![Downloads](https://pepy.tech/badge/disptools)](https://pepy.tech/project/disptools)
 
 This library provides utilities to generate and manipulate displacement fields with known volume changes. It implements three search-based algorithms for the generation of deformation fields, along with a small collection of utility functions, and provides optional GPU acceleration through a CUDA implementation.

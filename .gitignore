@@ -10,4 +10,9 @@ sphinx/readme.rst
 sphinx/_build
 .ycm_extra_conf.py
 .venv
+.ccls
+compile_flags.txt
+compile_commands.json
+.coverage
+coverage.xml
 

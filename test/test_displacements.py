@@ -34,7 +34,7 @@ class Test_Displacements(unittest.TestCase):
 
         img = sitk.GetImageFromArray(perturbed_data)
 
-        res = displacements.regularise(img)
+        res = displacements.regularise(img, epsilon)
 
         a = sitk.GetArrayViewFromImage(res)
         self.assertTrue(np.array_equal(original_data[not_mask], a[not_mask]))

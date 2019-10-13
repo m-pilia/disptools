@@ -10,8 +10,35 @@ env:
     - CIBW_BUILD="cp35-manylinux1_x86_64 cp36-manylinux1_x86_64 cp37-manylinux1_x86_64"
 
 script:
+  # Build wheels
   - pip install cibuildwheel==0.12.0
   - cibuildwheel --platform linux --output-dir dist
+
+  # Run Python tests
+  - |
+    docker run -v "$(pwd)":/mnt martinopilia/disptools:1 bash -c '
+    set -xeo pipefail
+    cd /mnt
+    /opt/python/cp37-cp37m/bin/python -m venv /tmp/venv
+    source /tmp/venv/bin/activate
+    pip install codecov==2.0.15 itk SimpleITK scikit-image vtk ply dist/*cp37*.whl
+    python -m coverage run -m unittest discover
+    coverage xml -o coverage.xml
+    deactivate
+    '
+  - whoami | xargs -I{} sudo chown -R {} .
+
+  # Run C tests
+  - mkdir build
+  - cd build
+  - cmake -DDISPTOOLS_COVERAGE=ON ..
+  - make
+  - ctest -VV
+  - cd "${TRAVIS_BUILD_DIR}"
+  - find . -type f -name '*.gcda' -exec gcov {} \;
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash) -X gcov -X coveragepy
 
 deploy:
   provider: pypi
