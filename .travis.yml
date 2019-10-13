@@ -1,0 +1,24 @@
+sudo: required
+services:
+- docker
+language: python
+
+env:
+  global:
+    - CIBW_ENVIRONMENT="DISPTOOLS_CUDA_SUPPORT=ON"
+    - CIBW_MANYLINUX1_X86_64_IMAGE=martinopilia/disptools:1
+    - CIBW_BUILD="cp35-manylinux1_x86_64 cp36-manylinux1_x86_64 cp37-manylinux1_x86_64"
+
+script:
+  - pip install cibuildwheel==0.12.0
+  - cibuildwheel --platform linux --output-dir dist
+
+deploy:
+  provider: pypi
+  edge: true
+  distributions: sdist
+  cleanup: false
+  on:
+    tags: true
+  username: __token__
+  password: i9X+K73tRVb8aV0V6T7DompYAP78r6ggJD4wpx6vXML4hw6EOumR0XoGrPbO8rZDBHLHRN0s9xtT0WaOAaYP5Gj3VA1mez1JJJyPswUjufRHg22LHhEGXNucrdVq9t9JGQD9D+IBD+VbI2K2pnhywxH6Aq04UDcZ2BzK9hHe2eMnG/0GLXrYMkUt1odBi/HnOla0GPXVYRTD4nUXHUoTJuq3mBdIj8guY7hxAbYJKO/ZSObatHO075iI5AywnVMXfBEqUi+caVltx1Ehf3HAA8lgDJO0qYEtxGclocb7KNMOJsgK4TPv47s/KjdS6rzsNudkKA96Q2nqhAPnoi4fDybWEBbZ+WKjRkMwoRiiaaYXyW71tl7ba0Gmvnuv5W/4YxRlh3s3mhw/7kbhWDelw/c6fJO81aEyWW+JrW27EIfhkki6yCIScAjmXDI/TRTnlCjeIxVEnn+BrxKcEZDWjujcLKLCkBE5hjtKJqFHN59FeLP9LjFTLXseOWIXCXSWh9VZd9WLgs/MxJphBGAmOc5bf6XoEcrtG6MQwcg4cRcq+nL0pwkDtOvOWDmfjETwECUka3FdxWmDDUyMxUS+osCyEop9XoapKAJcKPus0VWv4JT67wdvnZJ+BLg4woXU31VERQQfsq7WY5166oXNOiMBz2W9D/+PXPybDR5LbHM=

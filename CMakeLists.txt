@@ -20,9 +20,9 @@ set(DISPTOOLS_PYTHON_C_MODULE_NAME "_disptools" CACHE STRING "Name of the C exte
 # Find OpenMP if required
 if(DISPTOOLS_OMP_SUPPORT)
     find_package(OpenMP REQUIRED)
-    if (OPENMP_FOUND)
-        set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-        set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
+    if(OPENMP_FOUND)
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
     endif()
 else()
     if(NOT MSVC)
@@ -116,18 +116,33 @@ endif()
 
 # Add Python component if requested
 if(DISPTOOLS_PYTHON_SUPPORT)
+    set(Python_FIND_VIRTUALENV FIRST)
     find_package(PythonInterp 3.5 REQUIRED)
+
+    # Find NumPy headers
     exec_program(${PYTHON_EXECUTABLE}
-                 ARGS "-c \"import numpy; print(numpy.get_include())\""
-                 OUTPUT_VARIABLE NUMPY_INCLUDE_DIR
-                 RETURN_VALUE NUMPY_NOT_FOUND
-                )
+        ARGS "-c \"import numpy; print(numpy.get_include())\""
+        OUTPUT_VARIABLE NUMPY_INCLUDE_DIR
+        RETURN_VALUE NUMPY_NOT_FOUND
+        )
     if(NUMPY_NOT_FOUND)
         message(FATAL_ERROR "NumPy headers not found")
     endif()
 
-    # This goes after, since it uses PythonInterp as hint
-    find_package(PythonLibs 3.5 REQUIRED)
+    # Find Python headers
+    exec_program(${PYTHON_EXECUTABLE}
+        ARGS "-c \"import sysconfig; print(sysconfig.get_paths()['include'])\""
+        OUTPUT_VARIABLE PYTHON_INCLUDE_DIRS
+        RETURN_VALUE PYTHON_INCLUDE_DIRS_NOT_FOUND
+        )
+    if(PYTHON_INCLUDE_DIRS_NOT_FOUND)
+        message(FATAL_ERROR "Python headers not found")
+    endif()
+
+    # This goes after, since it uses PythonInterp as a hint
+    if(WIN32)
+        find_package(PythonLibs 3.5 REQUIRED)
+    endif()
 
     add_subdirectory(python_c_extension)
 endif()

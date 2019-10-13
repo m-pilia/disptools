@@ -1,41 +1,35 @@
 version: '{branch}-{build}'
 
 image:
-  - Ubuntu
   - Visual Studio 2017
 
 environment:
-  stack: python 3
-
+  TWINE_USERNAME: __token__
+  TWINE_PASSWORD:
+    secure: WFyO9ZBageC+MaGtJPqYZNCDK3FZTITux2G6TYIxExak1UHklW6RMddTT6naxHCac9VPjGazPUo2JcYs8UjN12tkYJBtykc0c8mM0STI3ksD7mkHL+dnCGTEn0yF5MpaGrSsH5Nimh8nf2FzDP/dyMZGeWd871ymN+sMNnddrLeQD4jdQtXGgXRnJyVIVvDEJorfiMxSk19zzWFlc6xXneq97hE7XSMNGXgIWJCtDTTzjSpO42T4ijxZABVLLRtCM/KwWNI/EOwbPYU++37jKg==
   matrix:
-    # 64 bit
-    - PYTHON: "C:\\Python37-x64"
-      VS_CALL: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Community\\VC\\Auxiliary\\Build\\vcvars64.bat"
+    - CIBW_ENVIRONMENT: "DISPTOOLS_CUDA_SUPPORT=ON"
+      CIBW_BUILD: "cp35-win_amd64 cp36-win_amd64 cp37-win_amd64"
+      USE_CUDA: 1
+    - CIBW_BUILD: "cp35-win32 cp36-win32 cp37-win32"
 
-    # 32 bit
-    - PYTHON: "C:\\Python37"
-      VS_CALL: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Community\\VC\\Auxiliary\\Build\\vcvars32.bat"
-
-matrix:
-  exclude:
-    - PYTHON: "C:\\Python37"
-      image: Ubuntu
-
-before_build:
-  - cmd: set PATH=%PYTHON%;%PYTHON%\Scripts;%PATH%
-  - cmd: call "%VS_CALL%"
-  - cmd: python --version
-  - cmd: pip install --user numpy
-
-  - sh: sudo apt-get --yes install python3-pip
-  - sh: python3 --version
-  - sh: pip3 install --user numpy
+install:
+  - pip install twine
+  - IF DEFINED USE_CUDA appveyor DownloadFile http://developer.download.nvidia.com/compute/cuda/10.1/Prod/network_installers/cuda_10.1.243_win10_network.exe -FileName cuda.exe
+  - IF DEFINED USE_CUDA cuda.exe -s nvcc_10.1 cudart_10.1 visual_studio_integration_10.1
+  - IF DEFINED USE_CUDA set PATH=%ProgramFiles%\NVIDIA GPU Computing Toolkit\CUDA\v10.1\bin;%PATH%
+  - IF DEFINED USE_CUDA set CUDA_PATH=%ProgramFiles%\NVIDIA GPU Computing Toolkit\CUDA\v10.1
+  - IF DEFINED USE_CUDA set CUDA_PATH_V10_1=%ProgramFiles%\NVIDIA GPU Computing Toolkit\CUDA\v10.1
+  - IF DEFINED USE_CUDA nvcc --version
 
 build_script:
-  - cmd: set PATH=%PYTHON%;%PYTHON%\Scripts;%PATH%
-  - cmd: python --version
-  - cmd: python setup.py build --opt
+  - pip install cibuildwheel==0.12.0
+  - cibuildwheel --output-dir dist
 
-  - sh: python3 --version
-  - sh: python3 setup.py build --opt
+artifacts:
+  - path: "dist\\*.whl"
+    name: Wheels
+
+deploy_script:
+  - ps: If ($env:APPVEYOR_REPO_TAG -eq "true" -And $env:APPVEYOR_REPO_BRANCH -eq "master") { Invoke-Expression "python -m twine upload --skip-existing dist/*.whl" }
 
