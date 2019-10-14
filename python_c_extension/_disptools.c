@@ -345,7 +345,14 @@ static PyObject *method_displacement(PyObject *self, PyObject *args)
 
     /* Select the appropriate function for the algorithm */
     DisplacementFunction displacement_function = NULL;
-    if (DISPTOOLS_HAS_CUDA && gpu_id >= 0) {
+    if (!DISPTOOLS_HAS_CUDA && gpu_id >= 0) {
+        PyErr_Format(PyExc_ValueError,
+                     "Parameter gpu_id is set to %d, but this version "
+                     "of disptools is built with no CUDA support.",
+                     gpu_id);
+        return NULL;
+    }
+    else if (DISPTOOLS_HAS_CUDA && gpu_id >= 0) {
 #if DISPTOOLS_HAS_CUDA
         if(!set_device(gpu_id)) {
             PyErr_Format(PyExc_ValueError, "Cannot set CUDA device %d", gpu_id);
