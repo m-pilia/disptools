@@ -1,6 +1,10 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.11)
 
-project(disptools)
+project(disptools LANGUAGES C)
+
+set(CMAKE_C_STANDARD 99)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+set(CMAKE_C_EXTENSIONS OFF)
 
 option(DISPTOOLS_DEBUG "Debug build" OFF)
 option(DISPTOOLS_OPT "Enable platform-specific optimisations" OFF)
@@ -13,6 +17,28 @@ option(DISPTOOLS_CUDA_SUPPORT "Build with CUDA support" OFF)
 option(DISPTOOLS_CUDA_ERROR_CHECK "Error check for CUDA calls" ON)
 option(DISPTOOLS_CUDA_ERROR_CHECK_SYNC "Sync device when checking errors" ON)
 option(DISPTOOLS_PYTHON_SUPPORT "Build Python C extension module" OFF)
+option(DISPTOOLS_BUILD_TESTS "Build unit tests" OFF)
+option(DISPTOOLS_COVERAGE "Measure code coverage" OFF)
+
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
+
+if(DISPTOOLS_COVERAGE)
+    if(MSVC)
+        message(FATAL_ERROR "Code coverage not implemented for MSVC")
+    endif()
+
+    set(DISPTOOLS_BUILD_TESTS ON)
+    set(DISPTOOLS_DEBUG ON)
+
+    set(DISPTOOLS_COVERAGE_FLAGS " -coverage -fprofile-arcs -ftest-coverage ")
+
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${DISPTOOLS_COVERAGE_FLAGS}")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -coverage -lgcov")
+endif()
+
+if(DISPTOOLS_BUILD_TESTS)
+    enable_testing()
+endif()
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(DISPTOOLS_PYTHON_C_MODULE_NAME "_disptools" CACHE STRING "Name of the C extension module file")
@@ -88,7 +114,7 @@ endif()
 if(MSVC)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W0")
 else()
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -std=c99")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra")
 endif()
 
 add_subdirectory(src)
@@ -112,6 +138,11 @@ if(DISPTOOLS_CUDA_SUPPORT)
     endif()
 
     add_subdirectory(cuda)
+endif()
+
+# Build test suite
+if(DISPTOOLS_BUILD_TESTS)
+    add_subdirectory(test)
 endif()
 
 # Add Python component if requested
