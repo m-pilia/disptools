@@ -306,7 +306,7 @@ def float_dilate(image: sitk.Image, dilate: int) -> sitk.Image:
 
     original_type = image.GetPixelID()
     image = sitk.Cast(image, sitk.sitkUInt8)
-    image = sitk.BinaryDilate(image, dilate)
+    image = sitk.BinaryDilate(image, [dilate] * image.GetDimension())
     image = sitk.Cast(image, original_type)
 
     return image
