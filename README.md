@@ -7,7 +7,7 @@ Generate displacement fields with known volume changes
 [![Wheels](https://img.shields.io/pypi/wheel/disptools.svg)](https://pypi.org/project/disptools)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/m-pilia/disptools/blob/master/LICENSE)
 [![Appveyor](https://ci.appveyor.com/api/projects/status/github/m-pilia/disptools?svg=true)](https://ci.appveyor.com/project/m-pilia/disptools)
-[![Travis CI Build Status](https://travis-ci.org/m-pilia/disptools.svg?branch=master)](https://travis-ci.org/m-pilia/disptools)
+[![GitHub Actions](https://github.com/m-pilia/disptools/workflows/ChecksLinux/badge.svg)](https://github.com/m-pilia/disptools/actions/workflows/checks_linux.yml)
 [![codecov](https://codecov.io/gh/m-pilia/disptools/branch/master/graph/badge.svg)](https://codecov.io/gh/m-pilia/disptools/branch/master)
 [![Downloads](https://pepy.tech/badge/disptools)](https://pepy.tech/project/disptools)
 

@@ -9,12 +9,15 @@ environment:
     secure: WFyO9ZBageC+MaGtJPqYZNCDK3FZTITux2G6TYIxExak1UHklW6RMddTT6naxHCac9VPjGazPUo2JcYs8UjN12tkYJBtykc0c8mM0STI3ksD7mkHL+dnCGTEn0yF5MpaGrSsH5Nimh8nf2FzDP/dyMZGeWd871ymN+sMNnddrLeQD4jdQtXGgXRnJyVIVvDEJorfiMxSk19zzWFlc6xXneq97hE7XSMNGXgIWJCtDTTzjSpO42T4ijxZABVLLRtCM/KwWNI/EOwbPYU++37jKg==
   matrix:
     - CIBW_ENVIRONMENT: "DISPTOOLS_CUDA_SUPPORT=ON"
-      CIBW_BUILD: "cp35-win_amd64 cp36-win_amd64 cp37-win_amd64"
+      CIBW_BUILD: "cp36-win_amd64 cp37-win_amd64 cp38-win_amd64 cp39-win_amd64"
       USE_CUDA: 1
-    - CIBW_BUILD: "cp35-win32 cp36-win32 cp37-win32"
+      PYTHON: "C:\\Python38-x64"
+    - CIBW_BUILD: "cp36-win32 cp37-win32 cp38-win32 cp39-win32"
+      PYTHON: "C:\\Python38"
 
 install:
-  - pip install twine
+  - SET PATH=%PYTHON%;%PATH%
+  - python -m pip install twine
   - IF DEFINED USE_CUDA appveyor DownloadFile http://developer.download.nvidia.com/compute/cuda/10.1/Prod/network_installers/cuda_10.1.243_win10_network.exe -FileName cuda.exe
   - IF DEFINED USE_CUDA cuda.exe -s nvcc_10.1 cudart_10.1 visual_studio_integration_10.1
   - IF DEFINED USE_CUDA set PATH=%ProgramFiles%\NVIDIA GPU Computing Toolkit\CUDA\v10.1\bin;%PATH%
@@ -23,8 +26,8 @@ install:
   - IF DEFINED USE_CUDA nvcc --version
 
 build_script:
-  - pip install cibuildwheel==0.12.0
-  - cibuildwheel --output-dir dist
+  - python -m pip install cibuildwheel==2.3.0
+  - python -m cibuildwheel --output-dir dist
 
 artifacts:
   - path: "dist\\*.whl"
@@ -33,3 +36,7 @@ artifacts:
 deploy_script:
   - ps: If ($env:APPVEYOR_REPO_TAG -eq "true" -And $env:APPVEYOR_REPO_BRANCH -eq "master") { Invoke-Expression "python -m twine upload --skip-existing dist/*.whl" }
 
+notifications:
+  - provider: Email
+    on_build_failure: false
+    on_build_status_changed: false

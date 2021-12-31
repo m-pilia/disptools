@@ -68,6 +68,7 @@ def mask_to_simulatrophy_mask(
     """
 
     image = image > 0
+    radius = ([radius] * image.GetDimension()) if radius is not None else None
     dilated = sitk.BinaryDilate(image, radius, kernel) if radius is not None else 1
     return 2 * image + dilated
 

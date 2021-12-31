@@ -1,0 +1,119 @@
+name: ChecksLinux
+
+on: [push, pull_request]
+
+jobs:
+  ValidateCodecov:
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Validate Codecov configuration
+      shell: bash
+      run: |
+        curl --data-binary @.codecov.yml https://codecov.io/validate | tee codecov_validation
+        head -n 1 codecov_validation | grep 'Valid!'
+
+  TestC:
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Run C tests
+      shell: bash
+      run: |
+        mkdir build
+        cd build
+        cmake -DDISPTOOLS_COVERAGE=ON ..
+        make
+        ctest -VV
+        cd "${GITHUB_WORKSPACE}"
+        find . -type f -name '*.gcda' -exec gcov {} \;
+
+    - name: Upload coverage report
+      uses: codecov/codecov-action@v2.1.0
+      with:
+        fail_ci_if_error: true
+        verbose: true
+
+  BuildWheels:
+    runs-on: ubuntu-latest
+    env:
+      CIBW_ENVIRONMENT: "DISPTOOLS_CUDA_SUPPORT=ON CUDACXX=/usr/local/cuda/bin/nvcc"
+      CIBW_MANYLINUX1_X86_64_IMAGE: martinopilia/disptools:1
+      CIBW_BUILD: "cp36-manylinux_x86_64 cp37-manylinux_x86_64 cp38-manylinux_x86_64 cp39-manylinux_x86_64"
+      CIBW_BEFORE_ALL: >
+        yum-config-manager --add-repo https://developer.download.nvidia.com/compute/cuda/repos/rhel7/x86_64/cuda-rhel7.repo &&
+        yum install --setopt=obsoletes=0 -y cuda-nvcc-11-2-11.2.152-1 cuda-cudart-devel-11-2-11.2.152-1 &&
+        ln -s cuda-11.2 /usr/local/cuda
+    steps:
+
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Install Python dependencies
+      run: |
+        pip install --user cibuildwheel==2.3.0
+
+    - name: Build wheels
+      shell: bash
+      run: |
+        cibuildwheel --platform linux --output-dir dist
+
+    - name: Archive wheels
+      uses: actions/upload-artifact@v2
+      with:
+        name: wheels
+        path: dist/*.whl
+
+    - name: Publish wheels
+      if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        user: __token__
+        password: ${{ secrets.PYPI_API_TOKEN }}
+
+  TestPython:
+    runs-on: ubuntu-latest
+    needs: BuildWheels
+    strategy:
+      matrix:
+        python-version: ['3.6', '3.7', '3.8', '3.9']
+    env:
+      PYTHON_VER: ${{ matrix.python-version }}
+    steps:
+
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - uses: actions/download-artifact@v2
+      with:
+        name: wheels
+
+    - name: Display structure of downloaded files
+      run: ls -R
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install Python dependencies
+      run: |
+        pip install --user codecov==2.0.15 itk==5.2.1 SimpleITK==2.1.0 scikit-image vtk==9.1.0 ply==3.11 *cp${PYTHON_VER//./}*.whl
+
+    - name: Run Python tests
+      shell: bash
+      run: |
+        python -m coverage run -m unittest discover
+        coverage xml -o coverage.xml
+
+    - name: Upload coverage report
+      uses: codecov/codecov-action@v2.1.0
+      with:
+        fail_ci_if_error: true
+        verbose: true

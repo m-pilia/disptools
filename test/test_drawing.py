@@ -124,7 +124,8 @@ class Test_Drawing(unittest.TestCase):
                 data = (np.random.rand(n, n, n) < 0.5).astype(np.uint8)
 
                 binary_image = sitk.GetImageFromArray(data)
-                dilated = sitk.BinaryDilate(binary_image, dilation)
+                dilation_radius = [dilation] * binary_image.GetDimension()
+                dilated = sitk.BinaryDilate(binary_image, dilation_radius)
 
                 image = sitk.Cast(binary_image, drawing.sitk_float_type)
                 oracle = sitk.Cast(dilated, drawing.sitk_float_type)

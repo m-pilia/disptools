@@ -1,0 +1,6 @@
+!.appveyor.yml
+!.codecov.yml
+!.coveragerc
+!.github
+!.gitignore
+!.ignore
