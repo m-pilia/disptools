@@ -848,10 +848,10 @@ def field_zero_padding(
         A padded vector field.
     """
 
-    a = np.lib.pad(sitk.GetArrayViewFromImage(field),
-                   (size_x, size_y, size_z, (0,0)),
-                   'constant',
-                   constant_values=0.0)
+    a = np.pad(sitk.GetArrayViewFromImage(field),
+               (size_x, size_y, size_z, (0,0)),
+               'constant',
+               constant_values=0.0)
 
     field_pad = sitk.GetImageFromArray(a)
     field_pad.SetSpacing(field.GetSpacing())

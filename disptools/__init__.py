@@ -19,7 +19,7 @@ except ImportError as e:
 __author__    = 'Martino Pilia'
 __copyright__ = 'Copyright (C) 2018 Martino Pilia'
 __license__   = 'MIT'
-__version__   = '0.1'
+__version__   = '0.4.1'
 
 # Set the floating point type
 # OBS! This must be the same used in the C library

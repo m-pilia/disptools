@@ -91,7 +91,7 @@ class CMakeBuild(build_ext):
 
 
 # The following line is parsed by Sphinx
-version = '0.4.0'
+version = '0.4.1'
 
 setup(name='disptools',
       packages=['disptools'],
